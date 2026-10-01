@@ -1,0 +1,3 @@
+-keep class com.arthenica.ffmpegkit.** { *; }
+-keep class org.tensorflow.lite.** { *; }
+-dontwarn okhttp3.**
