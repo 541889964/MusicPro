@@ -94,6 +94,7 @@ public class IslandService extends Service {
         lp = new WindowManager.LayoutParams(
             getIslandWidthPx(), getIslandHeightPx(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -123,7 +124,9 @@ public class IslandService extends Service {
 
         View.OnClickListener playClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
+                android.util.Log.d("Island", "click PLAY");
                 bounce(v);
+                if (player == null) player = MusicService.sharedPlayer;
                 if (player != null) {
                     if (player.isPlaying()) player.pause(); else player.play();
                 }
@@ -131,7 +134,9 @@ public class IslandService extends Service {
         };
         View.OnClickListener prevClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
+                android.util.Log.d("Island", "click PREV");
                 bounce(v);
+                if (player == null) player = MusicService.sharedPlayer;
                 if (player != null && player.hasPreviousMediaItem()) {
                     player.seekToPreviousMediaItem();
                     player.play();
@@ -140,7 +145,9 @@ public class IslandService extends Service {
         };
         View.OnClickListener nextClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
+                android.util.Log.d("Island", "click NEXT");
                 bounce(v);
+                if (player == null) player = MusicService.sharedPlayer;
                 if (player != null && player.hasNextMediaItem()) {
                     player.seekToNextMediaItem();
                     player.play();
@@ -159,6 +166,12 @@ public class IslandService extends Service {
         if (collapsedRoot != null) collapsedRoot.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { toggleExpand(); }
         });
+        // ★ 展开态点击空白区域 → 收起
+        if (expandedRoot != null) {
+            expandedRoot.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { toggleExpand(); }
+            });
+        }
 
         if (progress != null) {
             progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -185,6 +198,28 @@ public class IslandService extends Service {
             
             shineAnim.setInterpolator(new AccelerateDecelerateInterpolator());
             shineAnim.start();
+        }
+
+        // 手势：向上滑收起
+        if (island != null) {
+            island.setOnTouchListener(new View.OnTouchListener() {
+                private float startY = 0;
+                @Override public boolean onTouch(View v, android.view.MotionEvent e) {
+                    switch (e.getAction()) {
+                        case android.view.MotionEvent.ACTION_DOWN:
+                            startY = e.getRawY();
+                            return false; // 不拦截，让子 view 处理
+                        case android.view.MotionEvent.ACTION_UP:
+                            float dy = e.getRawY() - startY;
+                            if (expanded && dy < -50 && Math.abs(dy) > 60) {
+                                toggleExpand();
+                                return true;
+                            }
+                            return false;
+                    }
+                    return false;
+                }
+            });
         }
 
         island.setAlpha(0f);

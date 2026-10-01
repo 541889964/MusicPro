@@ -44,18 +44,21 @@
         </LinearLayout>
 
         <ImageButton android:id="@+id/islandPrevMini"
+            android:clickable="true" android:focusable="true"
             android:layout_width="28dp" android:layout_height="28dp"
             android:src="@android:drawable/ic_media_previous"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:tint="#FFFFFF" android:padding="4dp"/>
 
         <ImageButton android:id="@+id/islandPlay"
+            android:clickable="true" android:focusable="true"
             android:layout_width="36dp" android:layout_height="36dp"
             android:src="@android:drawable/ic_media_pause"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:tint="#FF6B9D" android:padding="6dp"/>
 
         <ImageButton android:id="@+id/islandNextMini"
+            android:clickable="true" android:focusable="true"
             android:layout_width="28dp" android:layout_height="28dp"
             android:src="@android:drawable/ic_media_next"
             android:background="?android:attr/selectableItemBackgroundBorderless"
@@ -64,6 +67,7 @@
 
     <!-- 展开态 -->
     <LinearLayout android:id="@+id/islandExpanded"
+        android:clickable="true" android:focusable="true"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@drawable/island_bg_expanded"
@@ -130,6 +134,7 @@
             android:orientation="horizontal" android:layout_marginTop="8dp"
             android:gravity="center">
             <ImageButton android:id="@+id/islandPrev"
+                android:clickable="true" android:focusable="true"
                 android:layout_width="48dp" android:layout_height="48dp"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
@@ -141,6 +146,7 @@
                 android:background="@drawable/bg_play_btn"
                 android:tint="#FFFFFF" android:padding="16dp"/>
             <ImageButton android:id="@+id/islandNext"
+                android:clickable="true" android:focusable="true"
                 android:layout_width="48dp" android:layout_height="48dp"
                 android:src="@android:drawable/ic_media_next"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
