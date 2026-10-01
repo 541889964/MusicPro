@@ -56,6 +56,7 @@ public class IslandService extends Service {
 
     public static IslandService instance;
     public static List<Song> queue;
+    private int primaryColor = 0xFFFF6B9D;
 
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
 
@@ -172,6 +173,18 @@ public class IslandService extends Service {
                 @Override public void onStartTrackingTouch(SeekBar sb) { dragging = true; }
                 @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
             });
+        }
+
+        // 高光扫过动画
+        final View shine = island.findViewById(R.id.islandShine);
+        if (shine != null) {
+            shine.setAlpha(0f);
+            ObjectAnimator shineAnim = ObjectAnimator.ofFloat(shine, "alpha", 0f, 0.6f, 0f);
+            shineAnim.setDuration(2500);
+            shineAnim.setRepeatCount(ObjectAnimator.INFINITE);
+            shineAnim.setRepeatDelay(2000);
+            shineAnim.setInterpolator(new AccelerateDecelerateInterpolator());
+            shineAnim.start();
         }
 
         island.setAlpha(0f);
@@ -403,6 +416,27 @@ public class IslandService extends Service {
                 breathe.cancel(); breathe = null; island.setAlpha(1f);
             }
         } catch (Throwable ignored) {}
+    }
+
+    private int extractColor(Bitmap bm) {
+        if (bm == null) return 0xFFFF6B9D;
+        try {
+            int w = bm.getWidth(), h = bm.getHeight();
+            long r = 0, g = 0, b = 0;
+            int n = 0;
+            for (int y = 0; y < h; y += 4) {
+                for (int x = 0; x < w; x += 4) {
+                    int px = bm.getPixel(x, y);
+                    r += (px >> 16) & 0xFF;
+                    g += (px >> 8) & 0xFF;
+                    b += px & 0xFF;
+                    n++;
+                }
+            }
+            if (n == 0) return 0xFFFF6B9D;
+            int rr = (int)(r / n), gg = (int)(g / n), bb = (int)(b / n);
+            return 0xFF000000 | (rr << 16) | (gg << 8) | bb;
+        } catch (Throwable t) { return 0xFFFF6B9D; }
     }
 
     private String fmt(int ms) {

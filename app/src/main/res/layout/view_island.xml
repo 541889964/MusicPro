@@ -4,6 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <View android:id="@+id/islandShine"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="@drawable/island_shine"
+        android:clickable="false" android:focusable="false"/>
+
     <LinearLayout android:id="@+id/islandCollapsed"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
