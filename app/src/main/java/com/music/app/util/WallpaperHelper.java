@@ -66,6 +66,11 @@ public class WallpaperHelper {
         } catch (Throwable e) { return null; }
     }
 
+    public static Bitmap loadAt(Context c, int idx) {
+        String name = at(c, idx);
+        return load(c, name);
+    }
+
     public static Bitmap loadCurrent(Context c) {
         String name = Prefs.wallpaper(c);
         if (name == null || name.isEmpty()) name = randomName(c);

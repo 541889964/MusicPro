@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         String name = Prefs.wallpaper(this);
         Bitmap bm;
         if (name != null && !name.isEmpty()) bm = WallpaperHelper.load(this, name);
-        else bm = WallpaperHelper.at(this, wpIndex);
+        else bm = WallpaperHelper.loadAt(this, wpIndex);
         if (bm != null) {
             bgWallpaper.setAlpha(0f);
             bgWallpaper.setImageBitmap(bm);
@@ -219,12 +219,12 @@ public class MainActivity extends AppCompatActivity {
         wpRunnable = new Runnable() {
             @Override public void run() {
                 wpIndex++;
-                Bitmap bm = WallpaperHelper.at(MainActivity.this, wpIndex);
+                Bitmap bm = WallpaperHelper.loadAt(MainActivity.this, wpIndex);
                 if (bm != null && bgWallpaper != null) {
                     bgWallpaper.animate().alpha(0f).setDuration(600)
                         .withEndAction(new Runnable() {
                             @Override public void run() {
-                                Bitmap b2 = WallpaperHelper.at(MainActivity.this, wpIndex);
+                                Bitmap b2 = WallpaperHelper.loadAt(MainActivity.this, wpIndex);
                                 if (b2 != null) bgWallpaper.setImageBitmap(b2);
                                 bgWallpaper.animate().alpha(1f).setDuration(600).start();
                             }
