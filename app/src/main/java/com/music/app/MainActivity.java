@@ -203,33 +203,69 @@ public class MainActivity extends AppCompatActivity {
                 }, 500);
             }
             requestPermAndScan();
-            // ★ 检查悬浮窗权限
-            if (Build.VERSION.SDK_INT >= 23 && !android.provider.Settings.canDrawOverlays(this)) {
-                ui.postDelayed(new Runnable() {
-                    @Override public void run() {
-                        try {
-                            new android.app.AlertDialog.Builder(MainActivity.this)
-                                .setTitle("需要悬浮窗权限")
-                                .setMessage("灵动岛需要悬浮窗权限才能显示在屏幕顶部。点击「去授权」后，找到「拾音测试版」并打开开关。")
-                                .setPositiveButton("去授权", new android.content.DialogInterface.OnClickListener() {
-                                    @Override public void onClick(android.content.DialogInterface d, int w) {
-                                        try {
-                                            Intent i = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                                            i.setData(android.net.Uri.parse("package:" + getPackageName()));
-                                            startActivity(i);
-                                        } catch (Throwable ignored) {}
-                                    }
-                                })
-                                .setNegativeButton("以后再说", null)
-                                .show();
-                        } catch (Throwable ignored) {}
-                    }
-                }, 1500);
-            }
+            checkOverlayAndStart();
+
         } catch (Throwable t) {
             android.util.Log.e("Music", "onCreate fail", t);
             NiceToast.show(this, "初始化失败: " + t.getMessage());
         }
+    }
+
+    private static final int REQ_OVERLAY = 5001;
+
+    private void checkOverlayAndStart() {
+        try {
+            if (Build.VERSION.SDK_INT < 23) {
+                startIslandService();
+                return;
+            }
+            if (android.provider.Settings.canDrawOverlays(this)) {
+                startIslandService();
+                return;
+            }
+            // 首次自动弹授权
+            ui.postDelayed(new Runnable() {
+                @Override public void run() {
+                    try {
+                        new android.app.AlertDialog.Builder(MainActivity.this)
+                            .setTitle("需要悬浮窗权限")
+                            .setMessage("灵动岛需要在桌面常驻显示。点「去授权」，找到「拾音测试版」打开开关，返回后悬浮窗将自动出现。")
+                            .setCancelable(false)
+                            .setPositiveButton("去授权", new android.content.DialogInterface.OnClickListener() {
+                                @Override public void onClick(android.content.DialogInterface d, int w) {
+                                    try {
+                                        Intent i = new Intent(
+                                            android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                                        i.setData(android.net.Uri.parse("package:" + getPackageName()));
+                                        startActivityForResult(i, REQ_OVERLAY);
+                                    } catch (Throwable ignored) {}
+                                }
+                            })
+                            .show();
+                    } catch (Throwable ignored) {}
+                }
+            }, 800);
+        } catch (Throwable ignored) {}
+    }
+
+    @Override protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req == REQ_OVERLAY) {
+            if (android.provider.Settings.canDrawOverlays(this)) {
+                startIslandService();
+                NiceToast.love(this, "悬浮窗已开启");
+            } else {
+                NiceToast.show(this, "还没授权哦");
+            }
+        }
+    }
+
+    private void startIslandService() {
+        try {
+            Intent svc = new Intent(this, com.music.app.service.IslandService.class);
+            if (Build.VERSION.SDK_INT >= 26) startForegroundService(svc);
+            else startService(svc);
+        } catch (Throwable ignored) {}
     }
 
     private void applyWallpaper() {

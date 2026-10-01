@@ -36,6 +36,11 @@ public class SettingsActivity extends AppCompatActivity {
                     startActivity(new Intent(SettingsActivity.this, LockScreenActivity.class));
                 }
             });
+            safeClick(R.id.itemTestNotif, new Runnable() {
+                @Override public void run() {
+                    sendTestNotification();
+                }
+            });
             safeClick(R.id.itemTheme, new Runnable() {
                 @Override public void run() {
                     startActivity(new Intent(SettingsActivity.this, ThemeActivity.class));
@@ -50,6 +55,39 @@ public class SettingsActivity extends AppCompatActivity {
             android.util.Log.e("Music", "SettingsActivity fail", t);
             Toast.makeText(this, "设置页出错: " + t.getMessage(), Toast.LENGTH_LONG).show();
             finish();
+        }
+    }
+
+    private void sendTestNotification() {
+        try {
+            String CH = "test_channel";
+            android.app.NotificationManager nm =
+                (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= 26 && nm != null) {
+                if (nm.getNotificationChannel(CH) == null) {
+                    android.app.NotificationChannel ch = new android.app.NotificationChannel(
+                        CH, "测试通知", android.app.NotificationManager.IMPORTANCE_HIGH);
+                    nm.createNotificationChannel(ch);
+                }
+            }
+            Intent it = new Intent(this, MainActivity.class);
+            int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= 23) flags |= android.app.PendingIntent.FLAG_IMMUTABLE;
+            android.app.PendingIntent pi = android.app.PendingIntent.getActivity(this, 0, it, flags);
+
+            androidx.core.app.NotificationCompat.Builder b =
+                new androidx.core.app.NotificationCompat.Builder(this, CH)
+                .setSmallIcon(com.music.app.R.mipmap.ic_launcher)
+                .setContentTitle("测试通知")
+                .setContentText("这是一条测试通知，灵动岛应该分裂")
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pi)
+                .setAutoCancel(true);
+
+            if (nm != null) nm.notify(9999, b.build());
+            Toast.makeText(this, "已发送测试通知", Toast.LENGTH_SHORT).show();
+        } catch (Throwable t) {
+            Toast.makeText(this, "发送失败: " + t.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

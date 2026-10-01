@@ -59,8 +59,10 @@ public class IslandService extends Service {
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
     private TextView txtNotifTitle, txtNotifText, txtSplitTitle, txtSplitText;
     private SeekBar seek;
-    private ImageView animLayer;
-    private com.music.app.widget.FramePlayer framePlayer;
+    private com.music.app.widget.RippleView ripple;
+    private com.music.app.widget.ShineSweepView shine;
+    private com.music.app.widget.ChargePulseView chargePulse;
+    private com.music.app.widget.ParticleBreatheView breatheLayer;
 
     private int screenW, screenH, statusBarH;
     private float density;
@@ -204,8 +206,10 @@ public class IslandService extends Service {
         txtSplitTitle = root.findViewById(R.id.txtSplitTitle);
         txtSplitText = root.findViewById(R.id.txtSplitText);
         seek = root.findViewById(R.id.seek);
-        animLayer = root.findViewById(R.id.animLayer);
-        framePlayer = new com.music.app.widget.FramePlayer(this, animLayer);
+        try { ripple = root.findViewById(R.id.rippleLayer); } catch (Throwable ignored) {}
+        try { shine = root.findViewById(R.id.shineLayer); } catch (Throwable ignored) {}
+        try { chargePulse = root.findViewById(R.id.chargeLayer); } catch (Throwable ignored) {}
+        try { breatheLayer = root.findViewById(R.id.breatheLayer); } catch (Throwable ignored) {}
     }
 
     private void bindClicks() {
@@ -350,13 +354,10 @@ public class IslandService extends Service {
         animating = true;
 
         try {
-            // 播放展开波纹动画
-            if (framePlayer != null) {
-                framePlayer.play("expand", 60, 60, new com.music.app.widget.FramePlayer.OnEnd() {
-                    @Override public void onEnd() {}
-                });
-            }
         } catch (Throwable ignored) {}
+
+        // 播放展开波纹（纯代码 Canvas 动画）
+        try { if (ripple != null) ripple.startOnce(800); } catch (Throwable ignored) {}
 
         try {
             final int startW = lp.width;
@@ -413,13 +414,10 @@ public class IslandService extends Service {
         animating = true;
 
         try {
-            // 播放收起波纹动画
-            if (framePlayer != null) {
-                framePlayer.play("collapse", 60, 60, new com.music.app.widget.FramePlayer.OnEnd() {
-                    @Override public void onEnd() {}
-                });
-            }
         } catch (Throwable ignored) {}
+
+        // 播放收起波纹
+        try { if (ripple != null) ripple.startOnce(600); } catch (Throwable ignored) {}
 
         try {
             expandedBox.animate()
@@ -477,6 +475,9 @@ public class IslandService extends Service {
         if (notifShowing) return;
         notifShowing = true;
 
+        // 扫光（纯代码）
+        try { if (shine != null) shine.sweep(); } catch (Throwable ignored) {}
+
         try {
             // 更新内容
             String app = NotifListener.lastApp;
@@ -487,12 +488,6 @@ public class IslandService extends Service {
             }
             if (txtSplitText != null) txtSplitText.setText(text);
 
-            // 播放通知分裂光效
-            if (framePlayer != null) {
-                framePlayer.play("notif", 40, 50, new com.music.app.widget.FramePlayer.OnEnd() {
-                    @Override public void onEnd() {}
-                });
-            }
             notifSplit.setVisibility(View.VISIBLE);
             notifSplit.setTranslationX(screenW);
             notifSplit.setAlpha(0f);
@@ -606,12 +601,6 @@ public class IslandService extends Service {
 
     private void showChargeAnim() {
         try {
-            // 播放充电脉冲动画
-            if (framePlayer != null) {
-                framePlayer.play("charge", 60, 40, new com.music.app.widget.FramePlayer.OnEnd() {
-                    @Override public void onEnd() {}
-                });
-            }
             if (root != null) {
                 root.animate().scaleX(1.05f).scaleY(1.05f).setDuration(200)
                     .withEndAction(new Runnable() {
@@ -627,6 +616,11 @@ public class IslandService extends Service {
                     @Override public void run() { if (expanded) collapse(); }
                 }, 2500);
             }
+            h.postDelayed(new Runnable() {
+                @Override public void run() {
+                    if (chargePulse != null) chargePulse.stop();
+                }
+            }, 4000);
         } catch (Throwable ignored) {}
     }
 
@@ -655,6 +649,7 @@ public class IslandService extends Service {
         try {
             if (breathe != null) { breathe.cancel(); breathe = null; }
             if (root != null) root.setAlpha(1f);
+            if (breatheLayer != null) breatheLayer.stop();
         } catch (Throwable ignored) {}
     }
 
@@ -817,7 +812,6 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
-        try { if (framePlayer != null) framePlayer.stop(); } catch (Throwable ignored) {}
         try { if (coverRotate != null) coverRotate.cancel(); } catch (Throwable ignored) {}
         try { if (breathe != null) breathe.cancel(); } catch (Throwable ignored) {}
         try { if (chargeReceiver != null) unregisterReceiver(chargeReceiver); } catch (Throwable ignored) {}

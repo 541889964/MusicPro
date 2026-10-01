@@ -2,42 +2,69 @@ package com.music.app.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
+
 public class RippleView extends View {
-    float progress = 0f;
-    final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private float progress = 0f;
+    private int color = 0xFFFF6B9D;
+    private boolean looping = false;
+    private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     public RippleView(Context c) { super(c); init(); }
     public RippleView(Context c, AttributeSet a) { super(c, a); init(); }
-    void init() {
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(4f);
-        paint.setColor(Color.parseColor("#FFB6D0"));
-    }
-    public void start(long d) {
-        ValueAnimator a = ValueAnimator.ofFloat(0f, 1f);
-        a.setDuration(d); a.setInterpolator(new DecelerateInterpolator());
-        a.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator an) {
-                progress = (float) an.getAnimatedValue();
-                postInvalidateOnAnimation();
-            }
+
+    private void init() { p.setStyle(Paint.Style.STROKE); }
+
+    public void setColor(int c) { this.color = c; }
+
+    public void startOnce(long dur) {
+        stop();
+        looping = false;
+        ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
+        va.setDuration(dur);
+        va.setInterpolator(new DecelerateInterpolator());
+        va.addUpdateListener(a -> {
+            progress = (float) a.getAnimatedValue();
+            postInvalidateOnAnimation();
         });
-        a.start();
+        va.start();
     }
+
+    public void startLoop() {
+        stop();
+        looping = true;
+        ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
+        va.setDuration(1800);
+        va.setRepeatCount(ValueAnimator.INFINITE);
+        va.setInterpolator(new LinearInterpolator());
+        va.addUpdateListener(a -> {
+            progress = (float) a.getAnimatedValue();
+            postInvalidateOnAnimation();
+        });
+        va.start();
+    }
+
+    public void stop() {
+        looping = false;
+        progress = 0f;
+        postInvalidateOnAnimation();
+    }
+
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
         float cx = getWidth() / 2f, cy = getHeight() / 2f;
-        float maxR = Math.min(cx, cy);
-        for (int i = 0; i < 4; i++) {
-            float p = Math.max(0f, Math.min(1f, progress - i * 0.18f));
-            if (p <= 0f) continue;
-            paint.setAlpha((int)((1f - p) * 220));
-            paint.setStrokeWidth(7f * (1f - p * 0.7f));
-            c.drawCircle(cx, cy, maxR * p, paint);
+        float maxR = Math.max(cx, cy) * 1.4f;
+        for (int i = 0; i < 3; i++) {
+            float pp = (progress + i * 0.18f) % 1f;
+            if (pp <= 0f) continue;
+            p.setColor(color);
+            p.setAlpha((int)(180 * (1 - pp)));
+            p.setStrokeWidth(5f * (1 - pp * 0.7f));
+            c.drawCircle(cx, cy, maxR * pp, p);
         }
     }
 }
