@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:id="@+id/ivPlayerBg"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#CC0D0B1F"/>
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="@drawable/player_vignette"/>
+    <LinearLayout android:id="@+id/playerCard"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:orientation="horizontal" android:paddingHorizontal="8dp"
+            android:gravity="center_vertical">
+            <ImageButton android:id="@+id/btnClose"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+            <View android:layout_width="0dp" android:layout_height="0dp"
+                android:layout_weight="1"/>
+            <ImageButton android:id="@+id/btnFav"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:src="@android:drawable/btn_star_big_off"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+            <ImageButton android:id="@+id/btnDownload"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_save"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FF6B9D"/>
+            <ImageButton android:id="@+id/btnShare"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_share"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+        </LinearLayout>
+        <FrameLayout
+            android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="3" android:layout_marginTop="8dp">
+            <View android:id="@+id/glowBehindCover"
+                android:layout_width="300dp" android:layout_height="300dp"
+                android:layout_gravity="center" android:alpha="0.35"
+                android:background="@drawable/cover_glow"/>
+            <FrameLayout android:id="@+id/ivCoverWrap"
+                android:layout_width="240dp" android:layout_height="240dp"
+                android:layout_gravity="center" android:elevation="12dp"
+                android:background="@drawable/cover_frame">
+                <ImageView android:id="@+id/ivCover"
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:layout_margin="6dp"
+                    android:src="@mipmap/ic_launcher"
+                    android:scaleType="centerCrop"/>
+                <View android:layout_width="72dp" android:layout_height="72dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/cover_center_hole"/>
+            </FrameLayout>
+        </FrameLayout>
+        <TextView android:id="@+id/tvPlayerTitle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="14dp" android:paddingHorizontal="28dp"
+            android:gravity="center" android:text="歌曲名"
+            android:textColor="#FFFFFF" android:textSize="20sp"
+            android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
+        <TextView android:id="@+id/tvPlayerArtist"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:paddingHorizontal="28dp"
+            android:gravity="center" android:text="歌手"
+            android:textColor="#B8A8E8" android:textSize="13sp"
+            android:singleLine="true" android:ellipsize="end"/>
+        <FrameLayout
+            android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="4" android:layout_marginTop="14dp"
+            android:layout_marginHorizontal="12dp"
+            android:background="@drawable/lyrics_bg">
+            <ScrollView android:id="@+id/lyricsScroll"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:scrollbars="none" android:fadeScrollbars="false"
+                android:overScrollMode="never">
+                <LinearLayout android:id="@+id/lyricsContainer"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="12dp" android:paddingBottom="12dp"/>
+            </ScrollView>
+            <TextView android:id="@+id/tvLyricsEmpty"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:text="♪ 歌词加载中…"
+                android:textColor="#88FFFFFF" android:textSize="13sp"/>
+        </FrameLayout>
+        <SeekBar android:id="@+id/seekBar"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" android:layout_marginHorizontal="20dp"
+            android:maxHeight="3dp" android:minHeight="3dp"
+            android:progressTint="#FF6B9D"
+            android:progressBackgroundTint="#33FFFFFF"
+            android:thumbTint="#FF6B9D"/>
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingHorizontal="24dp">
+            <TextView android:id="@+id/tvCurrent"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="0:00"
+                android:textColor="#B8A8E8" android:textSize="11sp"/>
+            <TextView android:id="@+id/tvTotal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="0:00" android:textColor="#B8A8E8" android:textSize="11sp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp" android:layout_marginBottom="26dp"
+            android:gravity="center">
+            <ImageButton android:id="@+id/btnPrev"
+                android:layout_width="64dp" android:layout_height="64dp"
+                android:src="@android:drawable/ic_media_previous"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+            <FrameLayout
+                android:layout_width="88dp" android:layout_height="88dp"
+                android:layout_marginHorizontal="22dp">
+                <View android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:background="@drawable/play_btn_glow"/>
+                <ImageButton android:id="@+id/btnPlay"
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:src="@android:drawable/ic_media_play"
+                    android:background="@drawable/bg_play_btn"
+                    android:tint="#FFFFFF" android:padding="22dp"/>
+            </FrameLayout>
+            <ImageButton android:id="@+id/btnNext"
+                android:layout_width="64dp" android:layout_height="64dp"
+                android:src="@android:drawable/ic_media_next"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
