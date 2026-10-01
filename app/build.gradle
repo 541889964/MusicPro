@@ -10,6 +10,7 @@ android {
         targetSdk 34
         versionCode 100
         versionName "10.0.0"
+        buildConfigField "String", "BUILD_STAMP", "\"20261001-2124\""
         multiDexEnabled true
     }
 
@@ -20,6 +21,8 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    buildFeatures { buildConfig true }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

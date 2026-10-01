@@ -34,6 +34,7 @@ public class SplashActivity extends AppCompatActivity {
         final ImageView logo = findViewById(R.id.logo);
         final TextView brand = findViewById(R.id.brand);
         final TextView tip = findViewById(R.id.tip);
+        try { if (tip != null) tip.setText("build " + BuildConfig.BUILD_STAMP); } catch (Throwable ignored) {}
 
         ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
         va.setDuration(1500);

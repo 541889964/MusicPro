@@ -24,18 +24,19 @@ jobs:
       - run: gradle assembleRelease --no-daemon --stacktrace
       - run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk out/MUSIC-Pro.apk 2>/dev/null || \
-          cp app/build/outputs/apk/release/*.apk out/MUSIC-Pro.apk
+          RUN_NUM=${{ github.run_number }}
+          cp app/build/outputs/apk/release/app-release.apk out/MUSIC-Pro-r${RUN_NUM}.apk 2>/dev/null || \
+          cp app/build/outputs/apk/release/*.apk out/MUSIC-Pro-r${RUN_NUM}.apk
           ls -lh out/
       - uses: actions/upload-artifact@v4
         with:
           name: MusicPro
-          path: out/MUSIC-Pro.apk
+          path: out/*.apk
       - uses: softprops/action-gh-release@v2
         if: always()
         with:
           tag_name: v10.0.${{ github.run_number }}
           name: Music Pro v10.0.${{ github.run_number }}
-          files: out/MUSIC-Pro.apk
+          files: out/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
