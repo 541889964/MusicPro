@@ -148,9 +148,29 @@ public class IslandService extends Service {
         bindClick(btnPlayBig, new Runnable() { @Override public void run() {
             MusicService.toggle(getApplicationContext()); }});
         bindClick(btnPrev, new Runnable() { @Override public void run() {
-            MusicService.forcePrev(getApplicationContext()); }});
+            try {
+                androidx.media3.exoplayer.ExoPlayer p = MusicService.getPlayer();
+                if (p != null && p.hasPreviousMediaItem()) {
+                    p.seekToPreviousMediaItem();
+                    p.play();
+                } else if (p != null) {
+                    p.seekTo(0, 0);
+                    p.play();
+                }
+            } catch (Throwable ignored) {}
+        }});
         bindClick(btnNext, new Runnable() { @Override public void run() {
-            MusicService.forceNext(getApplicationContext()); }});
+            try {
+                androidx.media3.exoplayer.ExoPlayer p = MusicService.getPlayer();
+                if (p != null && p.hasNextMediaItem()) {
+                    p.seekToNextMediaItem();
+                    p.play();
+                } else if (p != null) {
+                    p.seekTo(0, 0);
+                    p.play();
+                }
+            } catch (Throwable ignored) {}
+        }});
         bindClick(btnClose, new Runnable() { @Override public void run() { stopSelf(); }});
         bindClick(btnFav, new Runnable() { @Override public void run() {
             toast("已加入喜欢"); }});

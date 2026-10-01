@@ -360,6 +360,8 @@ public class PlayerActivity extends AppCompatActivity {
             lyrics = new ArrayList<LyricsParser.Line>();
             lyricViews = new ArrayList<TextView>();
             currentLine = -1;
+
+            // 1. 先找同目录同名 .lrc
             String lrcPath = song.path;
             int dot = lrcPath.lastIndexOf('.');
             if (dot > 0) lrcPath = lrcPath.substring(0, dot) + ".lrc";
@@ -375,11 +377,42 @@ public class PlayerActivity extends AppCompatActivity {
                 buildLyricsView(song.lyric);
                 return;
             }
+
+            // 2. ★ 本地音乐联网搜歌词
+            if (tvLyricsEmpty != null) {
+                tvLyricsEmpty.setVisibility(View.VISIBLE);
+                tvLyricsEmpty.setText("♪ 联网搜歌词中…");
+            }
+            String keyword = song.title;
+            if (song.artist != null && !song.artist.isEmpty()
+                && !song.artist.equals("未知歌手")
+                && !song.artist.equals("本地音乐")) {
+                keyword = song.title + " " + song.artist;
+            }
+            final String kw = keyword;
+            final Song fs = song;
+            NeteaseApi.search(kw, new NeteaseApi.OnSearch() {
+                @Override public void onResult(java.util.List<Song> songs) {
+                    if (destroyed) return;
+                    if (songs == null || songs.isEmpty()) {
+                        if (tvLyricsEmpty != null) tvLyricsEmpty.setText("♪ 暂无歌词");
+                        return;
+                    }
+                    final long sid = songs.get(0).id;
+                    NeteaseApi.getLyrics(sid, new NeteaseApi.OnLyrics() {
+                        @Override public void onResult(String lrc) {
+                            if (destroyed) return;
+                            if (lrc == null || lrc.isEmpty()) {
+                                if (tvLyricsEmpty != null) tvLyricsEmpty.setText("♪ 暂无歌词");
+                                return;
+                            }
+                            fs.lyric = lrc;
+                            buildLyricsView(lrc);
+                        }
+                    });
+                }
+            });
         } catch (Throwable ignored) {}
-        if (tvLyricsEmpty != null) {
-            tvLyricsEmpty.setVisibility(View.VISIBLE);
-            tvLyricsEmpty.setText("♪ 暂无歌词");
-        }
     }
 
     private void buildLyricsView(String lrc) {
