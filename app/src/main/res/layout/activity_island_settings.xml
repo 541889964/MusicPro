@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#0D0B1F">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scrollbars="none">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
+                <ImageButton android:id="@+id/btnBack"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:tint="#FFFFFF"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginLeft="12dp"
+                    android:text="灵动岛设置" android:textColor="#FFFFFF"
+                    android:textSize="18sp" android:textStyle="bold"/>
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginTop="20dp"
+                android:text="📐 尺寸调节" android:textColor="#FF6B9D"
+                android:textSize="14sp" android:textStyle="bold"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="20dp" android:layout_marginRight="20dp"
+                android:layout_marginTop="14dp" android:padding="16dp"
+                android:background="@drawable/theme_option_bg">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="宽度" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold"/>
+                <TextView android:id="@+id/tvWidthVal"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="宽度: 42% 屏幕"
+                    android:textColor="#B8A8E8" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sbWidth"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:progressTint="#FF6B9D"
+                    android:progressBackgroundTint="#44FFFFFF"
+                    android:thumbTint="#FF6B9D"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="高度" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold"/>
+                <TextView android:id="@+id/tvHeightVal"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="高度: 58 dp"
+                    android:textColor="#B8A8E8" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sbHeight"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:progressTint="#FF6B9D"
+                    android:progressBackgroundTint="#44FFFFFF"
+                    android:thumbTint="#FF6B9D"/>
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginTop="24dp"
+                android:text="⚡ 快速预设" android:textColor="#FF6B9D"
+                android:textSize="14sp" android:textStyle="bold"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginLeft="20dp" android:layout_marginRight="20dp"
+                android:layout_marginTop="14dp" android:weightSum="3">
+                <LinearLayout android:id="@+id/btnPresetSmall"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="14dp" android:gravity="center"
+                    android:layout_marginRight="6dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="小号" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp" android:text="30% · 44dp"
+                        android:textColor="#B8A8E8" android:textSize="10sp"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/btnPresetMedium"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="14dp" android:gravity="center"
+                    android:layout_marginLeft="6dp" android:layout_marginRight="6dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="中号" android:textColor="#FF6B9D" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp" android:text="42% · 58dp"
+                        android:textColor="#B8A8E8" android:textSize="10sp"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/btnPresetLarge"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="14dp" android:gravity="center"
+                    android:layout_marginLeft="6dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="大号" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp" android:text="58% · 72dp"
+                        android:textColor="#B8A8E8" android:textSize="10sp"/>
+                </LinearLayout>
+            </LinearLayout>
+            <TextView android:id="@+id/tvPreview"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginRight="20dp"
+                android:layout_marginTop="24dp" android:padding="16dp" android:gravity="center"
+                android:background="@drawable/theme_option_bg"
+                android:text="预览尺寸: 42% × 58dp" android:textColor="#FFFFFF" android:textSize="13sp"/>
+            <View android:layout_width="match_parent" android:layout_height="60dp"/>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
