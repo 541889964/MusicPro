@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -40,29 +41,55 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
         h.tvDur.setText(s.getDurationText());
         String name = WallpaperHelper.forSong(h.ivCover.getContext(), s.id);
         Bitmap bm = WallpaperHelper.load(h.ivCover.getContext(), name);
-        if (bm != null) {
-            h.ivCover.setImageBitmap(bm);
-        } else if (s.cover != null && !s.cover.isEmpty()) {
+        if (bm != null) h.ivCover.setImageBitmap(bm);
+        else if (s.cover != null && !s.cover.isEmpty()) {
             Glide.with(h.ivCover.getContext()).load(s.cover)
                 .placeholder(R.drawable.cover_placeholder)
                 .error(R.drawable.cover_placeholder).into(h.ivCover);
-        } else {
-            h.ivCover.setImageResource(R.drawable.cover_placeholder);
-        }
+        } else h.ivCover.setImageResource(R.drawable.cover_placeholder);
+
         h.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { if (listener != null) listener.onClick(s, h.getAdapterPosition()); }
+            @Override public void onClick(final View v) {
+                v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80).start();
+                v.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(250)
+                            .setInterpolator(new OvershootInterpolator(2.5f)).start();
+                    }
+                }, 80);
+                v.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        if (listener != null) listener.onClick(s, h.getAdapterPosition());
+                    }
+                }, 160);
+            }
         });
         h.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override public boolean onLongClick(View v) {
+                v.animate().scaleX(1.05f).scaleY(1.05f).setDuration(120).start();
+                v.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(200)
+                            .setInterpolator(new OvershootInterpolator(2f)).start();
+                    }
+                }, 120);
                 if (longListener != null) { longListener.onLongClick(s, h.getAdapterPosition()); return true; }
                 return false;
             }
         });
+
+        // 逐条入场：滑动 + 缩放 + 淡入
         if (pos > lastAnimatedPos) {
             h.itemView.setAlpha(0f);
-            h.itemView.setTranslationY(80f);
-            h.itemView.animate().alpha(1f).translationY(0f).setDuration(420)
-                .setInterpolator(new DecelerateInterpolator()).start();
+            h.itemView.setTranslationY(60f);
+            h.itemView.setScaleX(0.92f);
+            h.itemView.setScaleY(0.92f);
+            h.itemView.animate()
+                .alpha(1f).translationY(0f).scaleX(1f).scaleY(1f)
+                .setStartDelay(pos * 30L)
+                .setDuration(500)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
             lastAnimatedPos = pos;
         }
     }
