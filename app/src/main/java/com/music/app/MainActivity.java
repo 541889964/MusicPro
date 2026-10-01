@@ -312,13 +312,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openPlayer(int idx) {
+        android.util.Log.d("Music", "openPlayer idx=" + idx + " size=" + showing.size());
         if (showing.isEmpty()) { NiceToast.show(this, "列表为空"); return; }
         if (idx < 0 || idx >= showing.size()) idx = 0;
-        PlayerActivity.queue = new ArrayList<Song>(showing);
-        Intent it = new Intent(this, PlayerActivity.class);
-        it.putExtra("index", idx);
-        startActivity(it);
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        try {
+            PlayerActivity.queue = new ArrayList<Song>(showing);
+            android.util.Log.d("Music", "queue size=" + PlayerActivity.queue.size());
+            Intent it = new Intent(this, PlayerActivity.class);
+            it.putExtra("index", idx);
+            startActivity(it);
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        } catch (Throwable t) {
+            android.util.Log.e("Music", "openPlayer crash", t);
+            NiceToast.show(this, "打开播放页失败: " + t.getMessage());
+        }
     }
 
     private void doSearchOnline(final String kw) {
