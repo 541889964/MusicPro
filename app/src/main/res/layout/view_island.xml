@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/islandRoot"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent" android:layout_height="match_parent">
 
     <View android:id="@+id/islandShine"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="@drawable/island_shine"
         android:clickable="false" android:focusable="false"/>
 
+    <!-- 折叠态 -->
     <LinearLayout android:id="@+id/islandCollapsed"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
         android:background="@drawable/island_bg"
-        android:paddingLeft="8dp" android:paddingRight="8dp"
+        android:paddingLeft="10dp" android:paddingRight="10dp"
         android:gravity="center_vertical"
         android:clickable="true" android:focusable="true">
 
-        <FrameLayout android:layout_width="38dp" android:layout_height="38dp">
+        <FrameLayout android:layout_width="40dp" android:layout_height="40dp">
             <View android:layout_width="match_parent" android:layout_height="match_parent"
                 android:background="@drawable/island_glow"/>
             <ImageView android:id="@+id/islandCover"
                 android:layout_width="match_parent" android:layout_height="match_parent"
-                android:layout_margin="3dp"
+                android:layout_margin="4dp"
                 android:src="@mipmap/ic_launcher"
                 android:scaleType="centerCrop"
                 android:background="@drawable/island_cover_frame"/>
@@ -50,7 +50,7 @@
             android:tint="#FFFFFF" android:padding="4dp"/>
 
         <ImageButton android:id="@+id/islandPlay"
-            android:layout_width="34dp" android:layout_height="34dp"
+            android:layout_width="36dp" android:layout_height="36dp"
             android:src="@android:drawable/ic_media_pause"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:tint="#FF6B9D" android:padding="6dp"/>
@@ -62,6 +62,7 @@
             android:tint="#FFFFFF" android:padding="4dp"/>
     </LinearLayout>
 
+    <!-- 展开态 -->
     <LinearLayout android:id="@+id/islandExpanded"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical"
@@ -72,12 +73,12 @@
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:gravity="center_vertical">
-            <FrameLayout android:layout_width="54dp" android:layout_height="54dp">
+            <FrameLayout android:layout_width="56dp" android:layout_height="56dp">
                 <View android:layout_width="match_parent" android:layout_height="match_parent"
                     android:background="@drawable/island_glow"/>
                 <ImageView android:id="@+id/islandExpCover"
                     android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:layout_margin="4dp"
+                    android:layout_margin="5dp"
                     android:src="@mipmap/ic_launcher"
                     android:scaleType="centerCrop"
                     android:background="@drawable/island_cover_frame"/>
@@ -89,7 +90,7 @@
                 <TextView android:id="@+id/islandExpTitle"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="正在播放" android:textColor="#FFFFFF"
-                    android:textSize="14sp" android:textStyle="bold"
+                    android:textSize="15sp" android:textStyle="bold"
                     android:singleLine="true" android:ellipsize="end"/>
                 <TextView android:id="@+id/islandExpArtist"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -97,7 +98,7 @@
                     android:textSize="11sp" android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
             <ImageButton android:id="@+id/islandClose"
-                android:layout_width="30dp" android:layout_height="30dp"
+                android:layout_width="32dp" android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:tint="#88FFFFFF" android:padding="6dp"/>
@@ -105,7 +106,7 @@
 
         <SeekBar android:id="@+id/islandProgress"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="12dp"
             android:maxHeight="3dp" android:minHeight="3dp"
             android:max="1000" android:progress="0"
             android:progressTint="#FF6B9D"
@@ -114,7 +115,7 @@
 
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="2dp">
+            android:layout_marginTop="3dp">
             <TextView android:id="@+id/islandCurrent"
                 android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:text="0:00"
@@ -126,7 +127,7 @@
 
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="6dp"
+            android:orientation="horizontal" android:layout_marginTop="8dp"
             android:gravity="center">
             <ImageButton android:id="@+id/islandPrev"
                 android:layout_width="48dp" android:layout_height="48dp"
@@ -134,11 +135,11 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:tint="#FFFFFF" android:padding="10dp"/>
             <ImageButton android:id="@+id/islandPlayExpand"
-                android:layout_width="56dp" android:layout_height="56dp"
-                android:layout_marginLeft="24dp" android:layout_marginRight="24dp"
+                android:layout_width="60dp" android:layout_height="60dp"
+                android:layout_marginLeft="26dp" android:layout_marginRight="26dp"
                 android:src="@android:drawable/ic_media_pause"
                 android:background="@drawable/bg_play_btn"
-                android:tint="#FFFFFF" android:padding="14dp"/>
+                android:tint="#FFFFFF" android:padding="16dp"/>
             <ImageButton android:id="@+id/islandNext"
                 android:layout_width="48dp" android:layout_height="48dp"
                 android:src="@android:drawable/ic_media_next"

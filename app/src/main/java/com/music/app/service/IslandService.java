@@ -182,7 +182,7 @@ public class IslandService extends Service {
             ObjectAnimator shineAnim = ObjectAnimator.ofFloat(shine, "alpha", 0f, 0.6f, 0f);
             shineAnim.setDuration(2500);
             shineAnim.setRepeatCount(ObjectAnimator.INFINITE);
-            shineAnim.setRepeatDelay(2000);
+            
             shineAnim.setInterpolator(new AccelerateDecelerateInterpolator());
             shineAnim.start();
         }
@@ -211,7 +211,7 @@ public class IslandService extends Service {
     public void applySize() {
         if (island == null || wm == null || lp == null) return;
         int newW = expanded ? (int)(screenW * 0.88f) : getIslandWidthPx();
-        int newH = expanded ? (int)(178 * density) : getIslandHeightPx();
+        int newH = expanded ? (int)(186 * density) : getIslandHeightPx();
         ValueAnimator wa = ValueAnimator.ofInt(lp.width, newW);
         ValueAnimator ha = ValueAnimator.ofInt(lp.height, newH);
         wa.setDuration(250); ha.setDuration(250);
@@ -236,7 +236,7 @@ public class IslandService extends Service {
             // 展开：先左右 → 再上下 → 微调宽
             final int midW = (int)(screenW * 0.65f);
             final int targetW = (int)(screenW * 0.90f);
-            final int targetH = (int)(178 * density);
+            final int targetH = (int)(186 * density);
 
             ValueAnimator wa = ValueAnimator.ofInt(lp.width, midW);
             wa.setDuration(280);
