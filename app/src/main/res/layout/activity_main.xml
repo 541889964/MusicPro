@@ -23,34 +23,67 @@
             android:background="@android:color/transparent" app:elevation="0dp">
             <LinearLayout
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:padding="16dp"
+                android:orientation="horizontal" android:padding="12dp"
                 android:gravity="center_vertical">
+
                 <ImageView android:id="@+id/ivAppLogo"
                     android:layout_width="40dp" android:layout_height="40dp"
                     android:src="@mipmap/ic_launcher"
                     android:clickable="true" android:focusable="true"/>
+
                 <LinearLayout
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:orientation="vertical"
-                    android:layout_marginLeft="12dp">
+                    android:layout_marginLeft="10dp">
+
                     <TextView android:id="@+id/tvGreeting"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="早上好呀 ☀️" android:textColor="#FFFFFF"
-                        android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:id="@+id/tvTipHint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:text="顶部 4 个图标：🔒锁屏 📊灵动岛 🎨换肤 🖼️画廊"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="9sp"
-                        android:singleLine="true"
-                        android:ellipsize="end"/>
+                        android:text="早上好呀" android:textColor="#FFFFFF"
+                        android:textSize="15sp" android:textStyle="bold"/>
+
                     <TextView android:id="@+id/tvGreetingSub"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="MUSIC·Pro 陪你听歌" android:textColor="#D6CCF5"
-                        android:textSize="11sp" android:layout_marginTop="2dp"/>
+                        android:layout_marginTop="1dp"
+                        android:text="让音乐陪你度过下午" android:textColor="#D6CCF5"
+                        android:textSize="11sp"/>
                 </LinearLayout>
+
+                <TextView android:id="@+id/btnLock"
+                    android:layout_width="34dp" android:layout_height="34dp"
+                    android:gravity="center"
+                    android:text="锁" android:textSize="13sp"
+                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/top_btn_bg"
+                    android:layout_marginLeft="4dp"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/btnIsland"
+                    android:layout_width="34dp" android:layout_height="34dp"
+                    android:gravity="center"
+                    android:text="岛" android:textSize="13sp"
+                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/top_btn_bg"
+                    android:layout_marginLeft="4dp"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/btnTheme"
+                    android:layout_width="34dp" android:layout_height="34dp"
+                    android:gravity="center"
+                    android:text="肤" android:textSize="13sp"
+                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/top_btn_bg"
+                    android:layout_marginLeft="4dp"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/btnGallery"
+                    android:layout_width="34dp" android:layout_height="34dp"
+                    android:gravity="center"
+                    android:text="图" android:textSize="13sp"
+                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:background="@drawable/top_btn_bg"
+                    android:layout_marginLeft="4dp"
+                    android:clickable="true" android:focusable="true"/>
+            </LinearLayout>
                 <TextView android:id="@+id/btnGallery"
                     android:layout_width="36dp" android:layout_height="36dp"
                     android:gravity="center"
