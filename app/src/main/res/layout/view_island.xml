@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/islandRoot"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/island_bg"
+    android:padding="8dp"
+    android:elevation="20dp"
+    android:clickable="true" android:focusable="true">
+    <LinearLayout
+        android:layout_width="wrap_content" android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <View android:layout_width="8dp" android:layout_height="8dp"
+            android:background="@drawable/island_dot"/>
+        <LinearLayout
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp" android:minWidth="100dp">
+            <TextView android:id="@+id/islandTitle"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="♪ 正在播放" android:textColor="#FFFFFF"
+                android:textSize="11sp" android:textStyle="bold"
+                android:singleLine="true" android:ellipsize="end" android:maxWidth="120dp"/>
+            <TextView android:id="@+id/islandArtist"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="MUSIC·Pro" android:textColor="#B8A8E8"
+                android:textSize="9sp" android:singleLine="true" android:maxWidth="120dp"/>
+        </LinearLayout>
+        <ImageButton android:id="@+id/islandPlay"
+            android:layout_width="32dp" android:layout_height="32dp"
+            android:src="@android:drawable/ic_media_pause"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:tint="#FF6B9D" android:padding="6dp"/>
+        <ImageButton android:id="@+id/islandNext"
+            android:layout_width="32dp" android:layout_height="32dp"
+            android:src="@android:drawable/ic_media_next"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:tint="#FFFFFF" android:padding="6dp"/>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/islandDetail"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:alpha="0"
+        android:paddingHorizontal="6dp" android:paddingBottom="6dp"
+        android:gravity="center_vertical">
+        <View android:layout_width="40dp" android:layout_height="4dp"
+            android:background="@drawable/island_progress"
+            android:layout_weight="1"/>
+    </LinearLayout>
+</LinearLayout>

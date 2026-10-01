@@ -6,8 +6,13 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
     <application
         android:name=".MusicApp"
         android:allowBackup="true"
@@ -19,15 +24,36 @@
         android:largeHeap="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.MusicPro">
-        <activity android:name=".SplashActivity" android:exported="true" android:theme="@style/Theme.MusicPro.Splash">
+        <activity android:name=".SplashActivity" android:exported="true"
+            android:theme="@style/Theme.MusicPro.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" android:exported="false"/>
-        <activity android:name=".PlayerActivity" android:exported="false"/>
+        <activity android:name=".PlayerActivity" android:exported="false"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"/>
+        <activity android:name=".LockScreenActivity" android:exported="false"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.MusicPro.Lock"/>
         <activity android:name=".GalleryActivity" android:exported="false"/>
         <activity android:name=".ThemeActivity" android:exported="false"/>
+        <service android:name=".service.MusicService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService"/>
+                <action android:name="android.media.browse.MediaBrowserService"/>
+            </intent-filter>
+        </service>
+        <service android:name=".service.IslandService"
+            android:exported="false"/>
     </application>
 </manifest>

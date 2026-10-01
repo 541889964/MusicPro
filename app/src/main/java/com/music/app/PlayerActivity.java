@@ -28,6 +28,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerActivity extends AppCompatActivity {
+    private void startIsland() {
+        try {
+            Intent it = new Intent(this,
+                com.music.app.service.IslandService.class);
+            startService(it);
+        } catch (Throwable ignored) {}
+    }
+
     public static ExoPlayer player;
     public static List<Song> queue = new ArrayList<Song>();
     public static int currentIndex = 0;
@@ -80,6 +88,7 @@ public class PlayerActivity extends AppCompatActivity {
         currentIndex = startIdx;
         initPlayer();
         playAt(currentIndex);
+        startIsland();
 
         if (btnPlay != null) btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { bounce(v); togglePlay(); }

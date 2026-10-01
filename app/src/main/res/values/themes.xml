@@ -26,4 +26,11 @@
         <item name="android:shadowColor">#FF6B9D</item>
         <item name="android:shadowRadius">12</item>
     </style>
+    <style name="Theme.MusicPro.Lock" parent="Theme.MusicPro">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">#00000000</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

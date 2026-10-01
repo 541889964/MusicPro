@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#0D0B1F">
+    <ImageView android:id="@+id/ivLockBg"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop" android:alpha="0.6"/>
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#990D0B1F"/>
+    <LinearLayout android:id="@+id/lockCard"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center_horizontal"
+        android:paddingTop="80dp" android:paddingBottom="40dp">
+        <FrameLayout
+            android:layout_width="220dp" android:layout_height="220dp"
+            android:layout_marginTop="20dp">
+            <View android:layout_width="match_parent" android:layout_height="match_parent"
+                android:background="@drawable/cover_glow"/>
+            <ImageView android:id="@+id/ivLockCover"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="20dp"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="centerCrop"
+                android:background="@drawable/cover_frame"/>
+        </FrameLayout>
+        <TextView android:id="@+id/tvLockTitle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="30dp" android:paddingHorizontal="40dp"
+            android:gravity="center" android:text="歌曲名"
+            android:textColor="#FFFFFF" android:textSize="22sp"
+            android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
+        <TextView android:id="@+id/tvLockArtist"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:paddingHorizontal="40dp"
+            android:gravity="center" android:text="歌手"
+            android:textColor="#B8A8E8" android:textSize="14sp"
+            android:singleLine="true" android:ellipsize="end"/>
+        <TextView android:id="@+id/tvLockLyric"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" android:paddingHorizontal="40dp"
+            android:gravity="center" android:text="♡"
+            android:textColor="#FF6B9D" android:textSize="15sp"
+            android:singleLine="true" android:ellipsize="end"/>
+        <View android:layout_width="0dp" android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <SeekBar android:id="@+id/seekLock"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginHorizontal="30dp"
+            android:progressTint="#FF6B9D"
+            android:progressBackgroundTint="#33FFFFFF"
+            android:thumbTint="#FF6B9D"/>
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingHorizontal="36dp">
+            <TextView android:id="@+id/tvLockCurrent"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="0:00"
+                android:textColor="#B8A8E8" android:textSize="11sp"/>
+            <TextView android:id="@+id/tvLockTotal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="0:00" android:textColor="#B8A8E8" android:textSize="11sp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginTop="24dp"
+            android:layout_marginBottom="40dp" android:gravity="center">
+            <ImageButton android:id="@+id/btnLockPrev"
+                android:layout_width="64dp" android:layout_height="64dp"
+                android:src="@android:drawable/ic_media_previous"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+            <FrameLayout
+                android:layout_width="88dp" android:layout_height="88dp"
+                android:layout_marginHorizontal="22dp">
+                <View android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:background="@drawable/play_btn_glow"/>
+                <ImageButton android:id="@+id/btnLockPlay"
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:src="@android:drawable/ic_media_play"
+                    android:background="@drawable/bg_play_btn"
+                    android:tint="#FFFFFF" android:padding="22dp"/>
+            </FrameLayout>
+            <ImageButton android:id="@+id/btnLockNext"
+                android:layout_width="64dp" android:layout_height="64dp"
+                android:src="@android:drawable/ic_media_next"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:tint="#FFFFFF"/>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

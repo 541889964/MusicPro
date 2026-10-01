@@ -204,6 +204,21 @@ public class MainActivity extends AppCompatActivity {
             }, 500);
         }
         requestPermAndScan();
+        startMusicService();
+        ui.postDelayed(new Runnable() {
+            @Override public void run() {
+                if (Build.VERSION.SDK_INT >= 23
+                    && !android.provider.Settings.canDrawOverlays(MainActivity.this)) {
+                    NiceToast.show(MainActivity.this, "开启悬浮窗可显示灵动岛");
+                    Intent perm = new Intent(
+                        android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                    perm.setData(android.net.Uri.parse("package:" + getPackageName()));
+                    try { startActivity(perm); } catch (Throwable ignored) {}
+                } else {
+                    startIsland();
+                }
+            }
+        }, 1200);
     }
 
     private void applyWallpaper() {
@@ -332,6 +347,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openPlayer(int idx) {
+        // 传递队列给锁屏
+        try {
+            com.music.app.LockScreenActivity.queue = new ArrayList<Song>(showing);
+            com.music.app.LockScreenActivity.currentIndex = idx;
+        } catch (Throwable ignored) {}
         if (showing.isEmpty()) { NiceToast.show(this, "列表为空"); return; }
         if (idx < 0 || idx >= showing.size()) idx = 0;
         PlayerActivity.queue = new ArrayList<Song>(showing);
@@ -354,6 +374,22 @@ public class MainActivity extends AppCompatActivity {
                 else NiceToast.show(MainActivity.this, "找到 " + songs.size() + " 首");
             }
         });
+    }
+
+    private void startMusicService() {
+        try {
+            Intent svc = new Intent(this,
+                com.music.app.service.MusicService.class);
+            startService(svc);
+        } catch (Throwable ignored) {}
+    }
+
+    private void startIsland() {
+        try {
+            Intent it = new Intent(this,
+                com.music.app.service.IslandService.class);
+            startService(it);
+        } catch (Throwable ignored) {}
     }
 
     private void requestPermAndScan() {
