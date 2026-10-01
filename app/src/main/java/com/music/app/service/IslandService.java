@@ -15,7 +15,6 @@ import android.os.Vibrator;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
@@ -46,7 +45,6 @@ public class IslandService extends Service {
 
     private boolean expanded = false;
     private boolean dragging = false;
-    private boolean animating = false;
     private int screenW, screenH, statusBarH;
     private float density;
     private final Handler h = new Handler(Looper.getMainLooper());
@@ -91,11 +89,15 @@ public class IslandService extends Service {
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         island = LayoutInflater.from(this).inflate(R.layout.view_island, null);
 
-        int type = Build.VERSION.SDK_INT >= 26
-            ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            : WindowManager.LayoutParams.TYPE_PHONE;
+        int type;
+        if (Build.VERSION.SDK_INT >= 26) {
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
 
-        // ★ 关键：去掉 NOT_TOUCH_MODAL，加 WATCH_OUTSIDE_TOUCH
+        // ★ 关键：只用 NOT_FOCUSABLE，不加 NOT_TOUCH_MODAL
+        // 这样窗口内触摸正常分发，窗口外触摸穿透
         lp = new WindowManager.LayoutParams(
             getW(), getH(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
@@ -108,8 +110,8 @@ public class IslandService extends Service {
 
         wm.addView(island, lp);
 
+        // 绑定控件
         tvTitle = island.findViewById(R.id.islandTitle);
-        tvArtist = island.findViewById(R.id.islandArtist);
         tvExpTitle = island.findViewById(R.id.islandExpTitle);
         tvExpArtist = island.findViewById(R.id.islandExpArtist);
         tvCurrent = island.findViewById(R.id.islandCurrent);
@@ -125,59 +127,76 @@ public class IslandService extends Service {
         collapsedRoot = island.findViewById(R.id.islandCollapsed);
         expandedRoot = island.findViewById(R.id.islandExpanded);
 
-        // 用 OnTouchListener 保证按钮响应
-        attachTap(btnPlay, new Runnable() { @Override public void run() { togglePlay(); } });
-        attachTap(btnPlayExp, new Runnable() { @Override public void run() { togglePlay(); } });
-        attachTap(btnPrev, new Runnable() { @Override public void run() { prevSong(); } });
-        attachTap(btnNext, new Runnable() { @Override public void run() { nextSong(); } });
-        attachTap(btnClose, new Runnable() { @Override public void run() { stopSelf(); } });
-
-        // 点击空白 → 展开/收起
-        collapsedRoot.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { toggle(); }
+        // ★ 关键：用标准 OnClickListener，并显式 setClickable
+        bindClick(btnPlay, new View.OnClickListener() {
+            @Override public void onClick(View v) { togglePlay(); }
         });
-        expandedRoot.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { toggle(); }
+        bindClick(btnPlayExp, new View.OnClickListener() {
+            @Override public void onClick(View v) { togglePlay(); }
+        });
+        bindClick(btnPrev, new View.OnClickListener() {
+            @Override public void onClick(View v) { prevSong(); }
+        });
+        bindClick(btnNext, new View.OnClickListener() {
+            @Override public void onClick(View v) { nextSong(); }
+        });
+        bindClick(btnClose, new View.OnClickListener() {
+            @Override public void onClick(View v) { stopSelf(); }
         });
 
-        progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fu) {
-                if (fu && player != null) {
-                    long dur = player.getDuration();
-                    if (dur > 0) player.seekTo(dur * p / 1000);
+        // 折叠态点击 → 展开
+        if (collapsedRoot != null) {
+            collapsedRoot.setClickable(true);
+            collapsedRoot.setFocusable(true);
+            collapsedRoot.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { if (!expanded) expand(); }
+            });
+        }
+        // 展开态点击（进度条以外的空白）→ 收起。用父容器接收
+        if (expandedRoot != null) {
+            expandedRoot.setClickable(true);
+            expandedRoot.setFocusable(true);
+            expandedRoot.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { if (expanded) collapse(); }
+            });
+        }
+
+        // 进度条拖动
+        if (progress != null) {
+            progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar sb, int p, boolean fu) {
+                    if (fu && player != null) {
+                        long dur = player.getDuration();
+                        if (dur > 0) player.seekTo(dur * p / 1000);
+                    }
                 }
-            }
-            @Override public void onStartTrackingTouch(SeekBar sb) { dragging = true; }
-            @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
-        });
+                @Override public void onStartTrackingTouch(SeekBar sb) { dragging = true; }
+                @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
+            });
+        }
 
         island.setAlpha(0f);
-        island.setScaleX(0.85f);
-        island.setScaleY(0.85f);
+        island.setScaleX(0.4f);
+        island.setScaleY(0.4f);
         island.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(450).setInterpolator(new OvershootInterpolator(1.4f)).start();
+            .setDuration(500).setInterpolator(new OvershootInterpolator(1.5f)).start();
     }
 
-    /** 通用点击绑定：按下缩放，抬起触发 */
-    private void attachTap(View v, final Runnable action) {
+    private void bindClick(View v, final View.OnClickListener l) {
         if (v == null) return;
-        v.setOnTouchListener(new View.OnTouchListener() {
-            @Override public boolean onTouch(View view, MotionEvent e) {
-                switch (e.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        view.animate().scaleX(0.9f).scaleY(0.9f).setDuration(70).start();
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        view.animate().scaleX(1f).scaleY(1f).setDuration(140)
-                            .setInterpolator(new OvershootInterpolator(2f)).start();
-                        if (vib != null) { try { vib.vibrate(15); } catch (Throwable ignored) {} }
-                        action.run();
-                        return true;
-                    case MotionEvent.ACTION_CANCEL:
-                        view.animate().scaleX(1f).scaleY(1f).setDuration(140).start();
-                        return true;
-                }
-                return false;
+        v.setClickable(true);
+        v.setFocusable(true);
+        v.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                if (vib != null) { try { vib.vibrate(12); } catch (Throwable ignored) {} }
+                view.animate().scaleX(0.88f).scaleY(0.88f).setDuration(70)
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            view.animate().scaleX(1f).scaleY(1f).setDuration(180)
+                                .setInterpolator(new OvershootInterpolator(2.5f)).start();
+                        }
+                    }).start();
+                l.onClick(view);
             }
         });
     }
@@ -218,44 +237,40 @@ public class IslandService extends Service {
     }
 
     public void applySize() {
-        if (island == null || wm == null || animating) return;
-        lp.width = expanded ? (int)(screenW * 0.88f) : getW();
-        lp.height = expanded ? (int)(200 * density) : getH();
+        if (island == null || wm == null) return;
+        if (expanded) return;
+        lp.width = getW();
+        lp.height = getH();
         try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
     }
 
-    /** ★ 平滑展开/收起动画（宽高同时过渡） */
-    private void toggle() {
-        if (animating) return;
-        animating = true;
-        expanded = !expanded;
+    /** iPhone Dynamic Island 弹簧展开 */
+    private void expand() {
+        if (expanded) return;
+        expanded = true;
 
-        final int startW = lp.width;
-        final int startH = lp.height;
-        final int endW = expanded ? (int)(screenW * 0.88f) : getW();
-        final int endH = expanded ? (int)(200 * density) : getH();
+        final int startW = lp.width, startH = lp.height;
+        final int targetW = (int)(screenW * 0.88f);
+        final int targetH = (int)(200 * density);
 
-        // 内容切换
-        if (expanded) {
-            expandedRoot.setVisibility(View.VISIBLE);
-            expandedRoot.setAlpha(0f);
-            expandedRoot.setScaleX(0.92f);
-            expandedRoot.setScaleY(0.92f);
-        }
+        // 显示展开内容（scale 小 + 透明）
+        expandedRoot.setVisibility(View.VISIBLE);
+        expandedRoot.setAlpha(0f);
+        expandedRoot.setScaleX(0.85f);
+        expandedRoot.setScaleY(0.85f);
 
-        ValueAnimator wa = ValueAnimator.ofInt(startW, endW);
-        ValueAnimator ha = ValueAnimator.ofInt(startH, endH);
-        wa.setDuration(280);
-        ha.setDuration(280);
-        wa.setInterpolator(new DecelerateInterpolator());
-        ha.setInterpolator(new DecelerateInterpolator());
-
+        ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
+        wa.setDuration(420);
+        wa.setInterpolator(new OvershootInterpolator(1.1f));
         wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator a) {
                 lp.width = (int) a.getAnimatedValue();
                 try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
             }
         });
+        ValueAnimator ha = ValueAnimator.ofInt(startH, targetH);
+        ha.setDuration(420);
+        ha.setInterpolator(new OvershootInterpolator(1.1f));
         ha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator a) {
                 lp.height = (int) a.getAnimatedValue();
@@ -264,27 +279,65 @@ public class IslandService extends Service {
         });
 
         ha.addListener(new android.animation.AnimatorListenerAdapter() {
-            @Override public void onAnimationEnd(android.animation.Animator a) {
-                animating = false;
-                if (expanded) {
-                    expandedRoot.animate().alpha(1f).scaleX(1f).scaleY(1f)
-                        .setDuration(220).setInterpolator(new OvershootInterpolator(1.2f)).start();
-                    collapsedRoot.setVisibility(View.GONE);
-                } else {
-                    collapsedRoot.setVisibility(View.VISIBLE);
-                    collapsedRoot.setAlpha(0f);
-                    collapsedRoot.animate().alpha(1f).setDuration(180).start();
-                }
+            @Override public void onAnimationStart(android.animation.Animator a) {
+                collapsedRoot.setVisibility(View.GONE);
             }
         });
 
-        wa.start();
-        ha.start();
+        wa.start(); ha.start();
 
-        if (!expanded) {
-            expandedRoot.animate().alpha(0f).scaleX(0.92f).scaleY(0.92f)
-                .setDuration(180).start();
-        }
+        // 内容弹簧入场（延迟一点点，配合宽高动画）
+        expandedRoot.postDelayed(new Runnable() {
+            @Override public void run() {
+                expandedRoot.animate().alpha(1f).scaleX(1f).scaleY(1f)
+                    .setDuration(320).setInterpolator(new OvershootInterpolator(1.4f)).start();
+            }
+        }, 100);
+    }
+
+    /** iPhone 反向收起 */
+    private void collapse() {
+        if (!expanded) return;
+        expanded = false;
+
+        // 内容先淡出缩小
+        expandedRoot.animate().alpha(0f).scaleX(0.85f).scaleY(0.85f)
+            .setDuration(200).setInterpolator(new DecelerateInterpolator())
+            .withEndAction(new Runnable() {
+                @Override public void run() {
+                    expandedRoot.setVisibility(View.GONE);
+                }
+            }).start();
+
+        final int startW = lp.width, startH = lp.height;
+        final int targetW = getW(), targetH = getH();
+
+        ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
+        wa.setDuration(360);
+        wa.setInterpolator(new DecelerateInterpolator());
+        wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override public void onAnimationUpdate(ValueAnimator a) {
+                lp.width = (int) a.getAnimatedValue();
+                try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
+            }
+        });
+        ValueAnimator ha = ValueAnimator.ofInt(startH, targetH);
+        ha.setDuration(360);
+        ha.setInterpolator(new DecelerateInterpolator());
+        ha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override public void onAnimationUpdate(ValueAnimator a) {
+                lp.height = (int) a.getAnimatedValue();
+                try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
+            }
+        });
+        ha.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(android.animation.Animator a) {
+                collapsedRoot.setVisibility(View.VISIBLE);
+                collapsedRoot.setAlpha(0f);
+                collapsedRoot.animate().alpha(1f).setDuration(200).start();
+            }
+        });
+        wa.start(); ha.start();
     }
 
     private final Runnable tick = new Runnable() {
@@ -300,7 +353,7 @@ public class IslandService extends Service {
         try {
             int idx = player.getCurrentMediaItemIndex();
             long songId = 0;
-            String title = "♪ 正在播放";
+            String title = "正在播放";
             String artist = "MUSIC·Pro";
             if (queue != null && idx >= 0 && idx < queue.size()) {
                 Song s = queue.get(idx);
@@ -314,7 +367,6 @@ public class IslandService extends Service {
                 lastTitle = title;
             }
             if (!artist.equals(lastArtist)) {
-                if (tvArtist != null) tvArtist.setText(artist);
                 if (tvExpArtist != null) tvExpArtist.setText(artist);
                 lastArtist = artist;
             }
