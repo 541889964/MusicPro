@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
             requestPermAndScan();
             startIsland();
-            h.postDelayed(updateMini, 500);
+            ui.postDelayed(updateMini, 500);
         } catch (Throwable t) {
             NiceToast.show(this, "初始化失败");
         }
