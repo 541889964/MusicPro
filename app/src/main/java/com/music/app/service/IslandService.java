@@ -49,7 +49,6 @@ public class IslandService extends Service {
     private View lifeBox, collapsedBox, expandedBox, notifSplit, glowLayer;
     private TextView txtClock, txtDate, txtTitle, txtMiniLyric, txtBattery, txtBatteryBig;
     private TextView txtTimeCur, txtTimeTot, txtNotifTitle, txtNotifText;
-    private TextView txtSplitTitle, txtSplitText;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
     private ImageView ivCover, ivCoverBig;
     private SeekBar seek;
@@ -192,8 +191,6 @@ public class IslandService extends Service {
         txtTimeTot = root.findViewById(R.id.txtTimeTot);
         txtNotifTitle = root.findViewById(R.id.txtNotifTitle);
         txtNotifText = root.findViewById(R.id.txtNotifText);
-        txtSplitTitle = root.findViewById(R.id.txtSplitTitle);
-        txtSplitText = root.findViewById(R.id.txtSplitText);
 
         btnPlay = root.findViewById(R.id.btnPlay);
         btnPlayBig = root.findViewById(R.id.btnPlayBig);
@@ -427,8 +424,6 @@ public class IslandService extends Service {
             String text = NotifListener.lastText;
 
             String head = app.isEmpty() ? title : (app + " · " + title);
-            if (txtSplitTitle != null) txtSplitTitle.setText(head);
-            if (txtSplitText != null) txtSplitText.setText(text);
             if (txtNotifTitle != null) txtNotifTitle.setText(head);
             if (txtNotifText != null) txtNotifText.setText(text);
 
