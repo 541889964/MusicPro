@@ -52,6 +52,7 @@ public class IslandService extends Service {
     private TextView[] lyricViews = new TextView[5];
     private TextView txtTimeCur, txtTimeTot;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
+    private TextView txtNotifTitle, txtNotifText;
     private SeekBar seek;
 
     private int screenW, screenH, statusBarH;
@@ -62,12 +63,11 @@ public class IslandService extends Service {
     private String lastLyric = "";
     private boolean lastPlaying = false;
     private List<LyricsParser.Line> lyricLines = new ArrayList<LyricsParser.Line>();
+    private long lastNotifTime = 0;
 
     private ObjectAnimator coverRotate, breathe;
     private android.content.BroadcastReceiver chargeReceiver;
     private boolean charging = false;
-    private int lastBattery = -1;
-    private boolean lastCharging = false;
 
     private final Handler h = new Handler(Looper.getMainLooper());
     private final Runnable tick = new Runnable() {
@@ -82,7 +82,6 @@ public class IslandService extends Service {
     @Override public void onCreate() {
         super.onCreate();
         if (Build.VERSION.SDK_INT >= 23 && !android.provider.Settings.canDrawOverlays(this)) {
-            Log.e(TAG, "no overlay perm");
             stopSelf();
             return;
         }
@@ -176,6 +175,8 @@ public class IslandService extends Service {
         btnPrev = root.findViewById(R.id.btnPrev);
         btnNext = root.findViewById(R.id.btnNext);
         btnClose = root.findViewById(R.id.btnClose);
+        txtNotifTitle = root.findViewById(R.id.txtNotifTitle);
+        txtNotifText = root.findViewById(R.id.txtNotifText);
         seek = root.findViewById(R.id.seek);
     }
 
@@ -249,7 +250,6 @@ public class IslandService extends Service {
         }
     }
 
-    /** 按钮按压反馈（缩放回弹） */
     private void pressFeedback(View v) {
         try {
             v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(70).start();
@@ -262,7 +262,6 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
-    /** ★ 展开：先展开宽度，再淡入内容 */
     private void expand() {
         if (expanded || animating) return;
         expanded = true;
@@ -292,21 +291,17 @@ public class IslandService extends Service {
             });
             wa.addListener(new AnimatorListenerAdapter() {
                 @Override public void onAnimationEnd(Animator a) {
-                    // 内容淡入
                     expandedBox.animate()
                         .alpha(1f).scaleX(1f).scaleY(1f)
                         .setDuration(280)
                         .setInterpolator(new OvershootInterpolator(1.2f))
                         .withEndAction(new Runnable() {
-                            @Override public void run() {
-                                animating = false;
-                            }
+                            @Override public void run() { animating = false; }
                         }).start();
                 }
             });
             wa.start();
 
-            // 播放键脉冲
             if (btnPlayBig != null) {
                 btnPlayBig.setScaleX(0.7f);
                 btnPlayBig.setScaleY(0.7f);
@@ -320,21 +315,18 @@ public class IslandService extends Service {
         }
     }
 
-    /** ★ 收起：先淡出内容，再缩宽度 */
     private void collapse() {
         if (!expanded || animating) return;
         expanded = false;
         animating = true;
 
         try {
-            // 内容先淡出
             expandedBox.animate()
                 .alpha(0f).scaleX(0.92f).scaleY(0.92f)
                 .setDuration(180)
                 .setInterpolator(new DecelerateInterpolator())
                 .withEndAction(new Runnable() {
                     @Override public void run() {
-                        // 宽度缩回
                         final int startW = lp.width;
                         final int targetW = cW();
                         ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
@@ -359,9 +351,7 @@ public class IslandService extends Service {
                                 collapsedBox.setAlpha(0f);
                                 collapsedBox.animate().alpha(1f).setDuration(180)
                                     .withEndAction(new Runnable() {
-                                        @Override public void run() {
-                                            animating = false;
-                                        }
+                                        @Override public void run() { animating = false; }
                                     }).start();
                             }
                         });
@@ -382,6 +372,43 @@ public class IslandService extends Service {
                 lp.height = cH();
                 wm.updateViewLayout(root, lp);
             }
+        } catch (Throwable ignored) {}
+    }
+
+    /** 通知回调 */
+    public void onNewNotification() {
+        try {
+            lastNotifTime = System.currentTimeMillis();
+            updateNotifUI();
+            // 灵动岛闪一下
+            if (root != null) {
+                root.animate().scaleX(1.03f).scaleY(1.03f).setDuration(150)
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            root.animate().scaleX(1f).scaleY(1f).setDuration(200).start();
+                        }
+                    }).start();
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private void updateNotifUI() {
+        try {
+            if (txtNotifTitle == null) return;
+            String app = NotifListener.lastApp;
+            String title = NotifListener.lastTitle;
+            String text = NotifListener.lastText;
+
+            // 5 分钟内有效
+            boolean fresh = System.currentTimeMillis() - lastNotifTime < 5 * 60 * 1000;
+            if (!fresh || (title.isEmpty() && text.isEmpty())) {
+                txtNotifTitle.setText("暂无新通知");
+                if (txtNotifText != null) txtNotifText.setText("");
+                return;
+            }
+            String head = app.isEmpty() ? title : (app + " · " + title);
+            txtNotifTitle.setText(head);
+            if (txtNotifText != null) txtNotifText.setText(text);
         } catch (Throwable ignored) {}
     }
 
@@ -412,8 +439,6 @@ public class IslandService extends Service {
     }
 
     private void updateBattery(int pct, boolean chg) {
-        lastBattery = pct;
-        lastCharging = chg;
         try {
             int color;
             String txt;
@@ -444,9 +469,7 @@ public class IslandService extends Service {
             if (!expanded) {
                 expand();
                 h.postDelayed(new Runnable() {
-                    @Override public void run() {
-                        if (expanded) collapse();
-                    }
+                    @Override public void run() { if (expanded) collapse(); }
                 }, 2500);
             }
         } catch (Throwable ignored) {}
@@ -601,6 +624,8 @@ public class IslandService extends Service {
                     if (txtTimeTot != null) txtTimeTot.setText(fmt((int) dur));
                 }
             }
+
+            if (expanded) updateNotifUI();
         } catch (Throwable t) { Log.e(TAG, "update", t); }
     }
 

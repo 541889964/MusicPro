@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 折叠态 -->
     <LinearLayout android:id="@+id/collapsedBox"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -52,13 +51,6 @@
             android:clickable="true" android:focusable="true"/>
     </LinearLayout>
 
-    <!-- ★ 展开态：wrap_content 自适应内容高度 -->
-    <View android:id="@+id/shine"
-        android:layout_width="100dp" android:layout_height="match_parent"
-        android:background="@drawable/shine_gradient"
-        android:visibility="gone"
-        android:clickable="false" android:focusable="false"/>
-
     <LinearLayout android:id="@+id/expandedBox"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -104,7 +96,6 @@
                 android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
-        <!-- 5 行歌词：用固定高度 100dp -->
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="100dp" android:orientation="vertical"
             android:layout_marginTop="6dp" android:gravity="center_vertical">
@@ -135,7 +126,6 @@
                 android:gravity="center" android:singleLine="true" android:ellipsize="end"/>
         </LinearLayout>
 
-        <!-- 进度条 -->
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="horizontal"
             android:layout_marginTop="4dp" android:gravity="center_vertical">
@@ -155,7 +145,6 @@
                 android:textSize="9sp" android:minWidth="26dp" android:gravity="right"/>
         </LinearLayout>
 
-        <!-- 控制按钮 -->
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="52dp" android:orientation="horizontal"
             android:layout_marginTop="4dp" android:gravity="center">
@@ -183,73 +172,31 @@
                 android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
-        <!-- 实用功能区 -->
+        <View android:layout_width="match_parent" android:layout_height="0.5dp"
+            android:layout_marginTop="6dp" android:background="#22FFFFFF"/>
+
         <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical"
-            android:layout_marginTop="6dp">
+            android:layout_height="wrap_content" android:orientation="horizontal"
+            android:layout_marginTop="6dp" android:gravity="center_vertical">
 
-            <View android:layout_width="match_parent" android:layout_height="0.5dp"
-                android:background="#22FFFFFF"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="通知" android:textColor="#8E8E93"
+                android:textSize="10sp" android:paddingRight="8dp"/>
 
-            <LinearLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:orientation="horizontal"
-                android:layout_marginTop="6dp">
-                <TextView android:id="@+id/txtCpu"
-                    android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="CPU"
-                    android:textColor="#88FFFFFF" android:textSize="10sp" android:gravity="center"/>
-                <TextView android:id="@+id/txtRam"
-                    android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="RAM"
-                    android:textColor="#88FFFFFF" android:textSize="10sp" android:gravity="center"/>
-                <TextView android:id="@+id/txtNet"
-                    android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="离线"
-                    android:textColor="#88FFFFFF" android:textSize="10sp" android:gravity="center"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical">
+                <TextView android:id="@+id/txtNotifTitle"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="暂无新通知"
+                    android:textColor="#FFFFFF" android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:singleLine="true" android:ellipsize="end"/>
+                <TextView android:id="@+id/txtNotifText"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:text=""
+                    android:textColor="#99FFFFFF" android:textSize="10sp"
+                    android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
-
-            <LinearLayout android:layout_width="match_parent"
-                android:layout_height="38dp" android:orientation="horizontal"
-                android:layout_marginTop="4dp" android:weightSum="4">
-                <TextView android:id="@+id/toggleWifi"
-                    android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:text="WiFi"
-                    android:textSize="11sp" android:textColor="#FFFFFF" android:gravity="center"
-                    android:background="@drawable/bg_util_btn"
-                    android:layout_marginRight="3dp"
-                    android:clickable="true" android:focusable="true"/>
-                <TextView android:id="@+id/toggleBt"
-                    android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:text="蓝牙"
-                    android:textSize="11sp" android:textColor="#FFFFFF" android:gravity="center"
-                    android:background="@drawable/bg_util_btn"
-                    android:layout_marginLeft="3dp" android:layout_marginRight="3dp"
-                    android:clickable="true" android:focusable="true"/>
-                <TextView android:id="@+id/toggleTorch"
-                    android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:text="手电"
-                    android:textSize="11sp" android:textColor="#FFFFFF" android:gravity="center"
-                    android:background="@drawable/bg_util_btn"
-                    android:layout_marginLeft="3dp" android:layout_marginRight="3dp"
-                    android:clickable="true" android:focusable="true"/>
-                <TextView android:id="@+id/toggleSilent"
-                    android:layout_width="0dp" android:layout_height="match_parent"
-                    android:layout_weight="1" android:text="静音"
-                    android:textSize="11sp" android:textColor="#FFFFFF" android:gravity="center"
-                    android:background="@drawable/bg_util_btn"
-                    android:layout_marginLeft="3dp"
-                    android:clickable="true" android:focusable="true"/>
-            </LinearLayout>
-
-            <TextView android:id="@+id/txtClipboard"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="6dp" android:paddingLeft="8dp" android:paddingRight="8dp"
-                android:paddingTop="4dp" android:paddingBottom="4dp"
-                android:text="剪贴板为空"
-                android:textColor="#88FFFFFF" android:textSize="10sp"
-                android:singleLine="true" android:ellipsize="end"
-                android:background="@drawable/bg_util_btn"
-                android:clickable="true" android:focusable="true"/>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
