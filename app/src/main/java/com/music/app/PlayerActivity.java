@@ -88,6 +88,10 @@ public class PlayerActivity extends AppCompatActivity {
         if (startIdx < 0 || startIdx >= queue.size()) startIdx = 0;
         currentIndex = startIdx;
         initPlayer();
+        try {
+            com.music.app.service.IslandService.queue =
+                new ArrayList<Song>(queue);
+        } catch (Throwable ignored) {}
         playAt(currentIndex);
         startIsland();
 
@@ -227,8 +231,7 @@ public class PlayerActivity extends AppCompatActivity {
                     if (url == null || url.isEmpty()) { NiceToast.show(PlayerActivity.this, "无法播放"); return; }
                     song.onlineUrl = url;
                     try {
-                        MediaItem item = MediaItem.fromUri(url);
-                        player.setMediaItem(item);
+                        setFullQueue(idx);
                         player.prepare();
                         player.play();
                         updatePlayIcon();
@@ -238,8 +241,7 @@ public class PlayerActivity extends AppCompatActivity {
             loadLyrics(song.id);
         } else {
             try {
-                MediaItem item = MediaItem.fromUri("file://" + song.path);
-                player.setMediaItem(item);
+                setFullQueue(idx);
                 player.prepare();
                 player.play();
                 updatePlayIcon();

@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Build;
@@ -19,13 +20,17 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.music.app.R;
+import com.music.app.model.Song;
 import com.music.app.util.Prefs;
+import com.music.app.util.WallpaperHelper;
+import java.util.List;
 
 public class IslandService extends Service {
 
@@ -34,17 +39,21 @@ public class IslandService extends Service {
     private WindowManager.LayoutParams lp;
     private ExoPlayer player;
     private TextView tvTitle, tvArtist, tvCurrent, tvTotal;
-    private ImageButton btnPlay, btnPrev, btnNext, btnClose;
-    private ProgressBar progress;
+    private TextView tvExpTitle, tvExpArtist;
+    private ImageView ivCover, ivExpCover;
+    private ImageButton btnPlay, btnPlayExp, btnPrev, btnNext, btnPrevMini, btnNextMini, btnClose;
+    private SeekBar progress;
     private View collapsedRoot, expandedRoot;
 
     private boolean expanded = false;
+    private boolean dragging = false;
     private int screenW, screenH, statusBarH;
     private float density;
     private final Handler h = new Handler(Looper.getMainLooper());
     private ObjectAnimator breathe;
 
     public static IslandService instance;
+    public static List<Song> queue; // 外部传入队列，用于匹配素材
 
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
 
@@ -63,11 +72,9 @@ public class IslandService extends Service {
         if (Build.VERSION.SDK_INT >= 30) {
             WindowManager w = (WindowManager) getSystemService(WINDOW_SERVICE);
             Rect b = w.getCurrentWindowMetrics().getBounds();
-            screenW = b.width();
-            screenH = b.height();
+            screenW = b.width(); screenH = b.height();
         } else {
-            screenW = dm.widthPixels;
-            screenH = dm.heightPixels;
+            screenW = dm.widthPixels; screenH = dm.heightPixels;
         }
         int rid = getResources().getIdentifier("status_bar_height", "dimen", "android");
         statusBarH = rid > 0 ? getResources().getDimensionPixelSize(rid) : (int)(24 * density);
@@ -82,8 +89,7 @@ public class IslandService extends Service {
             : WindowManager.LayoutParams.TYPE_PHONE;
 
         lp = new WindowManager.LayoutParams(
-            getIslandWidthPx(), getIslandHeightPx(),
-            type,
+            getIslandWidthPx(), getIslandHeightPx(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
@@ -91,30 +97,36 @@ public class IslandService extends Service {
             PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         lp.y = statusBarH + (int)(6 * density);
-
         wm.addView(island, lp);
 
         tvTitle = island.findViewById(R.id.islandTitle);
         tvArtist = island.findViewById(R.id.islandArtist);
+        tvExpTitle = island.findViewById(R.id.islandExpTitle);
+        tvExpArtist = island.findViewById(R.id.islandExpArtist);
         tvCurrent = island.findViewById(R.id.islandCurrent);
         tvTotal = island.findViewById(R.id.islandTotal);
+        ivCover = island.findViewById(R.id.islandCover);
+        ivExpCover = island.findViewById(R.id.islandExpCover);
         btnPlay = island.findViewById(R.id.islandPlay);
+        btnPlayExp = island.findViewById(R.id.islandPlayExpand);
         btnPrev = island.findViewById(R.id.islandPrev);
         btnNext = island.findViewById(R.id.islandNext);
+        btnPrevMini = island.findViewById(R.id.islandPrevMini);
+        btnNextMini = island.findViewById(R.id.islandNextMini);
         btnClose = island.findViewById(R.id.islandClose);
         progress = island.findViewById(R.id.islandProgress);
         collapsedRoot = island.findViewById(R.id.islandCollapsed);
         expandedRoot = island.findViewById(R.id.islandExpanded);
 
-        if (btnPlay != null) btnPlay.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener playClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
                 bounce(v);
                 if (player != null) {
                     if (player.isPlaying()) player.pause(); else player.play();
                 }
             }
-        });
-        if (btnPrev != null) btnPrev.setOnClickListener(new View.OnClickListener() {
+        };
+        View.OnClickListener prevClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
                 bounce(v);
                 if (player != null && player.hasPreviousMediaItem()) {
@@ -122,8 +134,8 @@ public class IslandService extends Service {
                     player.play();
                 }
             }
-        });
-        if (btnNext != null) btnNext.setOnClickListener(new View.OnClickListener() {
+        };
+        View.OnClickListener nextClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
                 bounce(v);
                 if (player != null && player.hasNextMediaItem()) {
@@ -131,13 +143,35 @@ public class IslandService extends Service {
                     player.play();
                 }
             }
-        });
+        };
+        if (btnPlay != null) btnPlay.setOnClickListener(playClick);
+        if (btnPlayExp != null) btnPlayExp.setOnClickListener(playClick);
+        if (btnPrev != null) btnPrev.setOnClickListener(prevClick);
+        if (btnNext != null) btnNext.setOnClickListener(nextClick);
+        if (btnPrevMini != null) btnPrevMini.setOnClickListener(prevClick);
+        if (btnNextMini != null) btnNextMini.setOnClickListener(nextClick);
         if (btnClose != null) btnClose.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { stopSelf(); }
         });
         if (collapsedRoot != null) collapsedRoot.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { toggleExpand(); }
         });
+
+        // ★ 进度条拖动
+        if (progress != null) {
+            progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+                    if (fromUser && player != null) {
+                        long dur = player.getDuration();
+                        long newPos = dur * p / 1000;
+                        player.seekTo(newPos);
+                        if (tvCurrent != null) tvCurrent.setText(fmt((int) newPos));
+                    }
+                }
+                @Override public void onStartTrackingTouch(SeekBar sb) { dragging = true; }
+                @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
+            });
+        }
 
         island.setAlpha(0f);
         island.setScaleX(0.6f);
@@ -153,7 +187,6 @@ public class IslandService extends Service {
         if (w > 0.9f) w = 0.9f;
         return (int)(screenW * w);
     }
-
     public int getIslandHeightPx() {
         float dp = Prefs.islandHeight(this);
         if (dp < 40f) dp = 40f;
@@ -163,8 +196,8 @@ public class IslandService extends Service {
 
     public void applySize() {
         if (island == null || wm == null || lp == null) return;
-        int newW = expanded ? (int)(screenW * 0.86f) : getIslandWidthPx();
-        int newH = expanded ? (int)(120 * density) : getIslandHeightPx();
+        int newW = expanded ? (int)(screenW * 0.88f) : getIslandWidthPx();
+        int newH = expanded ? (int)(178 * density) : getIslandHeightPx();
         ValueAnimator wa = ValueAnimator.ofInt(lp.width, newW);
         ValueAnimator ha = ValueAnimator.ofInt(lp.height, newH);
         wa.setDuration(250); ha.setDuration(250);
@@ -185,27 +218,29 @@ public class IslandService extends Service {
 
     private void toggleExpand() {
         expanded = !expanded;
-        float toScale = expanded ? 1.05f : 1f;
+        float toScale = expanded ? 1.02f : 1f;
         island.animate().scaleX(toScale).scaleY(toScale)
-            .setDuration(320).setInterpolator(new OvershootInterpolator(1.4f)).start();
+            .setDuration(320).setInterpolator(new OvershootInterpolator(1.3f)).start();
         if (expandedRoot != null) {
             if (expanded) {
                 expandedRoot.setVisibility(View.VISIBLE);
                 expandedRoot.setAlpha(0f);
-                expandedRoot.setTranslationY(-10f);
+                expandedRoot.setTranslationY(-12f);
                 expandedRoot.animate().alpha(1f).translationY(0f)
-                    .setDuration(280).setInterpolator(new DecelerateInterpolator()).start();
+                    .setDuration(300).setInterpolator(new DecelerateInterpolator()).start();
+                if (collapsedRoot != null) collapsedRoot.setVisibility(View.GONE);
             } else {
                 expandedRoot.animate().alpha(0f).setDuration(180)
                     .withEndAction(new Runnable() {
                         @Override public void run() {
                             expandedRoot.setVisibility(View.GONE);
+                            if (collapsedRoot != null) collapsedRoot.setVisibility(View.VISIBLE);
                         }
                     }).start();
             }
         }
-        int targetW = expanded ? (int)(screenW * 0.86f) : getIslandWidthPx();
-        int targetH = expanded ? (int)(120 * density) : getIslandHeightPx();
+        int targetW = expanded ? (int)(screenW * 0.88f) : getIslandWidthPx();
+        int targetH = expanded ? (int)(178 * density) : getIslandHeightPx();
         ValueAnimator va = ValueAnimator.ofInt(lp.width, targetW);
         va.setDuration(280);
         va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -249,21 +284,48 @@ public class IslandService extends Service {
         if (player == null) player = MusicService.sharedPlayer;
         if (player == null) return;
         try {
-            MediaItem item = player.getCurrentMediaItem();
-            if (item != null && tvTitle != null) tvTitle.setText("♪ 正在播放");
-            if (btnPlay != null) {
-                btnPlay.setImageResource(player.isPlaying()
-                    ? android.R.drawable.ic_media_pause
-                    : android.R.drawable.ic_media_play);
+            // 当前歌曲信息
+            int idx = player.getCurrentMediaItemIndex();
+            String title = "♪ 正在播放";
+            String artist = "MUSIC·Pro";
+            long songId = 0;
+            if (queue != null && idx >= 0 && idx < queue.size()) {
+                Song song = queue.get(idx);
+                title = song.title;
+                artist = song.artist;
+                songId = song.id;
             }
+            if (tvTitle != null) tvTitle.setText(title);
+            if (tvArtist != null) tvArtist.setText(artist);
+            if (tvExpTitle != null) tvExpTitle.setText(title);
+            if (tvExpArtist != null) tvExpArtist.setText(artist);
+
+            // ★ 素材封面
+            String name = WallpaperHelper.forSong(this, songId);
+            Bitmap bm = WallpaperHelper.loadSmall(this, name);
+            if (bm != null) {
+                if (ivCover != null) ivCover.setImageBitmap(bm);
+                if (ivExpCover != null) ivExpCover.setImageBitmap(bm);
+            }
+
+            // 播放/暂停图标
+            int icon = player.isPlaying()
+                ? android.R.drawable.ic_media_pause
+                : android.R.drawable.ic_media_play;
+            if (btnPlay != null) btnPlay.setImageResource(icon);
+            if (btnPlayExp != null) btnPlayExp.setImageResource(icon);
+
+            // 进度
             long pos = player.getCurrentPosition();
             long dur = player.getDuration();
-            if (dur > 0 && progress != null) {
+            if (!dragging && dur > 0 && progress != null) {
                 progress.setMax(1000);
                 progress.setProgress((int)(pos * 1000 / dur));
             }
             if (tvCurrent != null) tvCurrent.setText(fmt((int) pos));
             if (tvTotal != null) tvTotal.setText(fmt((int) dur));
+
+            // 呼吸
             if (breathe == null && island != null && player.isPlaying()) {
                 breathe = ObjectAnimator.ofFloat(island, "alpha", 1f, 0.88f, 1f);
                 breathe.setDuration(1800);
