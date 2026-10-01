@@ -33,6 +33,9 @@ import java.util.List;
 public class PlayerActivity extends AppCompatActivity {
     public static ExoPlayer player;
     public static List<Song> queue = new ArrayList<Song>();
+    public static String currentLyric = "";
+    public static String currentTitle = "";
+    public static String currentArtist = "";
     public static int currentIndex = 0;
     private static boolean listenerBound = false;
 
@@ -295,8 +298,11 @@ public class PlayerActivity extends AppCompatActivity {
             }
         } catch (Throwable ignored) {}
 
-        // 歌词
+        // 歌词：切歌先清空静态变量
         try {
+            currentLyric = "";
+            currentTitle = song.title;
+            currentArtist = song.artist;
             if (song.lyric != null && !song.lyric.isEmpty()) buildLyricsView(song.lyric);
             else if (song.isOnline) loadLyrics(song.id, idx);
             else loadLocalLyrics(song);
@@ -416,6 +422,16 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void buildLyricsView(String lrc) {
+        try {
+            currentLyric = lrc;
+            if (queue != null && currentIndex >= 0 && currentIndex < queue.size()) {
+                Song cs = queue.get(currentIndex);
+                if (cs != null) {
+                    currentTitle = cs.title;
+                    currentArtist = cs.artist;
+                }
+            }
+        } catch (Throwable ignored) {}
         try {
             lyrics = LyricsParser.parse(lrc);
             if (lyrics.isEmpty()) {

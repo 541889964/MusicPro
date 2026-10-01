@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.exoplayer.ExoPlayer;
+import com.music.app.PlayerActivity;
 import com.music.app.R;
 import com.music.app.model.Song;
 import com.music.app.util.IslandConfig;
@@ -73,9 +74,7 @@ public class IslandService extends Service {
     @Override public void onCreate() {
         super.onCreate();
         if (Build.VERSION.SDK_INT >= 23 && !android.provider.Settings.canDrawOverlays(this)) {
-            Log.e(TAG, "无悬浮窗权限");
-            stopSelf();
-            return;
+            stopSelf(); return;
         }
         try {
             instance = this;
@@ -84,7 +83,7 @@ public class IslandService extends Service {
             initView();
             h.post(tick);
         } catch (Throwable t) {
-            Log.e(TAG, "init fail", t);
+            Log.e(TAG, "init", t);
             stopSelf();
         }
     }
@@ -130,7 +129,8 @@ public class IslandService extends Service {
         lp = new WindowManager.LayoutParams(cW(), cH(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         lp.y = statusBarH + (int)(6 * density);
@@ -160,16 +160,13 @@ public class IslandService extends Service {
         btnClose = root.findViewById(R.id.btnClose);
         seek = root.findViewById(R.id.seek);
 
-        // 折叠态点击 → 展开
         collapsedBox.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { if (!expanded) expand(); }
         });
-        // 展开态空白 → 收起
         expandedBox.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { if (expanded) collapse(); }
         });
 
-        // 播放/暂停
         View.OnClickListener playClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
@@ -182,7 +179,6 @@ public class IslandService extends Service {
         if (btnPlay != null) btnPlay.setOnClickListener(playClick);
         if (btnPlayBig != null) btnPlayBig.setOnClickListener(playClick);
 
-        // 上一首
         if (btnPrev != null) btnPrev.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
@@ -194,8 +190,6 @@ public class IslandService extends Service {
                 } catch (Throwable ignored) {}
             }
         });
-
-        // 下一首
         if (btnNext != null) btnNext.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
@@ -209,7 +203,6 @@ public class IslandService extends Service {
                 } catch (Throwable ignored) {}
             }
         });
-
         if (btnClose != null) btnClose.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { stopSelf(); }
         });
@@ -236,73 +229,61 @@ public class IslandService extends Service {
         root.setScaleX(0.85f);
         root.setScaleY(0.85f);
         root.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(350).setInterpolator(new OvershootInterpolator(1.4f)).start();
+            .setDuration(300).setInterpolator(new OvershootInterpolator(1.4f)).start();
     }
 
+    /** ★ 流畅展开：只调 2 次 updateViewLayout + 内容 scale 动画 */
     private void expand() {
         if (expanded || animating) return;
-        expanded = true; animating = true;
+        expanded = true;
+        animating = true;
+
+        // 1. 立即改窗口尺寸（只调一次）
+        lp.width = eW();
+        lp.height = eH();
+        try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
+
+        // 2. 内容从 0.85 缩放到 1
         expandedBox.setVisibility(View.VISIBLE);
         expandedBox.setAlpha(0f);
+        expandedBox.setScaleX(0.85f);
+        expandedBox.setScaleY(0.85f);
+        collapsedBox.setVisibility(View.GONE);
 
-        ValueAnimator wa = ValueAnimator.ofInt(lp.width, eW());
-        ValueAnimator ha = ValueAnimator.ofInt(lp.height, eH());
-        wa.setDuration(400); ha.setDuration(400);
-        wa.setInterpolator(new OvershootInterpolator(1.0f));
-        ha.setInterpolator(new OvershootInterpolator(1.0f));
-        wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.width = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.height = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addListener(new AnimatorListenerAdapter() {
-            @Override public void onAnimationStart(Animator a) { collapsedBox.setVisibility(View.GONE); }
-            @Override public void onAnimationEnd(Animator a) {
-                expandedBox.animate().alpha(1f).setDuration(200).start();
-                animating = false;
-                update();
-            }
-        });
-        wa.start(); ha.start();
+        expandedBox.animate()
+            .alpha(1f).scaleX(1f).scaleY(1f)
+            .setDuration(320)
+            .setInterpolator(new OvershootInterpolator(1.2f))
+            .withEndAction(new Runnable() {
+                @Override public void run() {
+                    animating = false;
+                    update();
+                }
+            }).start();
     }
 
+    /** ★ 流畅收起 */
     private void collapse() {
         if (!expanded || animating) return;
-        expanded = false; animating = true;
-        expandedBox.animate().alpha(0f).setDuration(150).start();
+        expanded = false;
+        animating = true;
 
-        ValueAnimator wa = ValueAnimator.ofInt(lp.width, cW());
-        ValueAnimator ha = ValueAnimator.ofInt(lp.height, cH());
-        wa.setDuration(340); ha.setDuration(340);
-        wa.setInterpolator(new DecelerateInterpolator());
-        ha.setInterpolator(new DecelerateInterpolator());
-        wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.width = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.height = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addListener(new AnimatorListenerAdapter() {
-            @Override public void onAnimationEnd(Animator a) {
-                expandedBox.setVisibility(View.GONE);
-                collapsedBox.setVisibility(View.VISIBLE);
-                animating = false;
-            }
-        });
-        wa.start(); ha.start();
+        // 内容先缩回
+        expandedBox.animate()
+            .alpha(0f).scaleX(0.85f).scaleY(0.85f)
+            .setDuration(200)
+            .setInterpolator(new DecelerateInterpolator())
+            .withEndAction(new Runnable() {
+                @Override public void run() {
+                    expandedBox.setVisibility(View.GONE);
+                    collapsedBox.setVisibility(View.VISIBLE);
+                    // 窗口缩回（只调一次）
+                    lp.width = cW();
+                    lp.height = cH();
+                    try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
+                    animating = false;
+                }
+            }).start();
     }
 
     public void reloadConfig() {
@@ -323,7 +304,7 @@ public class IslandService extends Service {
 
             MediaItem item = p.getCurrentMediaItem();
             long songId = 0;
-            String title = "未播放", artist = "";
+            String title = "", artist = "";
             if (item != null && item.mediaMetadata != null) {
                 MediaMetadata md = item.mediaMetadata;
                 if (md.title != null) title = md.title.toString();
@@ -345,7 +326,6 @@ public class IslandService extends Service {
             if (txtArtistBig != null && !artist.equals(txtArtistBig.getText().toString()))
                 txtArtistBig.setText(artist);
 
-            // 封面
             if (songId != lastSongId) {
                 lastSongId = songId;
                 try {
@@ -360,43 +340,39 @@ public class IslandService extends Service {
                 lastLyric = "";
             }
 
-            // ★ 歌词：直接读 song.lyric，不联网
-            if (curSong != null) {
-                String lrc = curSong.lyric;
-                if (lrc != null && !lrc.isEmpty()) {
-                    if (!lrc.equals(lastLyric)) {
-                        lastLyric = lrc;
-                        lyricLines = LyricsParser.parse(lrc);
-                    }
-                    if (!lyricLines.isEmpty()) {
-                        long pos = p.getCurrentPosition();
-                        int li = LyricsParser.findIndex(lyricLines, pos);
+            // ★ 歌词：优先 PlayerActivity.currentLyric
+            String lrc = PlayerActivity.currentLyric;
+            if (lrc == null || lrc.isEmpty()) {
+                if (curSong != null) lrc = curSong.lyric;
+            }
 
-                        // 折叠态：只显示当前行
-                        if (txtMiniLyric != null && li >= 0 && li < lyricLines.size()) {
-                            String cur = lyricLines.get(li).text;
-                            if (!cur.equals(txtMiniLyric.getText().toString()))
-                                txtMiniLyric.setText(cur);
-                        }
+            if (lrc != null && !lrc.isEmpty()) {
+                if (!lrc.equals(lastLyric)) {
+                    lastLyric = lrc;
+                    lyricLines = LyricsParser.parse(lrc);
+                }
+                if (!lyricLines.isEmpty()) {
+                    long pos = p.getCurrentPosition();
+                    int li = LyricsParser.findIndex(lyricLines, pos);
 
-                        // 展开态：5 行
-                        if (expanded) {
-                            for (int i = -2; i <= 2; i++) {
-                                int ii = li + i;
-                                String txt = (ii >= 0 && ii < lyricLines.size())
-                                    ? lyricLines.get(ii).text : "";
-                                TextView tv = lyricViews[i + 2];
-                                if (tv != null && !txt.equals(tv.getText().toString()))
-                                    tv.setText(txt);
-                            }
+                    if (txtMiniLyric != null && li >= 0 && li < lyricLines.size()) {
+                        String cur = lyricLines.get(li).text;
+                        if (!cur.equals(txtMiniLyric.getText().toString()))
+                            txtMiniLyric.setText(cur);
+                    }
+                    if (expanded) {
+                        for (int i = -2; i <= 2; i++) {
+                            int ii = li + i;
+                            String txt = (ii >= 0 && ii < lyricLines.size())
+                                ? lyricLines.get(ii).text : "";
+                            TextView tv = lyricViews[i + 2];
+                            if (tv != null && !txt.equals(tv.getText().toString()))
+                                tv.setText(txt);
                         }
                     }
-                } else {
-                    if (txtMiniLyric != null) txtMiniLyric.setText("");
                 }
             }
 
-            // 播放状态
             boolean playing = p.isPlaying();
             if (playing != lastPlaying) {
                 lastPlaying = playing;
@@ -405,7 +381,6 @@ public class IslandService extends Service {
                 if (btnPlayBig != null) btnPlayBig.setText(sym);
             }
 
-            // 进度（仅展开态）
             if (expanded && !dragging && seek != null) {
                 long pos = p.getCurrentPosition();
                 long dur = p.getDuration();
@@ -428,9 +403,8 @@ public class IslandService extends Service {
     @Override public void onDestroy() {
         instance = null;
         h.removeCallbacksAndMessages(null);
-        try {
-            if (root != null && wm != null) wm.removeView(root);
-        } catch (Throwable ignored) {}
+        try { if (root != null && wm != null) wm.removeView(root); }
+        catch (Throwable ignored) {}
         super.onDestroy();
     }
 }
