@@ -3,12 +3,6 @@
     android:id="@+id/islandRoot"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <View android:id="@+id/islandShine"
-        android:layout_width="match_parent" android:layout_height="match_parent"
-        android:background="@drawable/island_shine"
-        android:clickable="false" android:focusable="false"/>
-
-    <!-- 折叠态 -->
     <LinearLayout android:id="@+id/islandCollapsed"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -17,16 +11,11 @@
         android:gravity="center_vertical"
         android:clickable="true" android:focusable="true">
 
-        <FrameLayout android:layout_width="40dp" android:layout_height="40dp">
-            <View android:layout_width="match_parent" android:layout_height="match_parent"
-                android:background="@drawable/island_glow"/>
-            <ImageView android:id="@+id/islandCover"
-                android:layout_width="match_parent" android:layout_height="match_parent"
-                android:layout_margin="4dp"
-                android:src="@mipmap/ic_launcher"
-                android:scaleType="centerCrop"
-                android:background="@drawable/island_cover_frame"/>
-        </FrameLayout>
+        <ImageView android:id="@+id/islandCover"
+            android:layout_width="36dp" android:layout_height="36dp"
+            android:src="@mipmap/ic_launcher"
+            android:scaleType="centerCrop"
+            android:background="@drawable/island_cover_frame"/>
 
         <LinearLayout
             android:layout_width="0dp" android:layout_height="wrap_content"
@@ -43,50 +32,29 @@
                 android:textSize="10sp" android:singleLine="true" android:ellipsize="end"/>
         </LinearLayout>
 
-        <ImageButton android:id="@+id/islandPrevMini"
-            android:clickable="true" android:focusable="true"
-            android:layout_width="28dp" android:layout_height="28dp"
-            android:src="@android:drawable/ic_media_previous"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:tint="#FFFFFF" android:padding="4dp"/>
-
         <ImageButton android:id="@+id/islandPlay"
-            android:clickable="true" android:focusable="true"
-            android:layout_width="36dp" android:layout_height="36dp"
+            android:layout_width="40dp" android:layout_height="40dp"
             android:src="@android:drawable/ic_media_pause"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:tint="#FF6B9D" android:padding="6dp"/>
-
-        <ImageButton android:id="@+id/islandNextMini"
-            android:clickable="true" android:focusable="true"
-            android:layout_width="28dp" android:layout_height="28dp"
-            android:src="@android:drawable/ic_media_next"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:tint="#FFFFFF" android:padding="4dp"/>
+            android:tint="#FF6B9D" android:padding="8dp"
+            android:clickable="true" android:focusable="true"/>
     </LinearLayout>
 
-    <!-- 展开态 -->
     <LinearLayout android:id="@+id/islandExpanded"
-        android:clickable="true" android:focusable="true"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@drawable/island_bg_expanded"
-        android:padding="14dp"
-        android:visibility="gone">
+        android:padding="12dp" android:visibility="gone"
+        android:clickable="true" android:focusable="true">
 
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:gravity="center_vertical">
-            <FrameLayout android:layout_width="56dp" android:layout_height="56dp">
-                <View android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:background="@drawable/island_glow"/>
-                <ImageView android:id="@+id/islandExpCover"
-                    android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:layout_margin="5dp"
-                    android:src="@mipmap/ic_launcher"
-                    android:scaleType="centerCrop"
-                    android:background="@drawable/island_cover_frame"/>
-            </FrameLayout>
+            <ImageView android:id="@+id/islandExpCover"
+                android:layout_width="52dp" android:layout_height="52dp"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="centerCrop"
+                android:background="@drawable/island_cover_frame"/>
             <LinearLayout
                 android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
@@ -102,24 +70,25 @@
                     android:textSize="11sp" android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
             <ImageButton android:id="@+id/islandClose"
-                android:layout_width="32dp" android:layout_height="32dp"
+                android:layout_width="36dp" android:layout_height="36dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:tint="#88FFFFFF" android:padding="6dp"/>
+                android:tint="#FFFFFF" android:padding="8dp"
+                android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
         <SeekBar android:id="@+id/islandProgress"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:maxHeight="3dp" android:minHeight="3dp"
-            android:max="1000" android:progress="0"
+            android:max="1000"
             android:progressTint="#FF6B9D"
             android:progressBackgroundTint="#44FFFFFF"
             android:thumbTint="#FF6B9D"/>
 
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="3dp">
+            android:layout_marginTop="2dp">
             <TextView android:id="@+id/islandCurrent"
                 android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:text="0:00"
@@ -131,26 +100,27 @@
 
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="8dp"
+            android:orientation="horizontal" android:layout_marginTop="4dp"
             android:gravity="center">
             <ImageButton android:id="@+id/islandPrev"
-                android:clickable="true" android:focusable="true"
                 android:layout_width="48dp" android:layout_height="48dp"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:tint="#FFFFFF" android:padding="10dp"/>
+                android:tint="#FFFFFF" android:padding="12dp"
+                android:clickable="true" android:focusable="true"/>
             <ImageButton android:id="@+id/islandPlayExpand"
-                android:layout_width="60dp" android:layout_height="60dp"
-                android:layout_marginLeft="26dp" android:layout_marginRight="26dp"
+                android:layout_width="52dp" android:layout_height="52dp"
+                android:layout_marginLeft="24dp" android:layout_marginRight="24dp"
                 android:src="@android:drawable/ic_media_pause"
                 android:background="@drawable/bg_play_btn"
-                android:tint="#FFFFFF" android:padding="16dp"/>
+                android:tint="#FFFFFF" android:padding="14dp"
+                android:clickable="true" android:focusable="true"/>
             <ImageButton android:id="@+id/islandNext"
-                android:clickable="true" android:focusable="true"
                 android:layout_width="48dp" android:layout_height="48dp"
                 android:src="@android:drawable/ic_media_next"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:tint="#FFFFFF" android:padding="10dp"/>
+                android:tint="#FFFFFF" android:padding="12dp"
+                android:clickable="true" android:focusable="true"/>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
