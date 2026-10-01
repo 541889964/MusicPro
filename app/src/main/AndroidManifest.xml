@@ -34,17 +34,23 @@
 
         <activity android:name=".MainActivity" android:exported="false"/>
         <activity android:name=".PlayerActivity" android:exported="false"
-            android:launchMode="singleTop" android:showWhenLocked="true" android:turnScreenOn="true"/>
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"/>
         <activity android:name=".LockScreenActivity" android:exported="false"
-            android:launchMode="singleInstance" android:excludeFromRecents="true"
-            android:showWhenLocked="true" android:turnScreenOn="true"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:theme="@style/Theme.MusicPro.Lock"/>
         <activity android:name=".GalleryActivity" android:exported="false"/>
         <activity android:name=".ThemeActivity" android:exported="false"/>
         <activity android:name=".IslandSettingsActivity" android:exported="false"/>
+        <activity android:name=".SettingsActivity" android:exported="false"/>
 
         <service android:name=".service.MusicService"
-            android:exported="true" android:foregroundServiceType="mediaPlayback">
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService"/>
                 <action android:name="android.media.browse.MediaBrowserService"/>
