@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#0D0B1F">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
+                <TextView android:id="@+id/btnBack"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="←" android:textSize="22sp" android:textColor="#FFFFFF"
+                    android:gravity="center" android:clickable="true" android:focusable="true"/>
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginLeft="12dp"
+                    android:text="设置" android:textColor="#FFFFFF"
+                    android:textSize="20sp" android:textStyle="bold"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/itemIsland"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="18dp" android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp" android:background="@drawable/bg_theme_option"
+                android:orientation="vertical" android:clickable="true" android:focusable="true">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="📊 灵动岛设置" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="尺寸 · 帧率"
+                    android:textColor="#B8A8E8" android:textSize="12sp"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/itemTestSplit"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="18dp" android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp" android:background="@drawable/bg_theme_option"
+                android:orientation="vertical" android:clickable="true" android:focusable="true">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="✨ 测试通知分裂动画" android:textColor="#FFB6D0" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="点击演示：右侧分裂出通知栏，5秒收回"
+                    android:textColor="#B8A8E8" android:textSize="12sp"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/itemNotif"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="18dp" android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp" android:background="@drawable/bg_theme_option"
+                android:orientation="vertical" android:clickable="true" android:focusable="true">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="🔔 通知读取权限" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="开启后灵动岛可显示通知内容"
+                    android:textColor="#B8A8E8" android:textSize="12sp"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/itemOverlay"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="18dp" android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp" android:background="@drawable/bg_theme_option"
+                android:orientation="vertical" android:clickable="true" android:focusable="true">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="🪟 悬浮窗权限" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="灵动岛必须权限"
+                    android:textColor="#B8A8E8" android:textSize="12sp"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="60dp"/>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

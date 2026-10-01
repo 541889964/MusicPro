@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:id="@+id/ivWallpaper"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#AA0D0B1F"/>
+    <View android:layout_width="match_parent" android:layout_height="320dp"
+        android:background="@drawable/top_gradient"/>
+    <com.music.app.widget.FloatingHeartsView
+        android:id="@+id/hearts"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:clickable="false" android:focusable="false"/>
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent" android:layout_height="match_parent">
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBar"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:background="@android:color/transparent" app:elevation="0dp">
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:paddingLeft="16dp"
+                android:paddingRight="16dp" android:paddingTop="14dp"
+                android:paddingBottom="6dp" android:gravity="center_vertical">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:id="@+id/tvGreeting"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="下午好" android:textColor="#FFFFFF"
+                        android:textSize="22sp" android:textStyle="bold" android:singleLine="true"/>
+                    <TextView android:id="@+id/tvGreetingSub"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp" android:text=""
+                        android:textColor="#B8A8E8" android:textSize="12sp" android:singleLine="true"/>
+                </LinearLayout>
+                <TextView android:id="@+id/btnSettings"
+                    android:layout_width="40dp" android:layout_height="40dp"
+                    android:gravity="center" android:text="⚙" android:textSize="20sp"
+                    android:textColor="#FFFFFF" android:background="@drawable/top_btn_bg"
+                    android:clickable="true" android:focusable="true"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/greetingCard"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
+                android:layout_marginBottom="10dp" android:padding="16dp"
+                android:background="@drawable/bg_card">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="♡ 今日寄语" android:textColor="#FFB6D0"
+                    android:textSize="11sp" android:letterSpacing="0.15"/>
+                <TextView android:id="@+id/tvDailyQuote"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp" android:text=""
+                    android:textColor="#FFFFFF" android:textSize="14sp" android:lineSpacingExtra="3dp"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
+                android:layout_marginBottom="8dp">
+                <LinearLayout android:id="@+id/tabLocal"
+                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                    android:background="?android:attr/selectableItemBackground">
+                    <TextView android:id="@+id/tabLocalText"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="本地音乐" android:textColor="#FFFFFF"
+                        android:textSize="15sp" android:textStyle="bold"/>
+                    <View android:id="@+id/tabLocalIndicator"
+                        android:layout_width="24dp" android:layout_height="3dp"
+                        android:layout_marginTop="4dp" android:background="@drawable/bg_tab_indicator"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/tabOnline"
+                    android:layout_width="0dp" android:layout_height="40dp"
+                    android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+                    android:background="?android:attr/selectableItemBackground">
+                    <TextView android:id="@+id/tabOnlineText"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="网易云搜索" android:textColor="#D6CCF5" android:textSize="14sp"/>
+                    <View android:id="@+id/tabOnlineIndicator"
+                        android:layout_width="24dp" android:layout_height="3dp"
+                        android:layout_marginTop="4dp" android:alpha="0"
+                        android:background="@drawable/bg_tab_indicator"/>
+                </LinearLayout>
+            </LinearLayout>
+            <EditText android:id="@+id/etSearch"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_liquid_glass_search"
+                android:hint="搜索本地音乐"
+                android:textColorHint="#99FFFFFF" android:textColor="#FFFFFF"
+                android:textSize="14sp" android:paddingLeft="20dp" android:paddingRight="16dp"
+                android:singleLine="true" android:imeOptions="actionSearch" android:inputType="text"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
+                android:layout_marginBottom="8dp" android:padding="10dp"
+                android:background="@drawable/bg_card" android:gravity="center_vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="🎵" android:textSize="16sp" android:layout_marginRight="8dp"/>
+                <TextView android:id="@+id/tvCount"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="共 0 首" android:textColor="#FFFFFF"
+                    android:textSize="13sp" android:textStyle="bold"/>
+            </LinearLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSongs"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:paddingTop="4dp" android:paddingBottom="96dp"
+                android:clipToPadding="false" android:scrollbars="none"/>
+            <TextView android:id="@+id/tvEmpty"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:gravity="center" android:text="正在扫描本地音乐…"
+                android:textColor="#D6CCF5" android:textSize="14sp"
+                android:paddingLeft="40dp" android:paddingRight="40dp" android:lineSpacingExtra="8dp"/>
+        </FrameLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end" android:layout_margin="20dp"
+            android:src="@android:drawable/ic_media_play"
+            app:backgroundTint="#FF6B9D" app:elevation="8dp"/>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>

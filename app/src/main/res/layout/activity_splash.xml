@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#0D0B1F">
+    <ImageView android:id="@+id/ivWallpaper"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop" android:alpha="0.6"/>
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#99000000"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:orientation="vertical" android:gravity="center">
+        <ImageView android:layout_width="100dp" android:layout_height="100dp"
+            android:src="@mipmap/ic_launcher"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" android:text="拾音"
+            android:textColor="#FFFFFF" android:textSize="28sp" android:textStyle="bold"
+            android:letterSpacing="0.15"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:text="让每一个音符都动起来"
+            android:textColor="#B8A8E8" android:textSize="13sp"/>
+    </LinearLayout>
+</FrameLayout>
