@@ -2,7 +2,9 @@ package com.music.app.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 public class Prefs {
-    private static SharedPreferences sp(Context c) { return c.getSharedPreferences("mp17", Context.MODE_PRIVATE); }
+    private static SharedPreferences sp(Context c) {
+        return c.getSharedPreferences("mp17", Context.MODE_PRIVATE);
+    }
     public static boolean annShown(Context c) { return sp(c).getBoolean("ann", false); }
     public static void setAnnShown(Context c, boolean v) { sp(c).edit().putBoolean("ann", v).apply(); }
     public static String nickname(Context c) { return sp(c).getString("nick", "亲爱的你"); }
@@ -12,4 +14,8 @@ public class Prefs {
     public static void setWallpaper(Context c, String v) { sp(c).edit().putString("wp", v).apply(); }
     public static boolean autoRotate(Context c) { return sp(c).getBoolean("rot", false); }
     public static void setAutoRotate(Context c, boolean v) { sp(c).edit().putBoolean("rot", v).apply(); }
+    public static float islandWidth(Context c) { return sp(c).getFloat("iw", 0.42f); }
+    public static void setIslandWidth(Context c, float v) { sp(c).edit().putFloat("iw", v).apply(); }
+    public static float islandHeight(Context c) { return sp(c).getFloat("ih", 58f); }
+    public static void setIslandHeight(Context c, float v) { sp(c).edit().putFloat("ih", v).apply(); }
 }
