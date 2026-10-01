@@ -204,12 +204,15 @@ public class MusicService extends MediaSessionService {
 
     /** 立即用列表替换播放，不等 URL 预加载 */
     public static void playItems(List<androidx.media3.common.MediaItem> items, int startIdx) {
-        if (sharedPlayer == null) return;
+        if (sharedPlayer == null || items == null || items.isEmpty()) return;
+        if (startIdx < 0 || startIdx >= items.size()) startIdx = 0;
         try {
             sharedPlayer.setMediaItems(items, startIdx, 0);
             sharedPlayer.prepare();
             sharedPlayer.play();
-        } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            android.util.Log.e("Music", "playItems fail", t);
+        }
     }
 
     public static void play(Context ctx) {
