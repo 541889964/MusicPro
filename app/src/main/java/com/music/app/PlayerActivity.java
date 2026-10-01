@@ -250,6 +250,23 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
+    private void setFullQueue(int startIdx) {
+        java.util.List<androidx.media3.common.MediaItem> items =
+            new java.util.ArrayList<androidx.media3.common.MediaItem>();
+        for (int i = 0; i < queue.size(); i++) {
+            Song sg = queue.get(i);
+            if (sg.isOnline) {
+                String u = sg.onlineUrl;
+                if (u == null || u.isEmpty())
+                    u = "https://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
+                items.add(androidx.media3.common.MediaItem.fromUri(u));
+            } else {
+                items.add(androidx.media3.common.MediaItem.fromUri("file://" + sg.path));
+            }
+        }
+        player.setMediaItems(items, startIdx, 0);
+    }
+
     private void loadLyrics(final long songId) {
         if (lyricsContainer != null) lyricsContainer.removeAllViews();
         if (tvLyricsEmpty != null) { tvLyricsEmpty.setVisibility(View.VISIBLE); tvLyricsEmpty.setText("♪ 歌词加载中…"); }

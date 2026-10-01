@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 折叠态 -->
     <LinearLayout android:id="@+id/islandCollapsed"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -13,8 +12,7 @@
         android:gravity="center_vertical"
         android:clickable="true" android:focusable="true">
 
-        <FrameLayout
-            android:layout_width="38dp" android:layout_height="38dp">
+        <FrameLayout android:layout_width="38dp" android:layout_height="38dp">
             <View android:layout_width="match_parent" android:layout_height="match_parent"
                 android:background="@drawable/island_glow"/>
             <ImageView android:id="@+id/islandCover"
@@ -59,7 +57,6 @@
             android:tint="#FFFFFF" android:padding="4dp"/>
     </LinearLayout>
 
-    <!-- 展开态 -->
     <LinearLayout android:id="@+id/islandExpanded"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical"
@@ -70,7 +67,6 @@
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:gravity="center_vertical">
-
             <FrameLayout android:layout_width="54dp" android:layout_height="54dp">
                 <View android:layout_width="match_parent" android:layout_height="match_parent"
                     android:background="@drawable/island_glow"/>
@@ -81,7 +77,6 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/island_cover_frame"/>
             </FrameLayout>
-
             <LinearLayout
                 android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
@@ -96,7 +91,6 @@
                     android:text="MUSIC·Pro" android:textColor="#B8A8E8"
                     android:textSize="11sp" android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
-
             <ImageButton android:id="@+id/islandClose"
                 android:layout_width="30dp" android:layout_height="30dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
@@ -104,7 +98,6 @@
                 android:tint="#88FFFFFF" android:padding="6dp"/>
         </LinearLayout>
 
-        <!-- 进度条（可拖动）-->
         <SeekBar android:id="@+id/islandProgress"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
