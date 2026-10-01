@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             new android.app.AlertDialog.Builder(MainActivity.this)
                                 .setTitle("需要悬浮窗权限")
-                                .setMessage("灵动岛需要悬浮窗权限才能显示在屏幕顶部。点击"去授权"后，找到"拾音测试版"并打开开关。")
+                                .setMessage("灵动岛需要悬浮窗权限才能显示在屏幕顶部。点击「去授权」后，找到「拾音测试版」并打开开关。")
                                 .setPositiveButton("去授权", new android.content.DialogInterface.OnClickListener() {
                                     @Override public void onClick(android.content.DialogInterface d, int w) {
                                         try {
