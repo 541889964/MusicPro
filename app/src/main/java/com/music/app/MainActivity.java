@@ -147,8 +147,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             Intent g = new Intent(this, com.music.app.service.GuardService.class);
-            if (Build.VERSION.SDK_INT >= 26) startForegroundService(g);
-            else startService(g);
+            startService(g);
         } catch (Throwable ignored) {}
 
         requestPermAndScan();
@@ -182,8 +181,7 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             Intent svc = new Intent(this, com.music.app.service.IslandService.class);
-            if (Build.VERSION.SDK_INT >= 26) startForegroundService(svc);
-            else startService(svc);
+            startService(svc);
         } catch (Throwable ignored) {}
     }
 

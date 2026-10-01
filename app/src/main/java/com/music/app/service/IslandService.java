@@ -96,6 +96,28 @@ public class IslandService extends Service {
 
     @Override public void onCreate() {
         super.onCreate();
+        // ★ Android 8+ 必须在前台服务启动后 5 秒内调用 startForeground，否则崩溃
+        try {
+            if (Build.VERSION.SDK_INT >= 26) {
+                String CH = "island_fg";
+                android.app.NotificationManager nm =
+                    (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                if (nm != null && nm.getNotificationChannel(CH) == null) {
+                    android.app.NotificationChannel c = new android.app.NotificationChannel(
+                        CH, "灵动岛", android.app.NotificationManager.IMPORTANCE_MIN);
+                    c.setShowBadge(false);
+                    nm.createNotificationChannel(c);
+                }
+                android.app.Notification n = new android.app.Notification.Builder(this, CH)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("拾音")
+                    .setContentText("灵动岛运行中")
+                    .setOngoing(true)
+                    .build();
+                startForeground(1, n);
+            }
+        } catch (Throwable ignored) {}
+
         if (Build.VERSION.SDK_INT >= 23 && !android.provider.Settings.canDrawOverlays(this)) {
             stopSelf();
             return;
