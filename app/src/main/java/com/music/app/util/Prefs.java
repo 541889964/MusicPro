@@ -4,9 +4,7 @@ import android.content.SharedPreferences;
 public class Prefs {
     private static SharedPreferences sp(Context c) {
         return c.getSharedPreferences("mp17", Context.MODE_PRIVATE);
-        public static int islandFps(Context c) { return sp(c).getInt("fps", 60); }
-    public static void setIslandFps(Context c, int v) { sp(c).edit().putInt("fps", v).apply(); }
-}
+    }
     public static boolean annShown(Context c) { return sp(c).getBoolean("ann", false); }
     public static void setAnnShown(Context c, boolean v) { sp(c).edit().putBoolean("ann", v).apply(); }
     public static String nickname(Context c) { return sp(c).getString("nick", "亲爱的你"); }
@@ -20,4 +18,6 @@ public class Prefs {
     public static void setIslandWidth(Context c, float v) { sp(c).edit().putFloat("iw", v).apply(); }
     public static float islandHeight(Context c) { return sp(c).getFloat("ih", 58f); }
     public static void setIslandHeight(Context c, float v) { sp(c).edit().putFloat("ih", v).apply(); }
+    public static int islandFps(Context c) { return sp(c).getInt("fps", 60); }
+    public static void setIslandFps(Context c, int v) { sp(c).edit().putInt("fps", v).apply(); }
 }
