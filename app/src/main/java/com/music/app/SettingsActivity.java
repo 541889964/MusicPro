@@ -40,6 +40,37 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
         });
+        final TextView tvAlarmText = findViewById(R.id.tvAlarmText);
+        if (tvAlarmText != null) tvAlarmText.setText(com.music.app.util.AlarmHelper.getText(this));
+
+        findViewById(R.id.btnNotifTest).setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                try {
+                    Class<?> cls = Class.forName("com.music.app.service.IslandService");
+                    cls.getMethod("notify", String.class, String.class)
+                        .invoke(null, "🔔 测试通知", "如果你看到这条，说明通知栏正常");
+                    NiceToast.show(SettingsActivity.this, "已发送测试通知");
+                } catch (Throwable t) {
+                    NiceToast.show(SettingsActivity.this, "发送失败");
+                }
+            }
+        });
+
+        findViewById(R.id.btnAlarm).setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                java.util.Calendar c = java.util.Calendar.getInstance();
+                new android.app.TimePickerDialog(SettingsActivity.this,
+                    new android.app.TimePickerDialog.OnTimeSetListener() {
+                        @Override public void onTimeSet(android.widget.TimePicker tp, int h, int m) {
+                            com.music.app.util.AlarmHelper.set(SettingsActivity.this, h, m);
+                            if (tvAlarmText != null)
+                                tvAlarmText.setText(com.music.app.util.AlarmHelper.getText(SettingsActivity.this));
+                            NiceToast.show(SettingsActivity.this, "闹钟已设置 " + String.format("%02d:%02d", h, m));
+                        }
+                    }, c.get(java.util.Calendar.HOUR_OF_DAY), c.get(java.util.Calendar.MINUTE), true).show();
+            }
+        });
+
         findViewById(R.id.btnBattery).setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {

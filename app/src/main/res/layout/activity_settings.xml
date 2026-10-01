@@ -54,6 +54,34 @@
                     android:text="›" android:textColor="#8E8E93" android:textSize="22sp"/>
             </LinearLayout>
 
+            <LinearLayout android:id="@+id/btnNotifTest"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="18dp"
+                android:layout_marginTop="10dp" android:background="@drawable/card_bg"
+                android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="🔔 通知测试"
+                    android:textColor="#FFFFFF" android:textSize="15sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="›" android:textColor="#8E8E93" android:textSize="22sp"/>
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/btnAlarm"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="18dp"
+                android:layout_marginTop="10dp" android:background="@drawable/card_bg"
+                android:gravity="center_vertical">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="⏰ 闹钟"
+                    android:textColor="#FFFFFF" android:textSize="15sp"/>
+                <TextView android:id="@+id/tvAlarmText"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="未设置" android:textColor="#B8A8E8" android:textSize="13sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginLeft="6dp"
+                    android:text="›" android:textColor="#8E8E93" android:textSize="22sp"/>
+            </LinearLayout>
+
             <LinearLayout android:id="@+id/btnBattery"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:padding="18dp"
