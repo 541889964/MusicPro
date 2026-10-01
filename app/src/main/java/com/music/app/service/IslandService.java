@@ -42,7 +42,7 @@ public class IslandService extends Service {
     private View island;
     private WindowManager.LayoutParams lp;
     private TextView tvTitle, tvExpTitle, tvExpArtist, tvCurrent, tvTotal;
-    private TextView tvLyric1, tvLyric2, tvLyric3;
+    private TextView tvLyric1, tvLyric2, tvLyric3, tvLyric4, tvLyric5;
     private ImageView ivCover, ivExpCover;
     private com.music.app.widget.WaveformView waveView;
     private View btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
@@ -113,6 +113,8 @@ public class IslandService extends Service {
         tvLyric1 = island.findViewById(R.id.islandLyric1);
         tvLyric2 = island.findViewById(R.id.islandLyric2);
         tvLyric3 = island.findViewById(R.id.islandLyric3);
+        tvLyric4 = island.findViewById(R.id.islandLyric4);
+        tvLyric5 = island.findViewById(R.id.islandLyric5);
         tvCurrent = island.findViewById(R.id.islandCurrent);
         tvTotal = island.findViewById(R.id.islandTotal);
         ivCover = island.findViewById(R.id.islandCover);
@@ -320,12 +322,16 @@ public class IslandService extends Service {
                 if (!lyricLines.isEmpty()) {
                     long pos = MusicService.getPos();
                     int li = LyricsParser.findIndex(lyricLines, pos);
-                    String prev = li > 0 ? lyricLines.get(li-1).text : "";
-                    String cur = (li >= 0 && li < lyricLines.size()) ? lyricLines.get(li).text : "";
-                    String next = (li+1 < lyricLines.size()) ? lyricLines.get(li+1).text : "";
-                    if (tvLyric1 != null && !prev.equals(tvLyric1.getText().toString())) tvLyric1.setText(prev);
-                    if (tvLyric2 != null && !cur.equals(tvLyric2.getText().toString())) tvLyric2.setText(cur);
-                    if (tvLyric3 != null && !next.equals(tvLyric3.getText().toString())) tvLyric3.setText(next);
+                    String l1 = (li-2 >= 0 && li-2 < lyricLines.size()) ? lyricLines.get(li-2).text : "";
+                    String l2 = (li-1 >= 0 && li-1 < lyricLines.size()) ? lyricLines.get(li-1).text : "";
+                    String l3 = (li >= 0 && li < lyricLines.size()) ? lyricLines.get(li).text : "";
+                    String l4 = (li+1 >= 0 && li+1 < lyricLines.size()) ? lyricLines.get(li+1).text : "";
+                    String l5 = (li+2 >= 0 && li+2 < lyricLines.size()) ? lyricLines.get(li+2).text : "";
+                    if (tvLyric1 != null && !l1.equals(tvLyric1.getText().toString())) tvLyric1.setText(l1);
+                    if (tvLyric2 != null && !l2.equals(tvLyric2.getText().toString())) tvLyric2.setText(l2);
+                    if (tvLyric3 != null && !l3.equals(tvLyric3.getText().toString())) tvLyric3.setText(l3);
+                    if (tvLyric4 != null && !l4.equals(tvLyric4.getText().toString())) tvLyric4.setText(l4);
+                    if (tvLyric5 != null && !l5.equals(tvLyric5.getText().toString())) tvLyric5.setText(l5);
                 }
             }
             boolean playing = MusicService.isPlaying();

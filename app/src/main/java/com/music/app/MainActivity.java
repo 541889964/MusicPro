@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
             String name = Prefs.wallpaper(this);
             Bitmap bm;
             if (name != null && !name.isEmpty()) bm = WallpaperHelper.load(this, name);
-            else bm = WallpaperHelper.at(this, wpIndex);
+            else bm = WallpaperHelper.loadAt(this, wpIndex);
             if (bm != null) {
                 bgWallpaper.setAlpha(0f);
                 bgWallpaper.setImageBitmap(bm);
