@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 外发光边框 -->
     <item>
         <shape>
             <corners android:radius="36dp"/>
@@ -10,7 +9,6 @@
                 android:endColor="#88FF6B9D"/>
         </shape>
     </item>
-    <!-- 主体深色玻璃 -->
     <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
         <shape>
             <corners android:radius="34dp"/>
@@ -18,15 +16,6 @@
                 android:startColor="#F0221840"
                 android:centerColor="#F00D0B1F"
                 android:endColor="#F01A0F2E"/>
-        </shape>
-    </item>
-    <!-- 顶部高光 -->
-    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="60%">
-        <shape>
-            <corners android:topLeftRadius="34dp" android:topRightRadius="34dp"/>
-            <gradient android:type="linear" android:angle="270"
-                android:startColor="#33FFFFFF"
-                android:endColor="#00FFFFFF"/>
         </shape>
     </item>
 </layer-list>

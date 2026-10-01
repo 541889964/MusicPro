@@ -56,6 +56,7 @@ public class IslandService extends Service {
     private TextView[] lyricViews = new TextView[5];
     private TextView txtTimeCur, txtTimeTot;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
+    private com.music.app.widget.UtilPanel utilPanel;
     private SeekBar seek;
 
     private int screenW, screenH, statusBarH;
@@ -230,22 +231,22 @@ public class IslandService extends Service {
 
     private int cW() {
         int w = cfg.collapsedW;
-        if (w < 20) w = 20; if (w > 95) w = 95;
+        if (w < 10) w = 10; if (w > 100) w = 100;
         return (int)(screenW * w / 100f);
     }
     private int cH() {
         int h = cfg.collapsedH;
-        if (h < 40) h = 40; if (h > 90) h = 90;
+        if (h < 30) h = 30; if (h > 150) h = 150;
         return (int)(h * density);
     }
     private int eW() {
         int w = cfg.expandedW;
-        if (w < 75) w = 75; if (w > 100) w = 100;
+        if (w < 10) w = 10; if (w > 150) w = 150;
         return (int)(screenW * w / 100f);
     }
     private int eH() {
         int h = cfg.expandedH;
-        if (h < 280) h = 280; if (h > 450) h = 450;
+        if (h < 100) h = 100; if (h > 800) h = 800;
         return (int)(h * density);
     }
 
@@ -359,6 +360,37 @@ public class IslandService extends Service {
                 @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
             });
         }
+
+        // 实用功能面板
+        try {
+            TextView cpu = root.findViewById(R.id.txtCpu);
+            TextView ram = root.findViewById(R.id.txtRam);
+            TextView net = root.findViewById(R.id.txtNet);
+            TextView clip = root.findViewById(R.id.txtClipboard);
+            utilPanel = new com.music.app.widget.UtilPanel(this, cpu, ram, net, clip);
+            utilPanel.start();
+
+            // 快捷开关
+            TextView wifi = root.findViewById(R.id.toggleWifi);
+            TextView bt = root.findViewById(R.id.toggleBt);
+            TextView torch = root.findViewById(R.id.toggleTorch);
+            TextView silent = root.findViewById(R.id.toggleSilent);
+            if (wifi != null) wifi.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { utilPanel.toggleWifi(); }
+            });
+            if (bt != null) bt.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { utilPanel.toggleBt(); }
+            });
+            if (torch != null) torch.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { utilPanel.toggleTorch(); }
+            });
+            if (silent != null) silent.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { utilPanel.toggleSilent(); }
+            });
+            if (clip != null) clip.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { utilPanel.copyClipboard(); }
+            });
+        } catch (Throwable ignored) {}
 
         root.setAlpha(0f);
         root.setScaleX(0.85f);
@@ -599,6 +631,7 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
+        try { if (utilPanel != null) utilPanel.stop(); } catch (Throwable ignored) {}
         try { if (coverRotate != null) coverRotate.cancel(); } catch (Throwable ignored) {}
         try { if (glowPulse != null) glowPulse.cancel(); } catch (Throwable ignored) {}
         try { if (chargeReceiver != null) unregisterReceiver(chargeReceiver); } catch (Throwable ignored) {}

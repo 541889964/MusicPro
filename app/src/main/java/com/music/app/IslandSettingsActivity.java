@@ -36,18 +36,18 @@ public class IslandSettingsActivity extends AppCompatActivity {
             });
 
             // 初始化滑块
-            sbCW.setProgress(cfg.collapsedW - 20); // 20~90
+            sbCW.setProgress(cfg.collapsedW - 10); // 20~90
             sbCH.setProgress(cfg.collapsedH - 30); // 30~90
-            sbEW.setProgress(cfg.expandedW - 30);  // 30~90
-            sbEH.setProgress(cfg.expandedH - 30);  // 30~210
+            sbEW.setProgress(cfg.expandedW - 10);  // 30~90
+            sbEH.setProgress(cfg.expandedH - 100);  // 30~210
             updateLabels();
 
             SeekBar.OnSeekBarChangeListener l = new SeekBar.OnSeekBarChangeListener() {
                 @Override public void onProgressChanged(SeekBar sb, int p, boolean u) {
-                    cfg.collapsedW = 20 + sbCW.getProgress();
+                    cfg.collapsedW = 10 + sbCW.getProgress();
                     cfg.collapsedH = 30 + sbCH.getProgress();
-                    cfg.expandedW = 30 + sbEW.getProgress();
-                    cfg.expandedH = 30 + sbEH.getProgress();
+                    cfg.expandedW = 10 + sbEW.getProgress();
+                    cfg.expandedH = 100 + sbEH.getProgress();
                     updateLabels();
                     cfg.save();
                     notifyService();
@@ -80,10 +80,10 @@ public class IslandSettingsActivity extends AppCompatActivity {
                 @Override public void onClick(View v) {
                     IslandConfig.reset();
                     cfg = new IslandConfig();
-                    sbCW.setProgress(cfg.collapsedW - 20);
+                    sbCW.setProgress(cfg.collapsedW - 10);
                     sbCH.setProgress(cfg.collapsedH - 30);
-                    sbEW.setProgress(cfg.expandedW - 30);
-                    sbEH.setProgress(cfg.expandedH - 30);
+                    sbEW.setProgress(cfg.expandedW - 10);
+                    sbEH.setProgress(cfg.expandedH - 100);
                     updateLabels();
                     notifyService();
                     Toast.makeText(IslandSettingsActivity.this,

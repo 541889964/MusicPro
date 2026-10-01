@@ -193,6 +193,92 @@
                 android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
+        <!-- 实用功能区 -->
+        <LinearLayout android:id="@+id/utilBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp">
+
+            <!-- 分隔线 -->
+            <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                android:background="#22FFFFFF"/>
+
+            <!-- 第一行：系统监控 -->
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical">
+
+                <TextView android:id="@+id/txtCpu"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="CPU 0%" android:textColor="#88FFFFFF"
+                    android:textSize="10sp" android:gravity="center"/>
+
+                <TextView android:id="@+id/txtRam"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="RAM 0%" android:textColor="#88FFFFFF"
+                    android:textSize="10sp" android:gravity="center"/>
+
+                <TextView android:id="@+id/txtNet"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="离线" android:textColor="#88FFFFFF"
+                    android:textSize="10sp" android:gravity="center"/>
+            </LinearLayout>
+
+            <!-- 第二行：快捷开关 4 个 -->
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
+                android:weightSum="4">
+
+                <TextView android:id="@+id/toggleWifi"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="📶" android:textSize="16sp"
+                    android:textColor="#FFFFFF" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/toggleBt"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="🔵" android:textSize="16sp"
+                    android:textColor="#FFFFFF" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/toggleTorch"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="🔦" android:textSize="16sp"
+                    android:textColor="#FFFFFF" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/toggleSilent"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="🔇" android:textSize="16sp"
+                    android:textColor="#FFFFFF" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+            </LinearLayout>
+
+            <!-- 第三行：剪贴板 -->
+            <TextView android:id="@+id/txtClipboard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:paddingLeft="8dp" android:paddingRight="8dp"
+                android:text="📋 剪贴板为空"
+                android:textColor="#88FFFFFF" android:textSize="10sp"
+                android:singleLine="true" android:ellipsize="end"
+                android:clickable="true" android:focusable="true"/>
+        </LinearLayout>
+
         <!-- 占位（保留旧 id）-->
         <TextView android:id="@+id/btnMode"
             android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone"/>
