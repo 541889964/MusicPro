@@ -148,9 +148,9 @@ public class IslandService extends Service {
         bindClick(btnPlayBig, new Runnable() { @Override public void run() {
             MusicService.toggle(getApplicationContext()); }});
         bindClick(btnPrev, new Runnable() { @Override public void run() {
-            MusicService.prev(getApplicationContext()); }});
+            MusicService.forcePrev(getApplicationContext()); }});
         bindClick(btnNext, new Runnable() { @Override public void run() {
-            MusicService.next(getApplicationContext()); }});
+            MusicService.forceNext(getApplicationContext()); }});
         bindClick(btnClose, new Runnable() { @Override public void run() { stopSelf(); }});
         bindClick(btnFav, new Runnable() { @Override public void run() {
             toast("已加入喜欢"); }});
@@ -190,12 +190,16 @@ public class IslandService extends Service {
     }
     private int expandedW() {
         int w = cfg.expandedW;
-        if (w < 30) w = 30; if (w > 100) w = 100;
+        // ★ 最小 75%，保证按钮不被挤
+        if (w < 75) w = 75;
+        if (w > 100) w = 100;
         return (int)(screenW * w / 100f);
     }
     private int expandedH() {
         int h = cfg.expandedH;
-        if (h < 100) h = 100; if (h > 400) h = 400;
+        // ★ 最小 260dp，保证顶部+歌词+进度+按钮全部可见
+        if (h < 260) h = 260;
+        if (h > 450) h = 450;
         return (int)(h * density);
     }
 

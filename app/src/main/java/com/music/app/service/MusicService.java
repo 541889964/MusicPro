@@ -269,6 +269,80 @@ public class MusicService extends MediaSessionService {
             }
         });
     }
+    /** 强制下一首（不管 URL 是否就绪，直接用外链） */
+    public static void forceNext(android.content.Context ctx) {
+        if (sharedPlayer == null || sharedQueue.isEmpty()) return;
+        try {
+            int total = sharedPlayer.getMediaItemCount();
+            if (total == 0) {
+                // 队列空，重建
+                ensurePlayer(ctx);
+                rebuild(ctx, sharedIndex, true);
+                return;
+            }
+            int idx = sharedPlayer.getCurrentMediaItemIndex();
+            int ni = idx < total - 1 ? idx + 1 : 0;
+            sharedIndex = ni;
+            // ★ 直接用外链 URL 替换 mediaItem，保证能播
+            Song sg = sharedQueue.get(ni);
+            String uri;
+            if (sg.isOnline) {
+                uri = sg.onlineUrl != null && !sg.onlineUrl.isEmpty()
+                    ? sg.onlineUrl
+                    : "http://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
+            } else {
+                uri = "file://" + sg.path;
+            }
+            androidx.media3.common.MediaItem item =
+                new androidx.media3.common.MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaMetadata(new androidx.media3.common.MediaMetadata.Builder()
+                        .setTitle(sg.title).setArtist(sg.artist).build())
+                    .build();
+            sharedPlayer.replaceMediaItem(ni, item);
+            sharedPlayer.seekTo(ni, 0);
+            sharedPlayer.play();
+        } catch (Throwable t) {
+            android.util.Log.e("Music", "forceNext", t);
+        }
+    }
+
+    /** 强制上一首 */
+    public static void forcePrev(android.content.Context ctx) {
+        if (sharedPlayer == null || sharedQueue.isEmpty()) return;
+        try {
+            int total = sharedPlayer.getMediaItemCount();
+            if (total == 0) {
+                ensurePlayer(ctx);
+                rebuild(ctx, sharedIndex, true);
+                return;
+            }
+            int idx = sharedPlayer.getCurrentMediaItemIndex();
+            int pi = idx > 0 ? idx - 1 : 0;
+            sharedIndex = pi;
+            Song sg = sharedQueue.get(pi);
+            String uri;
+            if (sg.isOnline) {
+                uri = sg.onlineUrl != null && !sg.onlineUrl.isEmpty()
+                    ? sg.onlineUrl
+                    : "http://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
+            } else {
+                uri = "file://" + sg.path;
+            }
+            androidx.media3.common.MediaItem item =
+                new androidx.media3.common.MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaMetadata(new androidx.media3.common.MediaMetadata.Builder()
+                        .setTitle(sg.title).setArtist(sg.artist).build())
+                    .build();
+            sharedPlayer.replaceMediaItem(pi, item);
+            sharedPlayer.seekTo(pi, 0);
+            sharedPlayer.play();
+        } catch (Throwable t) {
+            android.util.Log.e("Music", "forcePrev", t);
+        }
+    }
+
     public static void seekToPos(long ms) { if (sharedPlayer != null) sharedPlayer.seekTo(ms); }
     public static void seekToIdx(int idx, boolean play) {
         if (sharedPlayer == null) return;
