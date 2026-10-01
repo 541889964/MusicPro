@@ -6,21 +6,50 @@
     android:orientation="horizontal"
     android:gravity="center_vertical">
 
-    <!-- 主岛（左边）-->
-    <LinearLayout android:id="@+id/mainIsland"
+    <FrameLayout android:id="@+id/mainIsland"
         android:layout_width="0dp" android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_island"
-        android:paddingLeft="6dp" android:paddingRight="6dp"
-        android:gravity="center_vertical"
-        android:clickable="true" android:focusable="true">
+        android:background="@drawable/bg_island">
 
-        <!-- 折叠态 -->
+        <!-- 生活模式折叠态 -->
+        <LinearLayout android:id="@+id/lifeCollapsed"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:gravity="center_vertical"
+            android:clickable="true" android:focusable="true">
+
+            <TextView android:id="@+id/txtLifeTime"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textSize="18sp" android:textStyle="bold"
+                android:textColor="#FFFFFF"/>
+
+            <View android:layout_width="0dp" android:layout_height="1dp"
+                android:layout_weight="1"/>
+
+            <TextView android:id="@+id/txtLifeDate"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="11sp"
+                android:textColor="#B8A8E8"/>
+
+            <TextView android:id="@+id/txtLifeBattery"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="100%"
+                android:textSize="12sp" android:textStyle="bold"
+                android:textColor="#4CD964"/>
+        </LinearLayout>
+
+        <!-- 音乐模式折叠态 -->
         <LinearLayout android:id="@+id/collapsedBox"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:paddingLeft="6dp" android:paddingRight="6dp"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:clickable="true" android:focusable="true">
 
             <FrameLayout android:layout_width="36dp" android:layout_height="36dp">
                 <View android:layout_width="match_parent" android:layout_height="match_parent"
@@ -44,7 +73,7 @@
                 <TextView android:id="@+id/txtMiniLyric"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:text="未播放" android:textColor="#99FFB6D0"
+                    android:text="" android:textColor="#99FFB6D0"
                     android:textSize="10sp"
                     android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
@@ -63,7 +92,112 @@
                 android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
-        <!-- 展开态 -->
+        <!-- 生活模式展开态 -->
+        <LinearLayout android:id="@+id/lifeExpanded"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView android:id="@+id/txtLifeBigTime"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="00:00"
+                android:textSize="48sp" android:textStyle="bold"
+                android:textColor="#FFFFFF"/>
+
+            <TextView android:id="@+id/txtLifeBigDate"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:text=""
+                android:textSize="13sp"
+                android:textColor="#B8A8E8"/>
+
+            <TextView android:id="@+id/txtLifeAlarm"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="⏰ 未设置"
+                android:textSize="12sp"
+                android:textColor="#FFB6D0"/>
+
+            <TextView android:id="@+id/txtLifeBigBattery"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="电量 100%"
+                android:textSize="14sp" android:textStyle="bold"
+                android:textColor="#4CD964"/>
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="14dp"
+                android:padding="12dp"
+                android:background="@drawable/card_bg_solid">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="最近通知"
+                    android:textSize="11sp"
+                    android:textColor="#88FFFFFF"/>
+
+                <TextView android:id="@+id/txtLifeNotifTitle"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="暂无通知"
+                    android:textSize="13sp" android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:singleLine="true" android:ellipsize="end"/>
+
+                <TextView android:id="@+id/txtLifeNotifText"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#B8A8E8"
+                    android:singleLine="true" android:ellipsize="end"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp"
+                android:weightSum="2">
+
+                <TextView android:id="@+id/btnLifeMusic"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="♪ 打开音乐"
+                    android:textSize="13sp" android:textColor="#FFFFFF"
+                    android:gravity="center"
+                    android:background="@drawable/btn_gradient"
+                    android:layout_marginRight="6dp"
+                    android:clickable="true" android:focusable="true"/>
+
+                <TextView android:id="@+id/btnLifeSettings"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="⚙ 设置"
+                    android:textSize="13sp" android:textColor="#FFFFFF"
+                    android:gravity="center"
+                    android:background="@drawable/card_bg_solid"
+                    android:layout_marginLeft="6dp"
+                    android:clickable="true" android:focusable="true"/>
+            </LinearLayout>
+
+            <TextView android:id="@+id/btnLifeClose"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"
+                android:text="收起"
+                android:textSize="11sp"
+                android:textColor="#8E8E93"
+                android:padding="6dp"
+                android:clickable="true" android:focusable="true"/>
+        </LinearLayout>
+
+        <!-- 音乐模式展开态 -->
         <LinearLayout android:id="@+id/expandedBox"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -181,9 +315,9 @@
                     android:clickable="true" android:focusable="true"/>
             </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </FrameLayout>
 
-    <!-- ★ 通知分裂卡（右边，初始隐藏）-->
+    <!-- 通知分裂卡 -->
     <LinearLayout android:id="@+id/notifBox"
         android:layout_width="0dp" android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -192,11 +326,9 @@
         android:layout_marginLeft="4dp"
         android:gravity="center_vertical"
         android:visibility="gone">
-
         <ImageView android:id="@+id/notifIcon"
             android:layout_width="28dp" android:layout_height="28dp"
             android:scaleType="centerCrop"/>
-
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
             android:layout_weight="1" android:orientation="vertical"
             android:layout_marginLeft="8dp">
