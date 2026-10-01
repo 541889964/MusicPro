@@ -203,6 +203,29 @@ public class MainActivity extends AppCompatActivity {
                 }, 500);
             }
             requestPermAndScan();
+            // ★ 检查悬浮窗权限
+            if (Build.VERSION.SDK_INT >= 23 && !android.provider.Settings.canDrawOverlays(this)) {
+                ui.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            new android.app.AlertDialog.Builder(MainActivity.this)
+                                .setTitle("需要悬浮窗权限")
+                                .setMessage("灵动岛需要悬浮窗权限才能显示在屏幕顶部。点击"去授权"后，找到"拾音测试版"并打开开关。")
+                                .setPositiveButton("去授权", new android.content.DialogInterface.OnClickListener() {
+                                    @Override public void onClick(android.content.DialogInterface d, int w) {
+                                        try {
+                                            Intent i = new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                                            i.setData(android.net.Uri.parse("package:" + getPackageName()));
+                                            startActivity(i);
+                                        } catch (Throwable ignored) {}
+                                    }
+                                })
+                                .setNegativeButton("以后再说", null)
+                                .show();
+                        } catch (Throwable ignored) {}
+                    }
+                }, 1500);
+            }
         } catch (Throwable t) {
             android.util.Log.e("Music", "onCreate fail", t);
             NiceToast.show(this, "初始化失败: " + t.getMessage());

@@ -97,9 +97,12 @@ public class PlayerActivity extends AppCompatActivity {
             // 开始播放
             playAt(currentIndex);
 
-            // 启动灵动岛
+            // 启动灵动岛（需要悬浮窗权限）
             try {
-                startService(new Intent(this, com.music.app.service.IslandService.class));
+                if (android.os.Build.VERSION.SDK_INT < 23
+                    || android.provider.Settings.canDrawOverlays(this)) {
+                    startService(new Intent(this, com.music.app.service.IslandService.class));
+                }
             } catch (Throwable ignored) {}
 
             // 按钮事件

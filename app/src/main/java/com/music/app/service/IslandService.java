@@ -67,15 +67,28 @@ public class IslandService extends Service {
 
     @Override public void onCreate() {
         super.onCreate();
+        // ★ 关键：检查悬浮窗权限
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (!android.provider.Settings.canDrawOverlays(this)) {
+                android.util.Log.e("Island", "无悬浮窗权限，停止服务");
+                stopSelf();
+                return;
+            }
+        }
         instance = this;
         vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         lowEnd = Build.VERSION.SDK_INT < 26;
-        measure();
-        initView();
-        fc = new FrameController(Prefs.islandFps(this), new FrameController.Tick() {
-            @Override public void onFrame(long dt) { update(); }
-        });
-        fc.start();
+        try {
+            measure();
+            initView();
+            fc = new FrameController(Prefs.islandFps(this), new FrameController.Tick() {
+                @Override public void onFrame(long dt) { update(); }
+            });
+            fc.start();
+        } catch (Throwable t) {
+            android.util.Log.e("Island", "initView fail", t);
+            stopSelf();
+        }
     }
 
     private void measure() {
@@ -104,7 +117,13 @@ public class IslandService extends Service {
             PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         lp.y = statusBarH + (int)(8 * density);
-        wm.addView(island, lp);
+        try {
+            wm.addView(island, lp);
+        } catch (Throwable t) {
+            android.util.Log.e("Island", "addView fail", t);
+            stopSelf();
+            return;
+        }
 
         tvTitle = island.findViewById(R.id.islandTitle);
         android.widget.TextView tvSub = island.findViewById(R.id.islandSub);
