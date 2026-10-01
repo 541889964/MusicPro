@@ -4,6 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView android:id="@+id/animLayer"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:visibility="gone"
+        android:clickable="false" android:focusable="false"/>
+
     <!-- ★ 生活区：未播放时显示 -->
     <LinearLayout android:id="@+id/lifeBox"
         android:layout_width="match_parent" android:layout_height="match_parent"

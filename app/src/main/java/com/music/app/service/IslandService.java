@@ -59,6 +59,8 @@ public class IslandService extends Service {
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
     private TextView txtNotifTitle, txtNotifText, txtSplitTitle, txtSplitText;
     private SeekBar seek;
+    private ImageView animLayer;
+    private com.music.app.widget.FramePlayer framePlayer;
 
     private int screenW, screenH, statusBarH;
     private float density;
@@ -202,6 +204,8 @@ public class IslandService extends Service {
         txtSplitTitle = root.findViewById(R.id.txtSplitTitle);
         txtSplitText = root.findViewById(R.id.txtSplitText);
         seek = root.findViewById(R.id.seek);
+        animLayer = root.findViewById(R.id.animLayer);
+        framePlayer = new com.music.app.widget.FramePlayer(this, animLayer);
     }
 
     private void bindClicks() {
@@ -346,6 +350,15 @@ public class IslandService extends Service {
         animating = true;
 
         try {
+            // 播放展开波纹动画
+            if (framePlayer != null) {
+                framePlayer.play("expand", 60, 60, new com.music.app.widget.FramePlayer.OnEnd() {
+                    @Override public void onEnd() {}
+                });
+            }
+        } catch (Throwable ignored) {}
+
+        try {
             final int startW = lp.width;
             final int targetW = eW();
 
@@ -398,6 +411,15 @@ public class IslandService extends Service {
         if (!expanded || animating) return;
         expanded = false;
         animating = true;
+
+        try {
+            // 播放收起波纹动画
+            if (framePlayer != null) {
+                framePlayer.play("collapse", 60, 60, new com.music.app.widget.FramePlayer.OnEnd() {
+                    @Override public void onEnd() {}
+                });
+            }
+        } catch (Throwable ignored) {}
 
         try {
             expandedBox.animate()
@@ -465,8 +487,14 @@ public class IslandService extends Service {
             }
             if (txtSplitText != null) txtSplitText.setText(text);
 
+            // 播放通知分裂光效
+            if (framePlayer != null) {
+                framePlayer.play("notif", 40, 50, new com.music.app.widget.FramePlayer.OnEnd() {
+                    @Override public void onEnd() {}
+                });
+            }
             notifSplit.setVisibility(View.VISIBLE);
-            notifSplit.setTranslationX(screenW);  // 从右边外面开始
+            notifSplit.setTranslationX(screenW);
             notifSplit.setAlpha(0f);
 
             // 滑入
@@ -578,6 +606,12 @@ public class IslandService extends Service {
 
     private void showChargeAnim() {
         try {
+            // 播放充电脉冲动画
+            if (framePlayer != null) {
+                framePlayer.play("charge", 60, 40, new com.music.app.widget.FramePlayer.OnEnd() {
+                    @Override public void onEnd() {}
+                });
+            }
             if (root != null) {
                 root.animate().scaleX(1.05f).scaleY(1.05f).setDuration(200)
                     .withEndAction(new Runnable() {
@@ -604,6 +638,16 @@ public class IslandService extends Service {
             breathe.setDuration(2200);
             breathe.setRepeatCount(ObjectAnimator.INFINITE);
             breathe.start();
+            // 播放呼吸粒子
+            if (framePlayer != null) {
+                framePlayer.play("pulse", 30, 30, new com.music.app.widget.FramePlayer.OnEnd() {
+                    @Override public void onEnd() {
+                        if (lastPlaying && framePlayer != null) {
+                            framePlayer.play("pulse", 30, 30, this);
+                        }
+                    }
+                });
+            }
         } catch (Throwable ignored) {}
     }
 
@@ -773,6 +817,7 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
+        try { if (framePlayer != null) framePlayer.stop(); } catch (Throwable ignored) {}
         try { if (coverRotate != null) coverRotate.cancel(); } catch (Throwable ignored) {}
         try { if (breathe != null) breathe.cancel(); } catch (Throwable ignored) {}
         try { if (chargeReceiver != null) unregisterReceiver(chargeReceiver); } catch (Throwable ignored) {}
