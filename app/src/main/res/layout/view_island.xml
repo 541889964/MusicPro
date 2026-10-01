@@ -53,6 +53,12 @@
     </LinearLayout>
 
     <!-- ★ 展开态：wrap_content 自适应内容高度 -->
+    <View android:id="@+id/shine"
+        android:layout_width="100dp" android:layout_height="match_parent"
+        android:background="@drawable/shine_gradient"
+        android:visibility="gone"
+        android:clickable="false" android:focusable="false"/>
+
     <LinearLayout android:id="@+id/expandedBox"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical"
