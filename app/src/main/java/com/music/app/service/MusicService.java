@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
@@ -104,15 +103,17 @@ public class MusicService extends MediaSessionService {
             if (sharedPlayer != null && sharedPlayer.isPlaying()) text += " · 播放中";
         } catch (Throwable ignored) {}
 
-        NotificationCompat.Builder b = new NotificationCompat.Builder(this, CH_ID)
+        // 用全限定名，避免和 androidx.media.app.NotificationCompat 冲突
+        androidx.core.app.NotificationCompat.Builder b =
+            new androidx.core.app.NotificationCompat.Builder(this, CH_ID)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pi)
             .setOngoing(true)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setCategory(NotificationCompat.CATEGORY_TRANSPORT);
+            .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .setCategory(androidx.core.app.NotificationCompat.CATEGORY_TRANSPORT);
 
         try {
             androidx.media.app.NotificationCompat.MediaStyle style =
@@ -151,8 +152,12 @@ public class MusicService extends MediaSessionService {
     }
 
     public static ExoPlayer getPlayer() { return sharedPlayer; }
+    public static boolean isPlaying() { return sharedPlayer != null && sharedPlayer.isPlaying(); }
+    public static long getPos() { return sharedPlayer != null ? sharedPlayer.getCurrentPosition() : 0; }
+    public static long getDur() { return sharedPlayer != null ? sharedPlayer.getDuration() : 0; }
+    public static int getIndex() { return sharedPlayer != null ? sharedPlayer.getCurrentMediaItemIndex() : 0; }
+    public static MediaItem getCurrentItem() { return sharedPlayer != null ? sharedPlayer.getCurrentMediaItem() : null; }
 
-    /** 供外部初始化 player（如 PlayerActivity） */
     public static synchronized ExoPlayer ensurePlayer(Context ctx) {
         if (sharedPlayer == null && ctx != null) {
             try {
@@ -162,11 +167,6 @@ public class MusicService extends MediaSessionService {
         }
         return sharedPlayer;
     }
-    public static boolean isPlaying() { return sharedPlayer != null && sharedPlayer.isPlaying(); }
-    public static long getPos() { return sharedPlayer != null ? sharedPlayer.getCurrentPosition() : 0; }
-    public static long getDur() { return sharedPlayer != null ? sharedPlayer.getDuration() : 0; }
-    public static int getIndex() { return sharedPlayer != null ? sharedPlayer.getCurrentMediaItemIndex() : 0; }
-    public static MediaItem getCurrentItem() { return sharedPlayer != null ? sharedPlayer.getCurrentMediaItem() : null; }
 
     public static void setQueue(Context ctx, List<Song> q, int idx) {
         sharedQueue = new ArrayList<Song>(q);
