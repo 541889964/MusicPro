@@ -9,7 +9,7 @@ import android.content.Intent;
 import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.media.app.NotificationCompat.MediaStyle;
+import androidx.media.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
@@ -25,7 +25,7 @@ import java.util.List;
 public class MusicService extends MediaSessionService {
     private static final String CH_ID = "music_playback";
     private MediaSession session;
-    private static ExoPlayer sharedPlayer;
+    public static ExoPlayer sharedPlayer;
     public static List<Song> sharedQueue = new ArrayList<Song>();
     public static int sharedIndex = 0;
     public static boolean started = false;
@@ -116,7 +116,8 @@ public class MusicService extends MediaSessionService {
             .setCategory(NotificationCompat.CATEGORY_TRANSPORT);
 
         try {
-            MediaStyle style = new MediaStyle();
+            androidx.media.app.NotificationCompat.MediaStyle style =
+                new androidx.media.app.NotificationCompat.MediaStyle();
             style.setShowActionsInCompactView(0, 1, 2);
             b.setStyle(style);
         } catch (Throwable ignored) {}
@@ -151,6 +152,17 @@ public class MusicService extends MediaSessionService {
     }
 
     public static ExoPlayer getPlayer() { return sharedPlayer; }
+
+    /** 供外部初始化 player（如 PlayerActivity） */
+    public static synchronized ExoPlayer ensurePlayer(Context ctx) {
+        if (sharedPlayer == null && ctx != null) {
+            try {
+                sharedPlayer = new ExoPlayer.Builder(ctx).build();
+                sharedPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
+            } catch (Throwable ignored) {}
+        }
+        return sharedPlayer;
+    }
     public static boolean isPlaying() { return sharedPlayer != null && sharedPlayer.isPlaying(); }
     public static long getPos() { return sharedPlayer != null ? sharedPlayer.getCurrentPosition() : 0; }
     public static long getDur() { return sharedPlayer != null ? sharedPlayer.getDuration() : 0; }

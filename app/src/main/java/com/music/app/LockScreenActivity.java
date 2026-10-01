@@ -111,7 +111,7 @@ public class LockScreenActivity extends AppCompatActivity {
 
     private void initPlayer() {
         if (player == null) {
-            if (MusicService.sharedPlayer != null) player = MusicService.sharedPlayer;
+            player = MusicService.getPlayer();
             else {
                 player = new ExoPlayer.Builder(this).build();
                 player.addListener(new Player.Listener() {

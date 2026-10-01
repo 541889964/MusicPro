@@ -148,11 +148,11 @@ public class PlayerActivity extends AppCompatActivity {
 
     /** ★ 用共享 player */
     private void initPlayer() {
-        if (MusicService.sharedPlayer == null) {
-            MusicService.sharedPlayer = new ExoPlayer.Builder(this).build();
-            MusicService.sharedPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
+        if (com.music.app.service.MusicService.getPlayer() == null) {
+            MusicService.ensurePlayer(this);
+            MusicService.getPlayer().setRepeatMode(Player.REPEAT_MODE_ALL);
         }
-        player = MusicService.sharedPlayer;
+        player = MusicService.getPlayer();
         if (!listenerBound) {
             listenerBound = true;
             player.addListener(new Player.Listener() {
