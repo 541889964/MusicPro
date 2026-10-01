@@ -55,6 +55,9 @@ public class IslandService extends Service {
     private int screenW, screenH, statusBarH;
     private float density;
     private boolean expanded = false, animating = false, dragging = false;
+    private android.animation.ObjectAnimator coverRotate;
+    private android.content.BroadcastReceiver chargeReceiver;
+    private boolean charging = false;
 
     private long lastSongId = -1;
     private String lastLyric = "";
@@ -81,11 +84,61 @@ public class IslandService extends Service {
             cfg = IslandConfig.load();
             measure();
             initView();
+            initChargeReceiver();
             h.post(tick);
         } catch (Throwable t) {
             Log.e(TAG, "init", t);
             stopSelf();
         }
+    }
+
+    private void initChargeReceiver() {
+        try {
+            chargeReceiver = new android.content.BroadcastReceiver() {
+                @Override public void onReceive(android.content.Context c, Intent it) {
+                    try {
+                        if (it == null) return;
+                        int status = it.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
+                        boolean nowCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING
+                            || status == android.os.BatteryManager.BATTERY_STATUS_FULL;
+                        if (nowCharging && !charging) {
+                            charging = true;
+                            showChargeAnim();
+                        } else if (!nowCharging) {
+                            charging = false;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+            };
+            IntentFilter f = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+            registerReceiver(chargeReceiver, f);
+        } catch (Throwable ignored) {}
+    }
+
+    /** 充电提示 */
+    private void showChargeAnim() {
+        try {
+            // 灵动岛闪一下绿色 + 展开一次
+            root.setBackgroundColor(0x3300FF88);
+            root.postDelayed(new Runnable() {
+                @Override public void run() {
+                    root.setBackgroundColor(0x00000000);
+                }
+            }, 800);
+            if (!expanded) {
+                expand();
+                // 3 秒后自动收起
+                h.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        if (expanded) collapse();
+                    }
+                }, 3000);
+            }
+            try {
+                android.widget.Toast.makeText(IslandService.this,
+                    "⚡ 充电中，音乐陪你", android.widget.Toast.LENGTH_SHORT).show();
+            } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {}
     }
 
     private void measure() {
@@ -233,6 +286,18 @@ public class IslandService extends Service {
     }
 
     /** ★ 流畅展开：只调 2 次 updateViewLayout + 内容 scale 动画 */
+    private void startRotate() {
+        try {
+            if (imgCover == null) return;
+            if (coverRotate != null) coverRotate.cancel();
+            coverRotate = android.animation.ObjectAnimator.ofFloat(imgCover, "rotation", 0f, 360f);
+            coverRotate.setDuration(16000);
+            coverRotate.setRepeatCount(android.animation.ObjectAnimator.INFINITE);
+            coverRotate.setInterpolator(new android.view.animation.LinearInterpolator());
+            coverRotate.start();
+        } catch (Throwable ignored) {}
+    }
+
     private void expand() {
         if (expanded || animating) return;
         expanded = true;
@@ -332,8 +397,29 @@ public class IslandService extends Service {
                     String name = WallpaperHelper.forSong(this, songId);
                     Bitmap bm = WallpaperHelper.loadSmall(this, name);
                     if (bm != null) {
-                        if (imgCover != null) imgCover.setImageBitmap(bm);
-                        if (imgCoverBig != null) imgCoverBig.setImageBitmap(bm);
+                        if (imgCover != null) {
+                            imgCover.setImageBitmap(bm);
+                            imgCover.setClipToOutline(true);
+                            if (Build.VERSION.SDK_INT >= 21) {
+                                imgCover.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                                    @Override public void getOutline(View v, android.graphics.Outline o) {
+                                        o.setOval(0, 0, v.getWidth(), v.getHeight());
+                                    }
+                                });
+                            }
+                        }
+                        if (imgCoverBig != null) {
+                            imgCoverBig.setImageBitmap(bm);
+                            imgCoverBig.setClipToOutline(true);
+                            if (Build.VERSION.SDK_INT >= 21) {
+                                imgCoverBig.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                                    @Override public void getOutline(View v, android.graphics.Outline o) {
+                                        o.setOval(0, 0, v.getWidth(), v.getHeight());
+                                    }
+                                });
+                            }
+                        }
+                        startRotate();
                     }
                 } catch (Throwable ignored) {}
                 lyricLines = new ArrayList<LyricsParser.Line>();
@@ -402,6 +488,8 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
+        try { if (coverRotate != null) coverRotate.cancel(); } catch (Throwable ignored) {}
+        try { if (chargeReceiver != null) unregisterReceiver(chargeReceiver); } catch (Throwable ignored) {}
         h.removeCallbacksAndMessages(null);
         try { if (root != null && wm != null) wm.removeView(root); }
         catch (Throwable ignored) {}

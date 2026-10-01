@@ -53,7 +53,8 @@
                     android:layout_width="match_parent" android:layout_height="match_parent"
                     android:layout_margin="6dp"
                     android:src="@mipmap/ic_launcher"
-                    android:scaleType="centerCrop"/>
+                    android:scaleType="centerCrop"
+                    android:clipToOutline="true"/>
                 <View android:layout_width="72dp" android:layout_height="72dp"
                     android:layout_gravity="center"
                     android:background="@drawable/cover_center_hole"/>

@@ -515,6 +515,18 @@ public class PlayerActivity extends AppCompatActivity {
     private void startCoverRotate() {
         try {
             if (ivCover == null) return;
+            ivCover.setClipToOutline(true);
+            if (ivCoverWrap != null) {
+                ivCoverWrap.setBackgroundResource(R.drawable.bg_cover_circle);
+                ivCoverWrap.setClipToOutline(true);
+                if (Build.VERSION.SDK_INT >= 21) {
+                    ivCoverWrap.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                        @Override public void getOutline(View v, android.graphics.Outline o) {
+                            o.setOval(0, 0, v.getWidth(), v.getHeight());
+                        }
+                    });
+                }
+            }
             if (coverRotate != null) coverRotate.cancel();
             coverRotate = ObjectAnimator.ofFloat(ivCover, "rotation", 0f, 360f);
             coverRotate.setDuration(20000);
