@@ -1,4 +1,5 @@
 package com.music.app;
+
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
@@ -17,7 +18,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -62,210 +62,183 @@ public class MainActivity extends AppCompatActivity {
 
     @Override protected void onCreate(Bundle s) {
         super.onCreate(s);
-        setContentView(R.layout.activity_main);
-        bgWallpaper = findViewById(R.id.ivWallpaper);
-        applyWallpaper();
+        try {
+            setContentView(R.layout.activity_main);
+            bgWallpaper = findViewById(R.id.ivWallpaper);
+            applyWallpaper();
 
-        TextView greeting = findViewById(R.id.tvGreeting);
-        TextView sub = findViewById(R.id.tvGreetingSub);
-        TextView quote = findViewById(R.id.tvDailyQuote);
-        if (greeting != null) greeting.setText(WarmGreeting.byTime() + "，" + Prefs.nickname(this));
-        if (sub != null) sub.setText(WarmGreeting.subByTime());
-        if (quote != null) quote.setText("\u201C" + WarmGreeting.dailyQuote(this) + "\u201D");
+            TextView greeting = findViewById(R.id.tvGreeting);
+            TextView sub = findViewById(R.id.tvGreetingSub);
+            TextView quote = findViewById(R.id.tvDailyQuote);
+            if (greeting != null) greeting.setText(WarmGreeting.byTime() + "，" + Prefs.nickname(this));
+            if (sub != null) sub.setText(WarmGreeting.byTime());
+            if (quote != null) quote.setText("\u201C" + WarmGreeting.dailyQuote(this) + "\u201D");
 
-        hearts = findViewById(R.id.hearts);
-        if (hearts != null) hearts.start(4500);
+            hearts = findViewById(R.id.hearts);
+            if (hearts != null) hearts.start(4500);
 
-        View appBar = findViewById(R.id.appBar);
-        View greetingCard = findViewById(R.id.greetingCard);
-        View fab = findViewById(R.id.fab);
-        if (appBar != null) {
-            appBar.setTranslationY(-180f); appBar.setAlpha(0f);
-            appBar.animate().translationY(0f).alpha(1f).setDuration(600)
-                .setInterpolator(new DecelerateInterpolator()).start();
-        }
-        if (greetingCard != null) {
-            greetingCard.setAlpha(0f); greetingCard.setTranslationY(-20f);
-            greetingCard.animate().alpha(1f).translationY(0f).setStartDelay(200).setDuration(500).start();
-        }
-        if (fab != null) {
-            fab.setScaleX(0f); fab.setScaleY(0f);
-            fab.animate().scaleX(1f).scaleY(1f).setStartDelay(700).setDuration(500)
-                .setInterpolator(new OvershootInterpolator(1.8f)).start();
-            ObjectAnimator bob = ObjectAnimator.ofFloat(fab, "translationY", 0f, -8f, 0f);
-            bob.setDuration(2600);
-            bob.setInterpolator(new AccelerateDecelerateInterpolator());
-            bob.setRepeatCount(ObjectAnimator.INFINITE);
-            bob.start();
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    if (showing.isEmpty()) NiceToast.show(MainActivity.this, "还没有歌曲");
-                    else openPlayer(0);
-                }
-            });
-        }
-        View logo = findViewById(R.id.ivAppLogo);
-        if (logo != null) {
-            logo.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override public boolean onLongClick(View v) {
-                    NiceToast.love(MainActivity.this, WarmGreeting.randomCheer());
-                    if (hearts != null) hearts.start(2800);
-                    return true;
-                }
-            });
-            logo.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    long now = System.currentTimeMillis();
-                    if (now - lastClick < 400) {
-                        NiceToast.love(MainActivity.this, WarmGreeting.randomCheer());
-                        if (hearts != null) hearts.start(2200);
+            View appBar = findViewById(R.id.appBar);
+            View greetingCard = findViewById(R.id.greetingCard);
+            View fab = findViewById(R.id.fab);
+            if (appBar != null) {
+                appBar.setTranslationY(-180f); appBar.setAlpha(0f);
+                appBar.animate().translationY(0f).alpha(1f).setDuration(600)
+                    .setInterpolator(new DecelerateInterpolator()).start();
+            }
+            if (greetingCard != null) {
+                greetingCard.setAlpha(0f); greetingCard.setTranslationY(-20f);
+                greetingCard.animate().alpha(1f).translationY(0f).setStartDelay(200).setDuration(500).start();
+            }
+            if (fab != null) {
+                fab.setScaleX(0f); fab.setScaleY(0f);
+                fab.animate().scaleX(1f).scaleY(1f).setStartDelay(700).setDuration(500)
+                    .setInterpolator(new OvershootInterpolator(1.8f)).start();
+                ObjectAnimator bob = ObjectAnimator.ofFloat(fab, "translationY", 0f, -8f, 0f);
+                bob.setDuration(2600);
+                bob.setInterpolator(new AccelerateDecelerateInterpolator());
+                bob.setRepeatCount(ObjectAnimator.INFINITE);
+                bob.start();
+                fab.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View v) {
+                        if (showing.isEmpty()) NiceToast.show(MainActivity.this, "还没有歌曲");
+                        else openPlayer(0);
                     }
-                    lastClick = now;
-                }
-            });
-        }
-        tabLocal = findViewById(R.id.tabLocal);
-        tabOnline = findViewById(R.id.tabOnline);
-        tabLocalText = findViewById(R.id.tabLocalText);
-        tabOnlineText = findViewById(R.id.tabOnlineText);
-        tabLocalIndicator = findViewById(R.id.tabLocalIndicator);
-        tabOnlineIndicator = findViewById(R.id.tabOnlineIndicator);
-        if (tabLocal != null) tabLocal.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { switchTab(0); }
-        });
-        if (tabOnline != null) tabOnline.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { switchTab(1); }
-        });
-        android.widget.TextView btnSettings = findViewById(R.id.btnSettings);
-        if (btnSettings != null) {
-            btnSettings.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, SettingsActivity.class));
-                }
-            });
-        }
-        etSearch = findViewById(R.id.etSearch);
-        if (etSearch != null) {
-            etSearch.addTextChangedListener(new TextWatcher() {
-                @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-                @Override public void onTextChanged(CharSequence s, int a, int b, int c) { filter(s.toString()); }
-                @Override public void afterTextChanged(Editable s) {}
-            });
-            etSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent e) {
-                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                        if (currentTab == 1) doSearchOnline(etSearch.getText().toString());
+                });
+            }
+
+            View logo = findViewById(R.id.ivAppLogo);
+            if (logo != null) {
+                logo.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override public boolean onLongClick(View v) {
+                        NiceToast.love(MainActivity.this, WarmGreeting.randomCheer());
+                        if (hearts != null) hearts.start(2800);
                         return true;
                     }
-                    return false;
-                }
-            });
-        }
-        rv = findViewById(R.id.rvSongs);
-        tvEmpty = findViewById(R.id.tvEmpty);
-        tvCount = findViewById(R.id.tvCount);
-        if (rv != null) {
-            rv.setHasFixedSize(true);
-            rv.setItemViewCacheSize(20);
-            rv.setDrawingCacheEnabled(true);
-            rv.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-            rv.setItemAnimator(null);
-            LinearLayoutManager lm = new LinearLayoutManager(this);
-            rv.setLayoutManager(lm);
-            adapter = new SongAdapter(new SongAdapter.OnItemClick() {
-                @Override public void onClick(Song s, int pos) { openPlayer(pos); }
-            }, new SongAdapter.OnItemLongClick() {
-                @Override public void onLongClick(Song s, int pos) { showItemMenu(s); }
-            });
-            rv.setAdapter(adapter);
-        }
-        if (getIntent().getBooleanExtra("show_announcement", false) && !Prefs.annShown(this)) {
-            ui.postDelayed(new Runnable() {
-                @Override public void run() {
-                    final AnnouncementDialog d = new AnnouncementDialog(MainActivity.this, getText());
-                    d.setOnDismissListener(new android.content.DialogInterface.OnDismissListener() {
-                        @Override public void onDismiss(android.content.DialogInterface di) {
-                            Prefs.setAnnShown(MainActivity.this, true);
-                            if (hearts != null) hearts.postDelayed(new Runnable() {
-                                @Override public void run() { hearts.start(3200); }
-                            }, 300);
+                });
+                logo.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View v) {
+                        long now = System.currentTimeMillis();
+                        if (now - lastClick < 400) {
+                            NiceToast.love(MainActivity.this, WarmGreeting.randomCheer());
+                            if (hearts != null) hearts.start(2200);
                         }
-                    });
-                    d.show();
-                }
-            }, 500);
-        }
-        requestPermAndScan();
-        startMusicService();
-        ui.postDelayed(new Runnable() {
-            @Override public void run() {
-                if (Build.VERSION.SDK_INT >= 23
-                    && !android.provider.Settings.canDrawOverlays(MainActivity.this)) {
-                    NiceToast.show(MainActivity.this, "开启悬浮窗可显示灵动岛");
-                    Intent perm = new Intent(
-                        android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                    perm.setData(android.net.Uri.parse("package:" + getPackageName()));
-                    try { startActivity(perm); } catch (Throwable ignored) {}
-                } else {
-                    startIsland();
-                }
+                        lastClick = now;
+                    }
+                });
             }
-        }, 1200);
+
+            // ★ 唯一按钮：设置
+            View btnSettings = findViewById(R.id.btnSettings);
+            if (btnSettings != null) {
+                btnSettings.setOnClickListener(new View.OnClickListener() {
+                    @Override public void onClick(View v) {
+                        try {
+                            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                        } catch (Throwable t) {
+                            NiceToast.show(MainActivity.this, "打开设置失败: " + t.getMessage());
+                        }
+                    }
+                });
+            }
+
+            tabLocal = findViewById(R.id.tabLocal);
+            tabOnline = findViewById(R.id.tabOnline);
+            tabLocalText = findViewById(R.id.tabLocalText);
+            tabOnlineText = findViewById(R.id.tabOnlineText);
+            tabLocalIndicator = findViewById(R.id.tabLocalIndicator);
+            tabOnlineIndicator = findViewById(R.id.tabOnlineIndicator);
+            if (tabLocal != null) tabLocal.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { switchTab(0); }
+            });
+            if (tabOnline != null) tabOnline.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { switchTab(1); }
+            });
+
+            etSearch = findViewById(R.id.etSearch);
+            if (etSearch != null) {
+                etSearch.addTextChangedListener(new TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+                    @Override public void onTextChanged(CharSequence s, int a, int b, int c) { filter(s.toString()); }
+                    @Override public void afterTextChanged(Editable s) {}
+                });
+                etSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent e) {
+                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                            if (currentTab == 1) doSearchOnline(etSearch.getText().toString());
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+            }
+
+            rv = findViewById(R.id.rvSongs);
+            tvEmpty = findViewById(R.id.tvEmpty);
+            tvCount = findViewById(R.id.tvCount);
+            if (rv != null) {
+                rv.setHasFixedSize(true);
+                rv.setItemAnimator(null);
+                rv.setLayoutManager(new LinearLayoutManager(this));
+                adapter = new SongAdapter(new SongAdapter.OnItemClick() {
+                    @Override public void onClick(Song s, int pos) { openPlayer(pos); }
+                }, new SongAdapter.OnItemLongClick() {
+                    @Override public void onLongClick(Song s, int pos) { showItemMenu(s); }
+                });
+                rv.setAdapter(adapter);
+            }
+
+            if (getIntent().getBooleanExtra("show_announcement", false) && !Prefs.annShown(this)) {
+                ui.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        try {
+                            final AnnouncementDialog d = new AnnouncementDialog(MainActivity.this, getText());
+                            d.setOnDismissListener(new android.content.DialogInterface.OnDismissListener() {
+                                @Override public void onDismiss(android.content.DialogInterface di) {
+                                    Prefs.setAnnShown(MainActivity.this, true);
+                                }
+                            });
+                            d.show();
+                        } catch (Throwable ignored) {}
+                    }
+                }, 500);
+            }
+            requestPermAndScan();
+        } catch (Throwable t) {
+            android.util.Log.e("Music", "onCreate fail", t);
+            NiceToast.show(this, "初始化失败: " + t.getMessage());
+        }
     }
 
     private void applyWallpaper() {
         if (bgWallpaper == null) return;
-        String name = Prefs.wallpaper(this);
-        Bitmap bm;
-        if (name != null && !name.isEmpty()) bm = WallpaperHelper.load(this, name);
-        else bm = WallpaperHelper.loadAt(this, wpIndex);
-        if (bm != null) {
-            bgWallpaper.setAlpha(0f);
-            bgWallpaper.setImageBitmap(bm);
-            bgWallpaper.animate().alpha(1f).setDuration(800).start();
-        }
-        if (Prefs.autoRotate(this)) startAutoRotate();
-    }
-
-    private void startAutoRotate() {
-        stopAutoRotate();
-        wpRunnable = new Runnable() {
-            @Override public void run() {
-                wpIndex++;
-                Bitmap bm = WallpaperHelper.loadAt(MainActivity.this, wpIndex);
-                if (bm != null && bgWallpaper != null) {
-                    bgWallpaper.animate().alpha(0f).setDuration(600)
-                        .withEndAction(new Runnable() {
-                            @Override public void run() {
-                                Bitmap b2 = WallpaperHelper.loadAt(MainActivity.this, wpIndex);
-                                if (b2 != null) bgWallpaper.setImageBitmap(b2);
-                                bgWallpaper.animate().alpha(1f).setDuration(600).start();
-                            }
-                        }).start();
-                }
-                ui.postDelayed(this, 8000);
+        try {
+            String name = Prefs.wallpaper(this);
+            Bitmap bm;
+            if (name != null && !name.isEmpty()) bm = WallpaperHelper.load(this, name);
+            else bm = WallpaperHelper.at(this, wpIndex);
+            if (bm != null) {
+                bgWallpaper.setAlpha(0f);
+                bgWallpaper.setImageBitmap(bm);
+                bgWallpaper.animate().alpha(1f).setDuration(800).start();
             }
-        };
-        ui.postDelayed(wpRunnable, 8000);
-    }
-
-    private void stopAutoRotate() {
-        if (wpRunnable != null) ui.removeCallbacks(wpRunnable);
+        } catch (Throwable ignored) {}
     }
 
     @Override protected void onResume() {
         super.onResume();
-        if (bgWallpaper != null) {
-            String name = Prefs.wallpaper(this);
-            if (name != null && !name.isEmpty()) {
-                Bitmap bm = WallpaperHelper.load(this, name);
-                if (bm != null) {
-                    bgWallpaper.setAlpha(0f);
-                    bgWallpaper.setImageBitmap(bm);
-                    bgWallpaper.animate().alpha(1f).setDuration(600).start();
+        try {
+            if (bgWallpaper != null) {
+                String name = Prefs.wallpaper(this);
+                if (name != null && !name.isEmpty()) {
+                    Bitmap bm = WallpaperHelper.load(this, name);
+                    if (bm != null) {
+                        bgWallpaper.setAlpha(0f);
+                        bgWallpaper.setImageBitmap(bm);
+                        bgWallpaper.animate().alpha(1f).setDuration(600).start();
+                    }
                 }
             }
-        }
+        } catch (Throwable ignored) {}
     }
 
     private void switchTab(int tab) {
@@ -315,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 com.music.app.util.DownloadUtil.download(url, safeName + ".mp3",
                     new com.music.app.util.DownloadUtil.Callback() {
                         @Override public void onDone(boolean ok, String path) {
-                            NiceToast.show(MainActivity.this, ok ? "✓ 已下载到 /sogou/" : "下载失败");
+                            NiceToast.show(MainActivity.this, ok ? "✓ 已下载" : "下载失败");
                         }
                     });
             }
@@ -339,11 +312,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openPlayer(int idx) {
-        // 传递队列给锁屏
-        try {
-            com.music.app.LockScreenActivity.queue = new ArrayList<Song>(showing);
-            com.music.app.LockScreenActivity.currentIndex = idx;
-        } catch (Throwable ignored) {}
         if (showing.isEmpty()) { NiceToast.show(this, "列表为空"); return; }
         if (idx < 0 || idx >= showing.size()) idx = 0;
         PlayerActivity.queue = new ArrayList<Song>(showing);
@@ -368,22 +336,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void startMusicService() {
-        try {
-            Intent svc = new Intent(this,
-                com.music.app.service.MusicService.class);
-            startService(svc);
-        } catch (Throwable ignored) {}
-    }
-
-    private void startIsland() {
-        try {
-            Intent it = new Intent(this,
-                com.music.app.service.IslandService.class);
-            startService(it);
-        } catch (Throwable ignored) {}
-    }
-
     private void requestPermAndScan() {
         String perm;
         if (Build.VERSION.SDK_INT >= 33) perm = "android.permission.READ_MEDIA_AUDIO";
@@ -398,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
             if (r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) scanAsync();
             else if (tvEmpty != null) {
                 tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("没有权限扫描本地音乐\n在设置中开启存储权限即可");
+                tvEmpty.setText("没有权限扫描本地音乐");
             }
         }
     }
@@ -406,16 +358,18 @@ public class MainActivity extends AppCompatActivity {
     private void scanAsync() {
         new Thread(new Runnable() {
             @Override public void run() {
-                final List<Song> songs = MusicScanner.scan(MainActivity.this);
-                ui.post(new Runnable() {
-                    @Override public void run() {
-                        localAll = songs;
-                        if (currentTab == 0) {
-                            showing = new ArrayList<Song>(songs);
-                            refreshList();
+                try {
+                    final List<Song> songs = MusicScanner.scan(MainActivity.this);
+                    ui.post(new Runnable() {
+                        @Override public void run() {
+                            localAll = songs;
+                            if (currentTab == 0) {
+                                showing = new ArrayList<Song>(songs);
+                                refreshList();
+                            }
                         }
-                    }
-                });
+                    });
+                } catch (Throwable ignored) {}
             }
         }).start();
     }
@@ -444,35 +398,21 @@ public class MainActivity extends AppCompatActivity {
             if (showing.isEmpty()) {
                 tvEmpty.setVisibility(View.VISIBLE);
                 tvEmpty.setText(currentTab == 0
-                    ? "还没有本地音乐哦\n可以从在线 Tab 搜索并下载 ♡"
-                    : "在上方搜索框输入关键词\n从网易云搜索音乐 ♪");
+                    ? "还没有本地音乐哦"
+                    : "在上方搜索框输入关键词");
             } else tvEmpty.setVisibility(View.GONE);
         }
     }
 
-    @Override protected void onDestroy() { stopAutoRotate(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (wpRunnable != null) ui.removeCallbacks(wpRunnable);
+        super.onDestroy();
+    }
 
     private String getText() {
-        return "欢迎回来，亲爱的你 🌸\n\n"
-            + "【写给你的第一句话】\n"
-            + "很高兴在音乐的世界里遇见你。希望这款小小的应用，能陪你度过每一个或忙碌、"
-            + "或闲暇、或开心、或有点小失落的时刻。天天开心，事事顺遂。\n\n"
-            + "【v17.0 功能】\n"
-            + "• 你的素材做播放器封面（每首歌稳定对应一张）\n"
-            + "• 素材画廊：浏览所有图片，一键换肤\n"
-            + "• 换肤中心：自动轮播 / 随机换一张 / 快速选择\n"
-            + "• 网易云搜索：在线搜索全网音乐\n"
-            + "• 在线播放 + 歌词同步滚动\n"
-            + "• 一键下载音乐和歌词到 /sogou/\n"
-            + "• 本地音乐扫描\n\n"
-            + "【使用小贴士】\n"
-            + "1. 顶部右上角：🎨 画廊 / 🎭 换肤\n"
-            + "2. 在线 Tab 输入关键词，回车搜索\n"
-            + "3. 长按歌曲可下载 / 播放\n"
-            + "4. 播放页封面用你的素材（按歌曲 id 稳定对应）\n"
-            + "5. 下载目录：/storage/emulated/0/sogou/\n\n"
-            + "【版本信息】\n当前版本：17.0.0\n适配系统：Android 5.0 及以上\n\n"
-            + "记得多喝水，照顾好自己。\n天天开心，岁岁平安。\n\n"
-            + "—— MUSIC·Pro 敬上 ♡";
+        return "欢迎使用 拾音\n\n" +
+            "很高兴在音乐的世界里遇见你。\n" +
+            "天天开心，事事顺遂。\n\n" +
+            "—— 拾音 敬上 ♡";
     }
 }

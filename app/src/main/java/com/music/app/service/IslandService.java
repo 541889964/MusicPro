@@ -349,6 +349,11 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
+    // 保险：每帧同步声波
+    private void syncWave(boolean playing) {
+        if (waveView != null) waveView.setPlaying(playing);
+    }
+
     private String fmt(int ms) {
         if (ms < 0) ms = 0;
         int s = ms / 1000;

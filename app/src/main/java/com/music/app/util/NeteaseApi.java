@@ -26,7 +26,7 @@ public class NeteaseApi {
                 FormBody body = new FormBody.Builder()
                     .add("s", keyword).add("type", "1").add("limit", "30").add("offset", "0").build();
                 Request req = new Request.Builder()
-                    .url("https://music.163.com/api/search/get/")
+                    .url("http://music.163.com/api/search/get/")
                     .addHeader("Referer", "https://music.163.com")
                     .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 10)")
                     .post(body).build();
@@ -70,7 +70,7 @@ public class NeteaseApi {
             String lrc = "";
             try {
                 Request req = new Request.Builder()
-                    .url("https://music.163.com/api/song/lyric?id=" + id + "&lv=1&kv=1&tv=-1")
+                    .url("http://music.163.com/api/song/lyric?id=" + id + "&lv=1&kv=1&tv=-1")
                     .addHeader("Referer", "https://music.163.com")
                     .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 10)").build();
                 Response resp = CLIENT.newCall(req).execute();
@@ -88,7 +88,7 @@ public class NeteaseApi {
             String url = "";
             try {
                 Request req = new Request.Builder()
-                    .url("https://music.163.com/api/song/enhance/player/url?id=" + id
+                    .url("http://music.163.com/api/song/enhance/player/url?id=" + id
                         + "&ids=[" + id + "]&br=320000")
                     .addHeader("Referer", "https://music.163.com")
                     .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 10)").build();
@@ -98,7 +98,7 @@ public class NeteaseApi {
                 if (data != null && data.length() > 0) url = data.getJSONObject(0).optString("url");
             } catch (Throwable ignored) {}
             if (url == null || url.isEmpty() || url.equals("null"))
-                url = "https://music.163.com/song/media/outer/url?id=" + id + ".mp3";
+                url = "http://music.163.com/song/media/outer/url?id=" + id + ".mp3";
             final String r = url;
             UI.post(new Runnable() { @Override public void run() { cb.onResult(r); } });
         }}).start();
