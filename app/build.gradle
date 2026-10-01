@@ -29,11 +29,7 @@ android {
     packagingOptions {
         resources.excludes += ['META-INF/*.kotlin_module', 'META-INF/DEPENDENCIES']
     }
-    aaptOptions {
-        noCompress 'mp3', 'json'
-        // 图标已在生成时可能是 jpg/png，禁止再压缩
-        noCompress 'jpg', 'jpeg', 'png', 'webp'
-    }
+    aaptOptions { noCompress 'mp3', 'json' }
 }
 
 dependencies {

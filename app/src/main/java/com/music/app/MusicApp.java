@@ -13,18 +13,9 @@ public class MusicApp extends Application {
                 pw.println("=== " + new java.util.Date() + " ===");
                 e.printStackTrace(pw);
                 pw.close();
-                try {
-                    java.io.FileWriter fw = new java.io.FileWriter(
-                        "/storage/emulated/0/MT2/crash.txt", false);
-                    fw.write(sw.toString());
-                    fw.close();
-                } catch (Throwable ignored2) {}
-                try {
-                    java.io.FileWriter fw2 = new java.io.FileWriter(
-                        new java.io.File(getFilesDir(), "crash.txt"), false);
-                    fw2.write(sw.toString());
-                    fw2.close();
-                } catch (Throwable ignored3) {}
+                java.io.FileWriter fw = new java.io.FileWriter("/storage/emulated/0/MT2/crash.txt", false);
+                fw.write(sw.toString());
+                fw.close();
             } catch (Throwable ignored) {}
             if (def != null) def.uncaughtException(t, e);
         });

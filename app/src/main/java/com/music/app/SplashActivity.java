@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
@@ -60,6 +59,7 @@ public class SplashActivity extends AppCompatActivity {
             .setStartDelay(400).setDuration(800)
             .setInterpolator(new DecelerateInterpolator()).start();
 
+        final float startW = progress.getLayoutParams().width;
         ValueAnimator pw = ValueAnimator.ofFloat(0f, 1f);
         pw.setDuration(3800);
         pw.addUpdateListener(a -> {

@@ -1,7 +1,6 @@
 package com.music.app;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.music.app.model.Song;
-import com.music.app.util.RandomAssets;
 import com.music.app.util.WallpaperHelper;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +23,6 @@ public class PlayerActivity extends AppCompatActivity {
     public static List<Song> queue = new ArrayList<>();
     public static int currentIndex = 0;
     public static String currentLyric = "";
-    /** 灵动岛复用的封面（同一 Bitmap，不再分配内存） */
-    public static Bitmap sharedCover;
 
     private SeekBar seek;
     private TextView tvTitle, tvArtist, tvCur, tvTot;
@@ -53,9 +49,6 @@ public class PlayerActivity extends AppCompatActivity {
         btnClose = findViewById(R.id.btnClose);
         ivCover = findViewById(R.id.ivCover);
 
-        applyRandomBg();
-        applyRandomCover();
-
         int idx = getIntent().getIntExtra("index", 0);
         if (queue.isEmpty()) { finish(); return; }
         if (idx < 0 || idx >= queue.size()) idx = 0;
@@ -63,6 +56,11 @@ public class PlayerActivity extends AppCompatActivity {
 
         if (player == null) player = new ExoPlayer.Builder(this).build();
         playAt(currentIndex);
+
+        if (ivCover != null) {
+            Bitmap cover = WallpaperHelper.generateCircleCover(400);
+            if (cover != null) ivCover.setImageBitmap(cover);
+        }
 
         btnPlay.setOnClickListener(v -> { toggle(); press(v); });
         btnPrev.setOnClickListener(v -> { if (currentIndex > 0) playAt(currentIndex - 1); press(v); });
@@ -83,31 +81,6 @@ public class PlayerActivity extends AppCompatActivity {
         h.post(new Runnable() {
             @Override public void run() { updateProgress(); h.postDelayed(this, 250); }
         });
-    }
-
-    private void applyRandomBg() {
-        try {
-            Bitmap bmp = RandomAssets.bg(this);
-            if (bmp == null) return;
-            BitmapDrawable d = new BitmapDrawable(getResources(), bmp);
-            d.setAlpha(80);
-            View root = findViewById(android.R.id.content);
-            if (root != null) root.setBackground(d);
-        } catch (Throwable ignored) {}
-    }
-
-    private void applyRandomCover() {
-        try {
-            Bitmap bmp = RandomAssets.cover(this);
-            if (bmp != null && ivCover != null) {
-                ivCover.setImageBitmap(bmp);
-                sharedCover = bmp; // 灵动态复用
-            } else {
-                Bitmap c = WallpaperHelper.generateCircleCover(400);
-                if (ivCover != null && c != null) ivCover.setImageBitmap(c);
-                sharedCover = c;
-            }
-        } catch (Throwable ignored) {}
     }
 
     private void press(View v) {

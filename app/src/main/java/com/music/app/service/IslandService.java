@@ -13,11 +13,9 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
@@ -29,7 +27,6 @@ import androidx.media3.common.MediaItem;
 import com.music.app.PlayerActivity;
 import com.music.app.R;
 import com.music.app.util.Prefs;
-import com.music.app.util.RandomAssets;
 import com.music.app.util.WallpaperHelper;
 import com.music.app.widget.ChargePulseView;
 import com.music.app.widget.ParticleBreatheView;
@@ -46,7 +43,7 @@ public class IslandService extends Service {
     private View root;
     private WindowManager.LayoutParams lp;
 
-    private View lifeBox, collapsedBox, expandedBox, notifSplit, glowLayer;
+    private View lifeBox, collapsedBox, expandedBox, notifSplit;
     private TextView txtClock, txtDate, txtTitle, txtMiniLyric, txtBattery, txtBatteryBig;
     private TextView txtTimeCur, txtTimeTot, txtNotifTitle, txtNotifText, txtSplitTitle, txtSplitText;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
@@ -80,34 +77,6 @@ public class IslandService extends Service {
     };
 
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
-
-    @Override public int onStartCommand(Intent i, int f, int s) {
-        startForegroundSafe();
-        return START_STICKY;
-    }
-
-    private void startForegroundSafe() {
-        try {
-            if (Build.VERSION.SDK_INT >= 26) {
-                String CH = "island_fg";
-                android.app.NotificationManager nm =
-                    (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                if (nm != null && nm.getNotificationChannel(CH) == null) {
-                    android.app.NotificationChannel c = new android.app.NotificationChannel(
-                        CH, "灵动岛", android.app.NotificationManager.IMPORTANCE_MIN);
-                    c.setShowBadge(false);
-                    nm.createNotificationChannel(c);
-                }
-                android.app.Notification n =
-                    new androidx.core.app.NotificationCompat.Builder(this, CH)
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentTitle("拾音运行中")
-                        .setPriority(androidx.core.app.NotificationCompat.PRIORITY_MIN)
-                        .setOngoing(true).build();
-                startForeground(0x9527, n);
-            }
-        } catch (Throwable ignored) {}
-    }
 
     @Override public void onCreate() {
         super.onCreate();
@@ -176,7 +145,6 @@ public class IslandService extends Service {
         collapsedBox = root.findViewById(R.id.collapsedBox);
         expandedBox = root.findViewById(R.id.expandedBox);
         notifSplit = root.findViewById(R.id.notifSplit);
-        glowLayer = root.findViewById(R.id.glowLayer);
         txtClock = root.findViewById(R.id.txtClock);
         txtDate = root.findViewById(R.id.txtDate);
         txtTitle = root.findViewById(R.id.txtTitle);
@@ -202,15 +170,6 @@ public class IslandService extends Service {
         chargePulse = root.findViewById(R.id.chargeLayer);
         breatheLayer = root.findViewById(R.id.breatheLayer);
 
-        // 图标：用 assets 里的随机图当封面
-        try {
-            Bitmap cv = RandomAssets.cover(this);
-            if (cv != null) {
-                if (ivCover != null) ivCover.setImageBitmap(cv);
-                if (ivCoverBig != null) ivCoverBig.setImageBitmap(cv);
-            }
-        } catch (Throwable ignored) {}
-
         bindClicks();
         showLife();
 
@@ -226,21 +185,26 @@ public class IslandService extends Service {
         if (collapsedBox != null) collapsedBox.setOnClickListener(v -> { if (!expanded) expand(); });
         if (expandedBox != null) expandedBox.setOnClickListener(v -> { if (expanded) collapse(); });
 
-        View.OnClickListener playClick = v -> {
+        if (btnPlay != null) btnPlay.setOnClickListener(v -> {
             press(v);
-            haptic();
             try {
                 if (PlayerActivity.player != null) {
                     if (PlayerActivity.player.isPlaying()) PlayerActivity.player.pause();
                     else PlayerActivity.player.play();
                 }
             } catch (Throwable ignored) {}
-        };
-        if (btnPlay != null) btnPlay.setOnClickListener(playClick);
-        if (btnPlayBig != null) btnPlayBig.setOnClickListener(playClick);
-
+        });
+        if (btnPlayBig != null) btnPlayBig.setOnClickListener(v -> {
+            press(v);
+            try {
+                if (PlayerActivity.player != null) {
+                    if (PlayerActivity.player.isPlaying()) PlayerActivity.player.pause();
+                    else PlayerActivity.player.play();
+                }
+            } catch (Throwable ignored) {}
+        });
         if (btnPrev != null) btnPrev.setOnClickListener(v -> {
-            press(v); haptic();
+            press(v);
             try {
                 if (PlayerActivity.player != null && PlayerActivity.currentIndex > 0) {
                     PlayerActivity.player.seekTo(PlayerActivity.currentIndex - 1, 0);
@@ -249,7 +213,7 @@ public class IslandService extends Service {
             } catch (Throwable ignored) {}
         });
         if (btnNext != null) btnNext.setOnClickListener(v -> {
-            press(v); haptic();
+            press(v);
             try {
                 if (PlayerActivity.player != null && PlayerActivity.currentIndex < PlayerActivity.queue.size() - 1) {
                     PlayerActivity.player.seekTo(PlayerActivity.currentIndex + 1, 0);
@@ -257,7 +221,7 @@ public class IslandService extends Service {
                 }
             } catch (Throwable ignored) {}
         });
-        if (btnClose != null) btnClose.setOnClickListener(v -> { haptic(); stopSelf(); });
+        if (btnClose != null) btnClose.setOnClickListener(v -> stopSelf());
 
         if (seek != null) {
             seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -271,11 +235,6 @@ public class IslandService extends Service {
                 public void onStopTrackingTouch(SeekBar sb) {}
             });
         }
-    }
-
-    private void haptic() {
-        try { root.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK); }
-        catch (Throwable ignored) {}
     }
 
     private void press(View v) {
@@ -317,11 +276,9 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
-    // ★ 展开：触感 + 内容错峰入场
     private void expand() {
         if (expanded || animating) return;
         expanded = true; animating = true;
-        haptic();
         try { if (ripple != null) ripple.startOnce(800); } catch (Throwable ignored) {}
         try {
             final int sw = lp.width;
@@ -330,17 +287,14 @@ public class IslandService extends Service {
             if (expandedBox != null) {
                 expandedBox.setVisibility(View.VISIBLE);
                 expandedBox.setAlpha(0f);
-                expandedBox.setScaleX(0.94f);
-                expandedBox.setScaleY(0.94f);
+                expandedBox.setScaleX(0.92f);
+                expandedBox.setScaleY(0.92f);
             }
             if (collapsedBox != null) collapsedBox.setVisibility(View.GONE);
             if (lifeBox != null) lifeBox.setVisibility(View.GONE);
-
-            staggerIn();
-
             ValueAnimator va = ValueAnimator.ofInt(sw, tw);
-            va.setDuration(340);
-            va.setInterpolator(new OvershootInterpolator(1.08f));
+            va.setDuration(320);
+            va.setInterpolator(new OvershootInterpolator(1.15f));
             va.addUpdateListener(a -> {
                 try { lp.width = (int) a.getAnimatedValue(); wm.updateViewLayout(root, lp); }
                 catch (Throwable ignored) {}
@@ -349,7 +303,7 @@ public class IslandService extends Service {
                 @Override public void onAnimationEnd(Animator a) {
                     if (expandedBox != null) {
                         expandedBox.animate().alpha(1f).scaleX(1f).scaleY(1f)
-                            .setDuration(260).setInterpolator(new OvershootInterpolator(1.2f))
+                            .setDuration(280).setInterpolator(new OvershootInterpolator(1.2f))
                             .withEndAction(() -> animating = false).start();
                     } else animating = false;
                 }
@@ -358,43 +312,20 @@ public class IslandService extends Service {
         } catch (Throwable t) { Log.e(TAG, "expand", t); animating = false; }
     }
 
-    // ★ 展开内容错峰入场
-    private void staggerIn() {
-        try {
-            final View[] kids = { ivCoverBig, txtTitleBig(), txtBatteryBig, seek, btnPlayBig };
-            for (int i = 0; i < kids.length; i++) {
-                View v = kids[i];
-                if (v == null) continue;
-                v.setAlpha(0f);
-                v.setTranslationY(14f);
-                v.animate().alpha(1f).translationY(0f)
-                    .setStartDelay(i * 55L)
-                    .setDuration(240)
-                    .start();
-            }
-        } catch (Throwable ignored) {}
-    }
-
-    private View txtTitleBig() {
-        try { return root.findViewById(R.id.txtTitleBig); } catch (Throwable t) { return null; }
-    }
-
-    // ★ 收起：AnticipateInterpolator 吸回 + 触感
     private void collapse() {
         if (!expanded || animating) return;
         expanded = false; animating = true;
-        haptic();
         try { if (ripple != null) ripple.startOnce(600); } catch (Throwable ignored) {}
         try {
             if (expandedBox != null) {
-                expandedBox.animate().alpha(0f).scaleX(0.94f).scaleY(0.94f)
+                expandedBox.animate().alpha(0f).scaleX(0.92f).scaleY(0.92f)
                     .setDuration(180)
                     .withEndAction(() -> {
                         final int sw = lp.width;
                         final int tw = cW();
                         ValueAnimator va = ValueAnimator.ofInt(sw, tw);
-                        va.setDuration(300);
-                        va.setInterpolator(new AnticipateInterpolator(1.3f));
+                        va.setDuration(280);
+                        va.setInterpolator(new DecelerateInterpolator(1.5f));
                         va.addUpdateListener(a -> {
                             try { lp.width = (int) a.getAnimatedValue(); wm.updateViewLayout(root, lp); }
                             catch (Throwable ignored) {}
@@ -419,7 +350,6 @@ public class IslandService extends Service {
         try { if (!notifShowing) showNotif(); } catch (Throwable ignored) {}
     }
 
-    // ★ 通知分裂：加轻微旋转
     private void showNotif() {
         if (notifShowing) return;
         notifShowing = true;
@@ -436,13 +366,9 @@ public class IslandService extends Service {
             if (notifSplit != null) {
                 notifSplit.setVisibility(View.VISIBLE);
                 notifSplit.setTranslationX(screenW);
-                notifSplit.setRotation(-3f);
                 notifSplit.setAlpha(0f);
-                notifSplit.animate()
-                    .translationX(0f).rotation(0f).alpha(1f)
-                    .setDuration(380)
-                    .setInterpolator(new OvershootInterpolator(1.15f))
-                    .start();
+                notifSplit.animate().translationX(0f).alpha(1f)
+                    .setDuration(350).setInterpolator(new OvershootInterpolator(1.1f)).start();
             }
             h.postDelayed(this::hideNotif, 5000);
         } catch (Throwable ignored) {}
@@ -451,13 +377,10 @@ public class IslandService extends Service {
     private void hideNotif() {
         try {
             if (notifSplit != null) {
-                notifSplit.animate().translationX(screenW).alpha(0f).rotation(3f)
+                notifSplit.animate().translationX(screenW).alpha(0f)
                     .setDuration(280)
                     .withEndAction(() -> {
-                        if (notifSplit != null) {
-                            notifSplit.setVisibility(View.GONE);
-                            notifSplit.setRotation(0f);
-                        }
+                        if (notifSplit != null) notifSplit.setVisibility(View.GONE);
                         notifShowing = false;
                     }).start();
             } else notifShowing = false;
@@ -477,9 +400,6 @@ public class IslandService extends Service {
                             || st == android.os.BatteryManager.BATTERY_STATUS_FULL;
                         int pct = sc > 0 ? lvl * 100 / sc : 0;
                         updateBattery(pct, chg);
-                        // ★ 充电动画接上
-                        if (chg) { if (chargePulse != null) chargePulse.start(); }
-                        else { if (chargePulse != null) chargePulse.stop(); }
                     } catch (Throwable ignored) {}
                 }
             };
@@ -505,13 +425,14 @@ public class IslandService extends Service {
 
     public void reloadConfig() {
         try {
-            lp.width = expanded ? eW() : cW();
-            lp.height = expanded ? WindowManager.LayoutParams.WRAP_CONTENT : cH();
-            wm.updateViewLayout(root, lp);
+            if (!expanded) {
+                lp.width = cW();
+                lp.height = cH();
+                wm.updateViewLayout(root, lp);
+            }
         } catch (Throwable ignored) {}
     }
 
-    // ★ update：封面用 PlayerActivity.sharedCover 复用，不额外分配
     private void update() {
         try {
             boolean nowPlaying = PlayerActivity.player != null
@@ -520,19 +441,19 @@ public class IslandService extends Service {
             if (nowPlaying != isPlaying) {
                 isPlaying = nowPlaying;
                 if (!expanded) {
-                    if (nowPlaying) showMusic(); else showLife();
+                    if (nowPlaying) showMusic();
+                    else showLife();
                 }
-                if (nowPlaying) startBreathe(); else stopBreathe();
             }
             if (!nowPlaying) return;
-
-            // 复用播放页封面（不分配新 Bitmap）
-            Bitmap shared = PlayerActivity.sharedCover;
-            if (shared != null && !shared.isRecycled()) {
-                if (ivCover != null) ivCover.setImageBitmap(shared);
-                if (ivCoverBig != null) ivCoverBig.setImageBitmap(shared);
-                startRotate();
-            } else if (ivCover != null && ivCover.getDrawable() == null) {
+            try {
+                MediaItem item = PlayerActivity.player.getCurrentMediaItem();
+                if (item != null && item.mediaMetadata != null) {
+                    CharSequence t = item.mediaMetadata.title;
+                    if (t != null && txtTitle != null) txtTitle.setText(t);
+                }
+            } catch (Throwable ignored) {}
+            if (ivCover != null && ivCover.getDrawable() == null) {
                 Bitmap bm = WallpaperHelper.generateCircleCover(200);
                 if (bm != null) {
                     ivCover.setImageBitmap(bm);
@@ -540,23 +461,6 @@ public class IslandService extends Service {
                     startRotate();
                 }
             }
-
-            try {
-                MediaItem item = PlayerActivity.player.getCurrentMediaItem();
-                if (item != null && item.mediaMetadata != null) {
-                    CharSequence t = item.mediaMetadata.title;
-                    if (t != null) {
-                        if (txtTitle != null && !t.toString().contentEquals(txtTitle.getText()))
-                            txtTitle.setText(t);
-                        View tb = txtTitleBig();
-                        if (tb instanceof TextView) {
-                            TextView tv = (TextView) tb;
-                            if (!t.toString().contentEquals(tv.getText())) tv.setText(t);
-                        }
-                    }
-                }
-            } catch (Throwable ignored) {}
-
             String lrc = PlayerActivity.currentLyric;
             if (lrc != null && !lrc.isEmpty() && txtMiniLyric != null) {
                 String[] lines = lrc.split("\n");
@@ -571,9 +475,9 @@ public class IslandService extends Service {
             }
             boolean playing = PlayerActivity.player.isPlaying();
             String sym = playing ? "⏸" : "▶";
-            if (btnPlay != null && !sym.contentEquals(btnPlay.getText())) btnPlay.setText(sym);
-            if (btnPlayBig != null && !sym.contentEquals(btnPlayBig.getText())) btnPlayBig.setText(sym);
-
+            if (btnPlay != null) btnPlay.setText(sym);
+            if (btnPlayBig != null) btnPlayBig.setText(sym);
+            if (playing) startBreathe(); else stopBreathe();
             if (expanded && seek != null) {
                 long pos = PlayerActivity.player.getCurrentPosition();
                 long dur = PlayerActivity.player.getDuration();
@@ -590,7 +494,7 @@ public class IslandService extends Service {
     private void startRotate() {
         try {
             if (ivCover == null) return;
-            if (rotate != null) return;
+            if (rotate != null) rotate.cancel();
             rotate = ObjectAnimator.ofFloat(ivCover, "rotation", 0f, 360f);
             rotate.setDuration(18000);
             rotate.setRepeatCount(ObjectAnimator.INFINITE);
@@ -599,14 +503,12 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
-    // ★ 呼吸动 glowLayer，不动 root（避免和 shine 打架）
     private void startBreathe() {
         try {
-            View target = glowLayer != null ? glowLayer : root;
-            if (target == null) return;
-            if (breathe != null) return;
-            breathe = ObjectAnimator.ofFloat(target, "alpha", 0.35f, 0.80f, 0.35f);
-            breathe.setDuration(2400);
+            if (root == null) return;
+            if (breathe != null) breathe.cancel();
+            breathe = ObjectAnimator.ofFloat(root, "alpha", 1f, 0.9f, 1f);
+            breathe.setDuration(2200);
             breathe.setRepeatCount(ObjectAnimator.INFINITE);
             breathe.start();
             if (breatheLayer != null) breatheLayer.start();
@@ -616,7 +518,6 @@ public class IslandService extends Service {
     private void stopBreathe() {
         try {
             if (breathe != null) { breathe.cancel(); breathe = null; }
-            if (glowLayer != null) glowLayer.setAlpha(0.55f);
             if (root != null) root.setAlpha(1f);
             if (breatheLayer != null) breatheLayer.stop();
         } catch (Throwable ignored) {}
@@ -626,7 +527,6 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
-        try { stopForeground(true); } catch (Throwable ignored) {}
         try { if (rotate != null) rotate.cancel(); } catch (Throwable ignored) {}
         try { if (breathe != null) breathe.cancel(); } catch (Throwable ignored) {}
         try { if (chargeRec != null) unregisterReceiver(chargeRec); } catch (Throwable ignored) {}

@@ -3,8 +3,6 @@ package com.music.app;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.music.app.adapter.SongAdapter;
 import com.music.app.model.Song;
 import com.music.app.util.MusicScanner;
-import com.music.app.util.RandomAssets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,9 +43,6 @@ public class MainActivity extends AppCompatActivity {
             tvCount = findViewById(R.id.tvCount);
             tvEmpty = findViewById(R.id.tvEmpty);
             etSearch = findViewById(R.id.etSearch);
-
-            applyRandomBg();
-
             if (rv != null) {
                 rv.setLayoutManager(new LinearLayoutManager(this));
                 adapter = new SongAdapter((song, pos) -> openPlayer(pos));
@@ -73,18 +67,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Throwable t) {
             android.util.Log.e("Music", "Main", t);
         }
-    }
-
-    /** 用 assets/icons 里随机一张作为背景 */
-    private void applyRandomBg() {
-        try {
-            Bitmap bmp = RandomAssets.bg(this);
-            if (bmp == null) return;
-            BitmapDrawable d = new BitmapDrawable(getResources(), bmp);
-            d.setAlpha(90); // 半透明，不压住内容
-            View root = findViewById(android.R.id.content);
-            if (root != null) root.setBackground(d);
-        } catch (Throwable ignored) {}
     }
 
     private void requestPermAndScan() {
@@ -148,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                if (isFinishing() || isDestroyed()) return;
                 try {
                     new android.app.AlertDialog.Builder(this)
                         .setTitle("悬浮窗权限")

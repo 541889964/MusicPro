@@ -3,15 +3,6 @@
     android:id="@+id/rootView"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <!-- ★ 景深外发光层（灵动岛灵魂） -->
-    <View android:id="@+id/glowLayer"
-        android:layout_width="match_parent" android:layout_height="match_parent"
-        android:layout_marginLeft="-14dp" android:layout_marginRight="-14dp"
-        android:layout_marginTop="-8dp" android:layout_marginBottom="-8dp"
-        android:alpha="0.55"
-        android:background="@drawable/island_glow"
-        android:importantForAccessibility="no"/>
-
     <com.music.app.widget.ParticleBreatheView
         android:id="@+id/breatheLayer"
         android:layout_width="match_parent" android:layout_height="match_parent"
@@ -36,27 +27,24 @@
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
         android:background="@drawable/bg_island_pill"
-        android:paddingLeft="16dp" android:paddingRight="16dp"
+        android:paddingLeft="14dp" android:paddingRight="14dp"
         android:gravity="center_vertical" android:visibility="gone">
 
         <TextView android:id="@+id/txtClock"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="00:00" android:textColor="#FFFFFF"
             android:textSize="18sp" android:textStyle="bold"
-            android:fontFamily="sans-serif-condensed"
-            android:letterSpacing="0.06"/>
+            android:fontFamily="monospace"/>
 
         <TextView android:id="@+id/txtDate"
             android:layout_width="0dp" android:layout_height="wrap_content"
             android:layout_weight="1" android:layout_marginLeft="10dp"
-            android:text="周一" android:textColor="#B3FFFFFF" android:textSize="10sp"
-            android:letterSpacing="0.02"/>
+            android:text="周一" android:textColor="#CCFFFFFF" android:textSize="10sp"/>
 
         <TextView android:id="@+id/txtBattery"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="100%" android:textColor="#4CD964"
-            android:textSize="11sp" android:textStyle="bold"
-            android:fontFamily="monospace"/>
+            android:textSize="11sp" android:textStyle="bold"/>
     </LinearLayout>
 
     <LinearLayout android:id="@+id/collapsedBox"
@@ -102,13 +90,13 @@
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@drawable/bg_island_expanded"
-        android:padding="14dp" android:visibility="gone">
+        android:padding="12dp" android:visibility="gone">
 
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <FrameLayout android:layout_width="46dp" android:layout_height="46dp">
+            <FrameLayout android:layout_width="44dp" android:layout_height="44dp">
                 <View android:layout_width="match_parent" android:layout_height="match_parent"
                     android:background="@drawable/bg_cover_circle"/>
                 <ImageView android:id="@+id/ivCoverBig"
@@ -119,11 +107,11 @@
 
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:layout_marginLeft="12dp">
+                android:layout_marginLeft="10dp">
                 <TextView android:id="@+id/txtTitleBig"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="未播放" android:textColor="#FFFFFF"
-                    android:textSize="14sp" android:textStyle="bold"
+                    android:textSize="13sp" android:textStyle="bold"
                     android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
 
@@ -131,41 +119,35 @@
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="100%" android:textColor="#4CD964"
                 android:textSize="10sp" android:textStyle="bold"
-                android:fontFamily="monospace"
-                android:paddingLeft="4dp" android:paddingRight="6dp"/>
+                android:paddingLeft="4dp" android:paddingRight="4dp"/>
 
             <TextView android:id="@+id/btnClose"
                 android:layout_width="30dp" android:layout_height="30dp"
                 android:text="✕" android:textSize="14sp"
-                android:textColor="#99FFFFFF" android:gravity="center"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:textColor="#88FFFFFF" android:gravity="center"
                 android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
         <SeekBar android:id="@+id/seek"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="10dp" android:maxHeight="3dp" android:minHeight="3dp"
-            android:max="1000"
-            android:progressDrawable="@drawable/bg_seek_progress"
-            android:thumb="@drawable/bg_thumb"/>
+            android:max="1000" android:progressTint="#FFFFFF"
+            android:progressBackgroundTint="#33FFFFFF" android:thumbTint="#FFFFFF"/>
 
         <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="horizontal"
-            android:layout_marginTop="2dp">
+            android:layout_height="wrap_content" android:orientation="horizontal">
             <TextView android:id="@+id/txtTimeCur"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="0:00" android:textColor="#88FFFFFF" android:textSize="9sp"
-                android:fontFamily="monospace"/>
+                android:text="0:00" android:textColor="#88FFFFFF" android:textSize="9sp"/>
             <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
             <TextView android:id="@+id/txtTimeTot"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="0:00" android:textColor="#88FFFFFF" android:textSize="9sp"
-                android:fontFamily="monospace"/>
+                android:text="0:00" android:textColor="#88FFFFFF" android:textSize="9sp"/>
         </LinearLayout>
 
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="56dp" android:orientation="horizontal"
-            android:layout_marginTop="6dp" android:gravity="center">
+            android:layout_marginTop="4dp" android:gravity="center">
 
             <TextView android:id="@+id/btnPrev"
                 android:layout_width="0dp" android:layout_height="match_parent"
@@ -176,7 +158,7 @@
             <FrameLayout android:layout_width="0dp" android:layout_height="match_parent"
                 android:layout_weight="1.2">
                 <TextView android:id="@+id/btnPlayBig"
-                    android:layout_width="52dp" android:layout_height="52dp"
+                    android:layout_width="50dp" android:layout_height="50dp"
                     android:layout_gravity="center" android:text="▶"
                     android:textSize="22sp" android:textColor="#000000"
                     android:gravity="center" android:background="@drawable/bg_play_big"
@@ -190,15 +172,12 @@
                 android:gravity="center" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
-        <!-- ★ 分隔线改为渐变 -->
-        <View android:layout_width="match_parent"
-            android:layout_height="0.6dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/divider_fade"/>
+        <View android:layout_width="match_parent" android:layout_height="0.5dp"
+            android:layout_marginTop="6dp" android:background="#22FFFFFF"/>
 
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="horizontal"
-            android:layout_marginTop="8dp" android:gravity="center_vertical">
+            android:layout_marginTop="6dp" android:gravity="center_vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="通知" android:textColor="#88FFFFFF"
                 android:textSize="10sp" android:paddingRight="8dp"/>
@@ -222,7 +201,7 @@
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal" android:gravity="center_vertical"
         android:background="@drawable/bg_island_expanded"
-        android:paddingLeft="14dp" android:paddingRight="14dp"
+        android:paddingLeft="12dp" android:paddingRight="12dp"
         android:visibility="gone">
 
         <TextView android:id="@+id/txtSplitTitle"
