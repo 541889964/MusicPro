@@ -19,9 +19,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.OvershootInterpolator;
+import android.view.animation.PathInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -39,18 +38,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IslandService extends Service {
-    // ★ iPhone 曲线：cubic-bezier(0.25, 0.1, 0.25, 1.0) = iOS 标准弹簧
-    private final android.view.animation.PathInterpolator iosSpring =
-        new android.view.animation.PathInterpolator(0.25f, 0.1f, 0.25f, 1.0f);
-    // ★ iPhone ease-out：cubic-bezier(0.0, 0.0, 0.2, 1.0)
-    private final android.view.animation.PathInterpolator iosEaseOut =
-        new android.view.animation.PathInterpolator(0.0f, 0.0f, 0.2f, 1.0f);
 
     private WindowManager wm;
     private View island;
     private WindowManager.LayoutParams lp;
     private ExoPlayer player;
-    private TextView tvTitle, tvArtist, tvExpTitle, tvExpArtist, tvLyric, tvCurrent, tvTotal;
+    private TextView tvTitle, tvExpTitle, tvExpArtist, tvCurrent, tvTotal;
+    private TextView tvLyric1, tvLyric2, tvLyric3;
     private ImageView ivCover, ivExpCover;
     private ImageButton btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
     private SeekBar progress;
@@ -64,6 +58,9 @@ public class IslandService extends Service {
     private final Handler h = new Handler(Looper.getMainLooper());
     private Vibrator vib;
 
+    // 老设备优化
+    private boolean lowEnd = false;
+
     private long lastSongId = -1;
     private String lastTitle = "";
     private String lastArtist = "";
@@ -74,14 +71,21 @@ public class IslandService extends Service {
     public static IslandService instance;
     public static List<Song> queue;
 
+    private final PathInterpolator iosSpring =
+        new PathInterpolator(0.25f, 0.1f, 0.25f, 1.0f);
+    private final PathInterpolator iosEaseOut =
+        new PathInterpolator(0.0f, 0.0f, 0.2f, 1.0f);
+
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
 
     @Override public void onCreate() {
         super.onCreate();
         instance = this;
         vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        lowEnd = Build.VERSION.SDK_INT < 26; // Android 8.1 及以下视为低端
         measure();
         player = MusicService.sharedPlayer;
+        if (queue == null) queue = MusicService.sharedQueue;
         initView();
         h.post(tick);
     }
@@ -111,17 +115,21 @@ public class IslandService extends Service {
             getW(), getH(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         lp.y = statusBarH + (int)(8 * density);
         wm.addView(island, lp);
 
+        // ★ 老设备不开硬件加速层，避免闪烁
+        if (!lowEnd) island.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
         tvTitle = island.findViewById(R.id.islandTitle);
         tvExpTitle = island.findViewById(R.id.islandExpTitle);
         tvExpArtist = island.findViewById(R.id.islandExpArtist);
-        tvLyric = island.findViewById(R.id.islandLyric);
+        tvLyric1 = island.findViewById(R.id.islandLyric1);
+        tvLyric2 = island.findViewById(R.id.islandLyric2);
+        tvLyric3 = island.findViewById(R.id.islandLyric3);
         tvCurrent = island.findViewById(R.id.islandCurrent);
         tvTotal = island.findViewById(R.id.islandTotal);
         ivCover = island.findViewById(R.id.islandCover);
@@ -135,37 +143,20 @@ public class IslandService extends Service {
         collapsedRoot = island.findViewById(R.id.islandCollapsed);
         expandedRoot = island.findViewById(R.id.islandExpanded);
 
-        bindClick(btnPlay, new View.OnClickListener() {
-            @Override public void onClick(View v) { togglePlay(); }
-        });
-        bindClick(btnPlayExp, new View.OnClickListener() {
-            @Override public void onClick(View v) { togglePlay(); }
-        });
-        bindClick(btnPrev, new View.OnClickListener() {
-            @Override public void onClick(View v) { prevSong(); }
-        });
-        bindClick(btnNext, new View.OnClickListener() {
-            @Override public void onClick(View v) { nextSong(); }
-        });
-        bindClick(btnClose, new View.OnClickListener() {
-            @Override public void onClick(View v) { stopSelf(); }
-        });
+        bindClick(btnPlay, new Runnable() { @Override public void run() { togglePlay(); } });
+        bindClick(btnPlayExp, new Runnable() { @Override public void run() { togglePlay(); } });
+        bindClick(btnPrev, new Runnable() { @Override public void run() { prevSong(); } });
+        bindClick(btnNext, new Runnable() { @Override public void run() { nextSong(); } });
+        bindClick(btnClose, new Runnable() { @Override public void run() { stopSelf(); } });
 
-        // 折叠态点击 → 展开
         if (collapsedRoot != null) {
             collapsedRoot.setClickable(true);
-            collapsedRoot.setFocusable(true);
             collapsedRoot.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    // 判断点击的是不是按钮（按钮会自己处理）
-                    if (!expanded) expand();
-                }
+                @Override public void onClick(View v) { if (!expanded) expand(); }
             });
         }
-        // 展开态点击空白 → 收起
         if (expandedRoot != null) {
             expandedRoot.setClickable(true);
-            expandedRoot.setFocusable(true);
             expandedRoot.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) { if (expanded) collapse(); }
             });
@@ -185,61 +176,107 @@ public class IslandService extends Service {
         }
 
         island.setAlpha(0f);
-        island.setScaleX(0.4f);
-        island.setScaleY(0.4f);
+        island.setScaleX(0.7f);
+        island.setScaleY(0.7f);
         island.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(600).setInterpolator(iosSpring).start();
+            .setDuration(lowEnd ? 250 : 450).setInterpolator(iosSpring).start();
     }
 
-    private void bindClick(View v, final View.OnClickListener l) {
+    private void bindClick(View v, final Runnable action) {
         if (v == null) return;
         v.setClickable(true);
-        v.setFocusable(true);
         v.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
+            @Override public void onClick(final View view) {
                 if (vib != null) { try { vib.vibrate(12); } catch (Throwable ignored) {} }
-                view.animate().scaleX(0.88f).scaleY(0.88f).setDuration(90)
+                view.animate().scaleX(0.88f).scaleY(0.88f).setDuration(60)
                     .setInterpolator(iosEaseOut).start();
                 view.postDelayed(new Runnable() {
                     @Override public void run() {
-                        view.animate().scaleX(1f).scaleY(1f).setDuration(280)
+                        view.animate().scaleX(1f).scaleY(1f).setDuration(150)
                             .setInterpolator(iosSpring).start();
                     }
-                }, 70);
-                l.onClick(view);
+                }, 60);
+                action.run();
             }
         });
     }
 
+    private void ensurePlayer() {
+        if (player == null || player != MusicService.sharedPlayer) {
+            player = MusicService.sharedPlayer;
+        }
+        if (player == null) {
+            try {
+                Intent svc = new Intent(this, MusicService.class);
+                startService(svc);
+            } catch (Throwable ignored) {}
+            player = MusicService.sharedPlayer;
+        }
+        if (queue == null) queue = MusicService.sharedQueue;
+    }
+
     private void togglePlay() {
-        if (player == null) player = MusicService.sharedPlayer;
+        ensurePlayer();
         if (player == null) return;
+        // 如果队列为空，尝试从 queue 恢复
+        if (player.getMediaItemCount() == 0 && queue != null && !queue.isEmpty()) {
+            rebuildQueue();
+        }
         if (player.isPlaying()) player.pause(); else player.play();
     }
 
     private void prevSong() {
-        if (player == null) player = MusicService.sharedPlayer;
+        ensurePlayer();
         if (player == null) return;
-        int idx = player.getCurrentMediaItemIndex();
-        if (idx > 0) {
-            player.seekTo(idx - 1, 0);
-        } else {
-            player.seekTo(0, 0);
+        if (player.getMediaItemCount() == 0 && queue != null && !queue.isEmpty()) {
+            rebuildQueue();
+            return;
         }
+        int idx = player.getCurrentMediaItemIndex();
+        if (idx > 0) player.seekTo(idx - 1, 0);
+        else player.seekTo(0, 0);
         player.play();
     }
 
     private void nextSong() {
-        if (player == null) player = MusicService.sharedPlayer;
+        ensurePlayer();
         if (player == null) return;
+        if (player.getMediaItemCount() == 0 && queue != null && !queue.isEmpty()) {
+            rebuildQueue();
+            return;
+        }
         int total = player.getMediaItemCount();
         int idx = player.getCurrentMediaItemIndex();
-        if (idx < total - 1) {
-            player.seekTo(idx + 1, 0);
-        } else {
-            player.seekTo(0, 0);
-        }
+        if (idx < total - 1) player.seekTo(idx + 1, 0);
+        else player.seekTo(0, 0);
         player.play();
+    }
+
+    private void rebuildQueue() {
+        if (player == null || queue == null || queue.isEmpty()) return;
+        try {
+            List<MediaItem> items = new ArrayList<MediaItem>();
+            for (int i = 0; i < queue.size(); i++) {
+                Song sg = queue.get(i);
+                String uri;
+                if (sg.isOnline) {
+                    uri = sg.onlineUrl;
+                    if (uri == null || uri.isEmpty())
+                        uri = "https://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
+                } else {
+                    uri = "file://" + sg.path;
+                }
+                items.add(new MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaMetadata(new MediaMetadata.Builder()
+                        .setTitle(sg.title).setArtist(sg.artist).build())
+                    .build());
+            }
+            int idx = MusicService.sharedIndex;
+            player.setMediaItems(items, idx, 0);
+            player.prepare();
+            player.play();
+        } catch (Throwable ignored) {}
     }
 
     private int getW() {
@@ -262,7 +299,14 @@ public class IslandService extends Service {
         try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
     }
 
-    /** ★ iPhone 弹性展开 */
+    /** 老设备用普通 DecelerateInterpolator，新设备用 iOS 曲线 */
+    private android.view.animation.Interpolator pickIn() {
+        return lowEnd ? new DecelerateInterpolator(1.2f) : iosSpring;
+    }
+    private android.view.animation.Interpolator pickOut() {
+        return lowEnd ? new DecelerateInterpolator(1.2f) : iosEaseOut;
+    }
+
     private void expand() {
         if (expanded || animating) return;
         expanded = true;
@@ -270,19 +314,18 @@ public class IslandService extends Service {
 
         final int startW = lp.width, startH = lp.height;
         final int targetW = (int)(screenW * 0.88f);
-        final int targetH = (int)(205 * density);
+        final int targetH = (int)(210 * density);
 
-        // 展开内容准备好
         expandedRoot.setVisibility(View.VISIBLE);
         expandedRoot.setAlpha(0f);
 
-        // 宽高同时弹簧展开
+        // 老设备动画时长减半
+        int dur = lowEnd ? 260 : 500;
+
         ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
         ValueAnimator ha = ValueAnimator.ofInt(startH, targetH);
-        wa.setDuration(650);
-        ha.setDuration(650);
-        wa.setInterpolator(iosSpring);
-        ha.setInterpolator(iosSpring);
+        wa.setDuration(dur); ha.setDuration(dur);
+        wa.setInterpolator(pickIn()); ha.setInterpolator(pickIn());
 
         wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator a) {
@@ -296,41 +339,35 @@ public class IslandService extends Service {
                 try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
             }
         });
-
         ha.addListener(new AnimatorListenerAdapter() {
             @Override public void onAnimationStart(Animator a) {
                 collapsedRoot.setVisibility(View.GONE);
             }
             @Override public void onAnimationEnd(Animator a) {
                 animating = false;
-                // 内容淡入（iOS 曲线）
                 expandedRoot.setAlpha(0f);
-                expandedRoot.animate().alpha(1f).setDuration(280)
-                    .setInterpolator(iosEaseOut).start();
+                expandedRoot.animate().alpha(1f).setDuration(180)
+                    .setInterpolator(pickOut()).start();
             }
         });
         wa.start(); ha.start();
     }
 
-    /** ★ iPhone 弹性收起 */
     private void collapse() {
         if (!expanded || animating) return;
         expanded = false;
         animating = true;
 
-        // 内容先淡出
-        expandedRoot.animate().alpha(0f).setDuration(200).start();
+        expandedRoot.animate().alpha(0f).setDuration(140).start();
 
         final int startW = lp.width, startH = lp.height;
         final int targetW = getW(), targetH = getH();
+        int dur = lowEnd ? 220 : 400;
 
         ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
         ValueAnimator ha = ValueAnimator.ofInt(startH, targetH);
-        wa.setDuration(500);
-        ha.setDuration(500);
-        wa.setInterpolator(iosEaseOut);
-        ha.setInterpolator(iosEaseOut);
-
+        wa.setDuration(dur); ha.setDuration(dur);
+        wa.setInterpolator(pickOut()); ha.setInterpolator(pickOut());
         wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator a) {
                 lp.width = (int) a.getAnimatedValue();
@@ -343,14 +380,13 @@ public class IslandService extends Service {
                 try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
             }
         });
-
         ha.addListener(new AnimatorListenerAdapter() {
             @Override public void onAnimationEnd(Animator a) {
                 expandedRoot.setVisibility(View.GONE);
                 collapsedRoot.setVisibility(View.VISIBLE);
                 collapsedRoot.setAlpha(0f);
-                collapsedRoot.animate().alpha(1f).setDuration(280)
-                    .setInterpolator(iosEaseOut).start();
+                collapsedRoot.animate().alpha(1f).setDuration(180)
+                    .setInterpolator(pickOut()).start();
                 animating = false;
             }
         });
@@ -360,12 +396,12 @@ public class IslandService extends Service {
     private final Runnable tick = new Runnable() {
         @Override public void run() {
             update();
-            h.postDelayed(this, 500);
+            h.postDelayed(this, lowEnd ? 900 : 500);
         }
     };
 
     private void update() {
-        if (player == null) player = MusicService.sharedPlayer;
+        ensurePlayer();
         if (player == null) return;
         try {
             MediaItem item = player.getCurrentMediaItem();
@@ -377,12 +413,11 @@ public class IslandService extends Service {
                 if (md.title != null) title = md.title.toString();
                 if (md.artist != null) artist = md.artist.toString();
             }
-            // 拿到 id 用于匹配素材
             int idx = player.getCurrentMediaItemIndex();
+            MusicService.sharedIndex = idx;
             if (queue != null && idx >= 0 && idx < queue.size()) {
                 songId = queue.get(idx).id;
             }
-
             if (!title.equals(lastTitle)) {
                 if (tvTitle != null) tvTitle.setText(title);
                 if (tvExpTitle != null) tvExpTitle.setText(title);
@@ -392,7 +427,6 @@ public class IslandService extends Service {
                 if (tvExpArtist != null) tvExpArtist.setText(artist);
                 lastArtist = artist;
             }
-
             if (songId != lastSongId) {
                 lastSongId = songId;
                 String name = WallpaperHelper.forSong(this, songId);
@@ -401,30 +435,26 @@ public class IslandService extends Service {
                     if (ivCover != null) ivCover.setImageBitmap(bm);
                     if (ivExpCover != null) ivExpCover.setImageBitmap(bm);
                 }
-                // 切歌时也重新解析歌词
                 lyricLines = new ArrayList<LyricsParser.Line>();
                 lastLyric = "";
             }
 
-            // 歌词：从 queue 里取缓存的 lyric
+            // 三行歌词
             if (queue != null && idx >= 0 && idx < queue.size()) {
                 String lrc = queue.get(idx).lyric;
                 if (lrc != null && !lrc.equals(lastLyric)) {
                     lastLyric = lrc;
                     lyricLines = LyricsParser.parse(lrc);
                 }
-                // 更新当前歌词行
-                if (tvLyric != null && !lyricLines.isEmpty()) {
+                if (!lyricLines.isEmpty()) {
                     long pos = player.getCurrentPosition();
                     int li = LyricsParser.findIndex(lyricLines, pos);
-                    if (li >= 0 && li < lyricLines.size()) {
-                        String txt = lyricLines.get(li).text;
-                        if (!txt.equals(tvLyric.getText().toString())) {
-                            tvLyric.setText(txt);
-                        }
-                    }
-                } else if (tvLyric != null) {
-                    tvLyric.setText("");
+                    String prev = li > 0 ? lyricLines.get(li-1).text : "";
+                    String cur = (li >= 0 && li < lyricLines.size()) ? lyricLines.get(li).text : "";
+                    String next = (li+1 < lyricLines.size()) ? lyricLines.get(li+1).text : "";
+                    if (tvLyric1 != null && !prev.equals(tvLyric1.getText().toString())) tvLyric1.setText(prev);
+                    if (tvLyric2 != null && !cur.equals(tvLyric2.getText().toString())) tvLyric2.setText(cur);
+                    if (tvLyric3 != null && !next.equals(tvLyric3.getText().toString())) tvLyric3.setText(next);
                 }
             }
 
@@ -437,7 +467,6 @@ public class IslandService extends Service {
                 if (btnPlay != null) btnPlay.setImageResource(icon);
                 if (btnPlayExp != null) btnPlayExp.setImageResource(icon);
             }
-
             if (expanded && !dragging && progress != null) {
                 long pos = player.getCurrentPosition();
                 long dur = player.getDuration();
