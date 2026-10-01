@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginLeft="12dp" android:layout_marginRight="12dp"
+    android:layout_marginTop="4dp" android:layout_marginBottom="4dp"
+    android:paddingLeft="14dp" android:paddingRight="14dp"
+    android:paddingTop="14dp" android:paddingBottom="14dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_liquid_glass_item">
+
+    <View android:layout_width="4dp" android:layout_height="42dp"
+        android:background="@drawable/bg_accent_bar"/>
+
+    <LinearLayout
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical"
+        android:layout_marginLeft="14dp">
+
+        <TextView android:id="@+id/tvTitle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="歌曲名" android:textColor="#FFFFFF"
+            android:textSize="15sp" android:textStyle="bold"
+            android:singleLine="true" android:ellipsize="end"/>
+
+        <TextView android:id="@+id/tvSub"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="3dp" android:text="歌手 · 专辑"
+            android:textColor="#D6CCF5" android:textSize="12sp"
+            android:singleLine="true" android:ellipsize="end"/>
+    </LinearLayout>
+
+    <TextView android:id="@+id/tvDur"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="0:00" android:textColor="#D6CCF5"
+        android:textSize="12sp" android:layout_marginLeft="10dp"/>
+</LinearLayout>

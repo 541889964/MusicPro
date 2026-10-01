@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView android:id="@+id/ivWallpaper"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#AA0D0B1F"/>
+
+    <View android:layout_width="match_parent" android:layout_height="240dp"
+        android:background="@drawable/top_gradient"/>
+
+    <com.music.app.widget.FloatingHeartsView
+        android:id="@+id/hearts"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:clickable="false" android:focusable="false"/>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent" android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBar"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <ImageView android:id="@+id/ivAppLogo"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:src="@mipmap/ic_launcher"
+                    android:clickable="true" android:focusable="true"/>
+
+                <LinearLayout
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:layout_marginLeft="12dp">
+
+                    <TextView android:id="@+id/tvGreeting"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="早上好呀 ☀️" android:textColor="#FFFFFF"
+                        android:textSize="16sp" android:textStyle="bold"/>
+
+                    <TextView android:id="@+id/tvGreetingSub"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="MUSIC·Pro 陪你听歌" android:textColor="#D6CCF5"
+                        android:textSize="11sp" android:layout_marginTop="2dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/greetingCard"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
+                android:layout_marginBottom="10dp" android:padding="14dp"
+                android:background="@drawable/bg_liquid_glass_card">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="♡ 今日寄语" android:textColor="#FFB6D0"
+                    android:textSize="11sp" android:letterSpacing="0.15"/>
+
+                <TextView android:id="@+id/tvDailyQuote"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="愿你被这世界温柔以待"
+                    android:textColor="#FFFFFF" android:textSize="14sp"
+                    android:lineSpacingExtra="3dp"/>
+            </LinearLayout>
+
+            <EditText android:id="@+id/etSearch"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_liquid_glass_search"
+                android:hint="搜索歌曲、歌手或专辑"
+                android:textColorHint="#99FFFFFF" android:textColor="#FFFFFF"
+                android:textSize="14sp" android:paddingLeft="20dp" android:paddingRight="16dp"
+                android:singleLine="true" android:imeOptions="actionSearch"
+                android:inputType="text"/>
+
+            <TextView android:id="@+id/tvCount"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginTop="4dp"
+                android:text="共 0 首" android:textColor="#D6CCF5" android:textSize="12sp"/>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSongs"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:paddingTop="6dp" android:paddingBottom="96dp"
+                android:clipToPadding="false" android:scrollbars="none"/>
+
+            <TextView android:id="@+id/tvEmpty"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:gravity="center" android:text="正在扫描本地音乐…"
+                android:textColor="#D6CCF5" android:textSize="14sp"
+                android:paddingLeft="40dp" android:paddingRight="40dp"
+                android:lineSpacingExtra="8dp"/>
+        </FrameLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end" android:layout_margin="20dp"
+            android:src="@android:drawable/ic_media_play"
+            app:backgroundTint="#FF6B9D" app:elevation="8dp"/>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>
