@@ -11,28 +11,43 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
         with:
           packages: 'platforms;android-34 build-tools;34.0.0'
-      - run: gradle assembleRelease --no-daemon --stacktrace
-      - run: |
+
+      - name: Setup Gradle 8.4 (与 AGP 8.1.4 兼容)
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.4
+
+      - name: Build with Gradle 8.4
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare APK
+        run: |
           mkdir -p out
           cp app/build/outputs/apk/release/app-release.apk out/MUSIC-Pro.apk 2>/dev/null || \
           cp app/build/outputs/apk/release/*.apk out/MUSIC-Pro.apk
           ls -lh out/
+
       - uses: actions/upload-artifact@v4
         with:
           name: MUSIC-Pro
           path: out/MUSIC-Pro.apk
+
       - uses: softprops/action-gh-release@v2
         if: always()
         with:
           tag_name: v10.0.${{ github.run_number }}
-          name: MUSIC-Pro v10.0.${{ github.run_number }}
+          name: MusicPro v10.0.${{ github.run_number }}
           files: out/MUSIC-Pro.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
