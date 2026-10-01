@@ -245,8 +245,22 @@ public class IslandService extends Service {
         return (int)(screenW * w / 100f);
     }
     private int eH() {
+        // ★ 优先用内容测量高度
+        try {
+            root.measure(
+                android.view.View.MeasureSpec.makeMeasureSpec(
+                    (int)(screenW * cfg.expandedW / 100f),
+                    android.view.View.MeasureSpec.EXACTLY),
+                android.view.View.MeasureSpec.makeMeasureSpec(
+                    0, android.view.View.MeasureSpec.UNSPECIFIED));
+            int measuredH = expandedBox.getMeasuredHeight();
+            if (measuredH > 0) {
+                int maxH = (int)(screenH * 0.85f);
+                return Math.min(measuredH, maxH);
+            }
+        } catch (Throwable ignored) {}
         int h = cfg.expandedH;
-        if (h < 100) h = 100; if (h > 800) h = 800;
+        if (h < 200) h = 200; if (h > 900) h = 900;
         return (int)(h * density);
     }
 
@@ -437,29 +451,37 @@ public class IslandService extends Service {
         expanded = true;
         animating = true;
 
-        // 1. 立即改窗口尺寸（只调一次）
-        lp.width = eW();
-        lp.height = eH();
-        try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
-
-        // 2. 内容从 0.85 缩放到 1
+        // 1. 先显示展开内容
         expandedBox.setVisibility(View.VISIBLE);
         expandedBox.setAlpha(0f);
         expandedBox.setScaleX(0.85f);
         expandedBox.setScaleY(0.85f);
         collapsedBox.setVisibility(View.GONE);
 
-        expandedBox.animate()
-            .alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(320)
-            .setInterpolator(new OvershootInterpolator(1.2f))
-            .withEndAction(new Runnable() {
-                @Override public void run() {
-                    animating = false;
-                    update();
-                }
-            }).start();
+        // 2. 等一帧让内容布局完成，再测量高度
+        root.post(new Runnable() {
+            @Override public void run() {
+                // 更新窗口尺寸（自动测量高度）
+                lp.width = eW();
+                lp.height = eH();
+                try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
+
+                // 3. 内容淡入
+                expandedBox.animate()
+                    .alpha(1f).scaleX(1f).scaleY(1f)
+                    .setDuration(300)
+                    .setInterpolator(new OvershootInterpolator(1.2f))
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            animating = false;
+                            update();
+                        }
+                    }).start();
+            }
+        });
     }
+
+        }
 
     /** ★ 流畅收起 */
     private void collapse() {
