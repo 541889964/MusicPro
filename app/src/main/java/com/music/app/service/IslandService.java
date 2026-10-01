@@ -44,7 +44,7 @@ public class IslandService extends Service {
     private TextView tvTitle, tvExpTitle, tvExpArtist, tvCurrent, tvTotal;
     private TextView tvLyric1, tvLyric2, tvLyric3;
     private ImageView ivCover, ivExpCover;
-    private ImageButton btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
+    private View btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
     private SeekBar progress;
     private View collapsedRoot, expandedRoot;
     private boolean expanded = false, dragging = false, animating = false;
@@ -106,6 +106,7 @@ public class IslandService extends Service {
         wm.addView(island, lp);
 
         tvTitle = island.findViewById(R.id.islandTitle);
+        android.widget.TextView tvSub = island.findViewById(R.id.islandSub);
         tvExpTitle = island.findViewById(R.id.islandExpTitle);
         tvExpArtist = island.findViewById(R.id.islandExpArtist);
         tvLyric1 = island.findViewById(R.id.islandLyric1);
@@ -328,9 +329,11 @@ public class IslandService extends Service {
             boolean playing = MusicService.isPlaying();
             if (playing != lastPlaying) {
                 lastPlaying = playing;
-                int icon = playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
-                if (btnPlay != null) btnPlay.setImageResource(icon);
-                if (btnPlayExp != null) btnPlayExp.setImageResource(icon);
+                String sym = playing ? "⏸" : "▶";
+                if (btnPlay instanceof android.widget.TextView)
+                    ((android.widget.TextView) btnPlay).setText(sym);
+                if (btnPlayExp instanceof android.widget.TextView)
+                    ((android.widget.TextView) btnPlayExp).setText(sym);
             }
             if (expanded && !dragging && progress != null) {
                 long pos = MusicService.getPos(), dur = MusicService.getDur();
