@@ -30,7 +30,6 @@ import com.music.app.R;
 import com.music.app.model.Song;
 import com.music.app.util.IslandConfig;
 import com.music.app.util.LyricsParser;
-import com.music.app.util.NeteaseApi;
 import com.music.app.util.WallpaperHelper;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class IslandService extends Service {
 
     private View collapsedBox, expandedBox;
     private ImageView imgCover, imgCoverBig;
-    private TextView txtTitle, txtTitleBig, txtArtistBig;
+    private TextView txtTitle, txtTitleBig, txtArtistBig, txtMiniLyric;
     private TextView[] lyricViews = new TextView[5];
     private TextView txtTimeCur, txtTimeTot;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
@@ -65,7 +64,7 @@ public class IslandService extends Service {
     private final Runnable tick = new Runnable() {
         @Override public void run() {
             try { update(); } catch (Throwable t) { Log.e(TAG, "tick", t); }
-            h.postDelayed(this, expanded ? 300 : 800);
+            h.postDelayed(this, 300);
         }
     };
 
@@ -106,7 +105,7 @@ public class IslandService extends Service {
     }
     private int cH() {
         int h = cfg.collapsedH;
-        if (h < 30) h = 30; if (h > 90) h = 90;
+        if (h < 40) h = 40; if (h > 90) h = 90;
         return (int)(h * density);
     }
     private int eW() {
@@ -116,7 +115,7 @@ public class IslandService extends Service {
     }
     private int eH() {
         int h = cfg.expandedH;
-        if (h < 260) h = 260; if (h > 450) h = 450;
+        if (h < 280) h = 280; if (h > 450) h = 450;
         return (int)(h * density);
     }
 
@@ -146,6 +145,7 @@ public class IslandService extends Service {
         txtTitle = root.findViewById(R.id.txtTitle);
         txtTitleBig = root.findViewById(R.id.txtTitleBig);
         txtArtistBig = root.findViewById(R.id.txtArtistBig);
+        txtMiniLyric = root.findViewById(R.id.txtMiniLyric);
         lyricViews[0] = root.findViewById(R.id.lyric1);
         lyricViews[1] = root.findViewById(R.id.lyric2);
         lyricViews[2] = root.findViewById(R.id.lyric3);
@@ -169,7 +169,7 @@ public class IslandService extends Service {
             @Override public void onClick(View v) { if (expanded) collapse(); }
         });
 
-        // ★ 播放/暂停
+        // 播放/暂停
         View.OnClickListener playClick = new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
@@ -182,24 +182,20 @@ public class IslandService extends Service {
         if (btnPlay != null) btnPlay.setOnClickListener(playClick);
         if (btnPlayBig != null) btnPlayBig.setOnClickListener(playClick);
 
-        // ★ 上一首（直接调 player）
+        // 上一首
         if (btnPrev != null) btnPrev.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
                     ExoPlayer p = MusicService.getPlayer();
                     if (p == null) return;
                     int idx = p.getCurrentMediaItemIndex();
-                    if (idx > 0) {
-                        p.seekTo(idx - 1, 0);
-                    } else {
-                        p.seekTo(0, 0);
-                    }
+                    p.seekTo(idx > 0 ? idx - 1 : 0, 0);
                     p.play();
-                } catch (Throwable t) { Log.e(TAG, "prev", t); }
+                } catch (Throwable ignored) {}
             }
         });
 
-        // ★ 下一首（直接调 player）
+        // 下一首
         if (btnNext != null) btnNext.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
@@ -208,22 +204,16 @@ public class IslandService extends Service {
                     int total = p.getMediaItemCount();
                     int idx = p.getCurrentMediaItemIndex();
                     if (total <= 1) { p.seekTo(0, 0); p.play(); return; }
-                    if (idx < total - 1) {
-                        p.seekTo(idx + 1, 0);
-                    } else {
-                        p.seekTo(0, 0);
-                    }
+                    p.seekTo(idx < total - 1 ? idx + 1 : 0, 0);
                     p.play();
-                } catch (Throwable t) { Log.e(TAG, "next", t); }
+                } catch (Throwable ignored) {}
             }
         });
 
-        // 关闭
         if (btnClose != null) btnClose.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { stopSelf(); }
         });
 
-        // 进度
         if (seek != null) {
             seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override public void onProgressChanged(SeekBar sb, int p, boolean u) {
@@ -370,31 +360,39 @@ public class IslandService extends Service {
                 lastLyric = "";
             }
 
-            // 歌词
-            if (expanded && curSong != null) {
+            // ★ 歌词：直接读 song.lyric，不联网
+            if (curSong != null) {
                 String lrc = curSong.lyric;
-                if (lrc == null || lrc.isEmpty()) {
-                    // ★ 没歌词 → 联网搜（只搜一次）
-                    if (lastLyric == null || lastLyric.isEmpty()) {
-                        fetchLyric(curSong);
-                        lastLyric = "loading";
+                if (lrc != null && !lrc.isEmpty()) {
+                    if (!lrc.equals(lastLyric)) {
+                        lastLyric = lrc;
+                        lyricLines = LyricsParser.parse(lrc);
                     }
-                } else if (!lrc.equals(lastLyric)) {
-                    lastLyric = lrc;
-                    lyricLines = LyricsParser.parse(lrc);
-                }
+                    if (!lyricLines.isEmpty()) {
+                        long pos = p.getCurrentPosition();
+                        int li = LyricsParser.findIndex(lyricLines, pos);
 
-                if (!lyricLines.isEmpty()) {
-                    long pos = p.getCurrentPosition();
-                    int li = LyricsParser.findIndex(lyricLines, pos);
-                    for (int i = -2; i <= 2; i++) {
-                        int ii = li + i;
-                        String txt = (ii >= 0 && ii < lyricLines.size())
-                            ? lyricLines.get(ii).text : "";
-                        TextView tv = lyricViews[i + 2];
-                        if (tv != null && !txt.equals(tv.getText().toString()))
-                            tv.setText(txt);
+                        // 折叠态：只显示当前行
+                        if (txtMiniLyric != null && li >= 0 && li < lyricLines.size()) {
+                            String cur = lyricLines.get(li).text;
+                            if (!cur.equals(txtMiniLyric.getText().toString()))
+                                txtMiniLyric.setText(cur);
+                        }
+
+                        // 展开态：5 行
+                        if (expanded) {
+                            for (int i = -2; i <= 2; i++) {
+                                int ii = li + i;
+                                String txt = (ii >= 0 && ii < lyricLines.size())
+                                    ? lyricLines.get(ii).text : "";
+                                TextView tv = lyricViews[i + 2];
+                                if (tv != null && !txt.equals(tv.getText().toString()))
+                                    tv.setText(txt);
+                            }
+                        }
                     }
+                } else {
+                    if (txtMiniLyric != null) txtMiniLyric.setText("");
                 }
             }
 
@@ -407,7 +405,7 @@ public class IslandService extends Service {
                 if (btnPlayBig != null) btnPlayBig.setText(sym);
             }
 
-            // 进度
+            // 进度（仅展开态）
             if (expanded && !dragging && seek != null) {
                 long pos = p.getCurrentPosition();
                 long dur = p.getDuration();
@@ -419,38 +417,6 @@ public class IslandService extends Service {
                 }
             }
         } catch (Throwable t) { Log.e(TAG, "update", t); }
-    }
-
-    /** 联网搜歌词 */
-    private void fetchLyric(final Song song) {
-        try {
-            String kw = song.title;
-            if (song.artist != null && !song.artist.isEmpty()
-                && !song.artist.equals("未知歌手")
-                && !song.artist.equals("本地音乐")) {
-                kw = song.title + " " + song.artist;
-            }
-            NeteaseApi.search(kw, new NeteaseApi.OnSearch() {
-                @Override public void onResult(List<Song> list) {
-                    if (list == null || list.isEmpty()) {
-                        lastLyric = "";
-                        return;
-                    }
-                    final long sid = list.get(0).id;
-                    NeteaseApi.getLyrics(sid, new NeteaseApi.OnLyrics() {
-                        @Override public void onResult(String lrc) {
-                            if (lrc != null && !lrc.isEmpty()) {
-                                song.lyric = lrc;
-                                lastLyric = lrc;
-                                lyricLines = LyricsParser.parse(lrc);
-                            } else {
-                                lastLyric = "";
-                            }
-                        }
-                    });
-                }
-            });
-        } catch (Throwable ignored) {}
     }
 
     private String fmt(int ms) {
