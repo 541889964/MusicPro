@@ -39,6 +39,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IslandService extends Service {
+    // ★ iPhone 曲线：cubic-bezier(0.25, 0.1, 0.25, 1.0) = iOS 标准弹簧
+    private final android.view.animation.PathInterpolator iosSpring =
+        new android.view.animation.PathInterpolator(0.25f, 0.1f, 0.25f, 1.0f);
+    // ★ iPhone ease-out：cubic-bezier(0.0, 0.0, 0.2, 1.0)
+    private final android.view.animation.PathInterpolator iosEaseOut =
+        new android.view.animation.PathInterpolator(0.0f, 0.0f, 0.2f, 1.0f);
 
     private WindowManager wm;
     private View island;
@@ -182,7 +188,7 @@ public class IslandService extends Service {
         island.setScaleX(0.4f);
         island.setScaleY(0.4f);
         island.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(500).setInterpolator(new OvershootInterpolator(1.4f)).start();
+            .setDuration(600).setInterpolator(iosSpring).start();
     }
 
     private void bindClick(View v, final View.OnClickListener l) {
@@ -192,11 +198,12 @@ public class IslandService extends Service {
         v.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 if (vib != null) { try { vib.vibrate(12); } catch (Throwable ignored) {} }
-                view.animate().scaleX(0.88f).scaleY(0.88f).setDuration(70).start();
+                view.animate().scaleX(0.88f).scaleY(0.88f).setDuration(90)
+                    .setInterpolator(iosEaseOut).start();
                 view.postDelayed(new Runnable() {
                     @Override public void run() {
-                        view.animate().scaleX(1f).scaleY(1f).setDuration(200)
-                            .setInterpolator(new OvershootInterpolator(2.5f)).start();
+                        view.animate().scaleX(1f).scaleY(1f).setDuration(280)
+                            .setInterpolator(iosSpring).start();
                     }
                 }, 70);
                 l.onClick(view);
@@ -272,10 +279,10 @@ public class IslandService extends Service {
         // 宽高同时弹簧展开
         ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
         ValueAnimator ha = ValueAnimator.ofInt(startH, targetH);
-        wa.setDuration(480);
-        ha.setDuration(480);
-        wa.setInterpolator(new OvershootInterpolator(0.9f));
-        ha.setInterpolator(new OvershootInterpolator(0.9f));
+        wa.setDuration(650);
+        ha.setDuration(650);
+        wa.setInterpolator(iosSpring);
+        ha.setInterpolator(iosSpring);
 
         wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator a) {
@@ -296,8 +303,10 @@ public class IslandService extends Service {
             }
             @Override public void onAnimationEnd(Animator a) {
                 animating = false;
-                // 内容淡入
-                expandedRoot.animate().alpha(1f).setDuration(200).start();
+                // 内容淡入（iOS 曲线）
+                expandedRoot.setAlpha(0f);
+                expandedRoot.animate().alpha(1f).setDuration(280)
+                    .setInterpolator(iosEaseOut).start();
             }
         });
         wa.start(); ha.start();
@@ -317,10 +326,10 @@ public class IslandService extends Service {
 
         ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
         ValueAnimator ha = ValueAnimator.ofInt(startH, targetH);
-        wa.setDuration(400);
-        ha.setDuration(400);
-        wa.setInterpolator(new DecelerateInterpolator(1.5f));
-        ha.setInterpolator(new DecelerateInterpolator(1.5f));
+        wa.setDuration(500);
+        ha.setDuration(500);
+        wa.setInterpolator(iosEaseOut);
+        ha.setInterpolator(iosEaseOut);
 
         wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator a) {
@@ -340,7 +349,8 @@ public class IslandService extends Service {
                 expandedRoot.setVisibility(View.GONE);
                 collapsedRoot.setVisibility(View.VISIBLE);
                 collapsedRoot.setAlpha(0f);
-                collapsedRoot.animate().alpha(1f).setDuration(200).start();
+                collapsedRoot.animate().alpha(1f).setDuration(280)
+                    .setInterpolator(iosEaseOut).start();
                 animating = false;
             }
         });
