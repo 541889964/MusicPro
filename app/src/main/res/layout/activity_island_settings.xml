@@ -6,13 +6,13 @@
         android:scrollbars="none">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
-                <ImageButton android:id="@+id/btnBack"
+                <TextView android:id="@+id/btnBack"
                     android:layout_width="44dp" android:layout_height="44dp"
-                    android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:tint="#FFFFFF"/>
+                    android:text="←" android:textSize="22sp" android:textColor="#FFFFFF"
+                    android:gravity="center" android:clickable="true" android:focusable="true"/>
                 <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:layout_marginLeft="12dp"
                     android:text="灵动岛设置" android:textColor="#FFFFFF"
@@ -20,94 +20,128 @@
             </LinearLayout>
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp" android:layout_marginTop="20dp"
-                android:text="📐 尺寸" android:textColor="#FF6B9D"
+                android:layout_marginLeft="20dp" android:layout_marginTop="10dp"
+                android:text="📐 折叠态尺寸" android:textColor="#FF6B9D"
                 android:textSize="14sp" android:textStyle="bold"/>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="14dp" android:padding="16dp"
+                android:orientation="vertical" android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp" android:padding="14dp"
                 android:background="@drawable/theme_option_bg">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="宽度" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold"/>
-                <TextView android:id="@+id/tvWidthVal"
+                    android:text="宽度（屏幕百分比）" android:textColor="#FFFFFF" android:textSize="13sp"/>
+                <TextView android:id="@+id/tvCW"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:text="宽度: 42%"
-                    android:textColor="#B8A8E8" android:textSize="12sp"/>
-                <SeekBar android:id="@+id/sbWidth"
+                    android:layout_marginTop="2dp" android:text="55%" android:textColor="#B8A8E8" android:textSize="11sp"/>
+                <SeekBar android:id="@+id/sbCW"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" android:progressTint="#FF6B9D"
-                    android:progressBackgroundTint="#44FFFFFF" android:thumbTint="#FF6B9D"/>
+                    android:max="70" android:progress="35"
+                    android:progressTint="#FF6B9D" android:progressBackgroundTint="#44FFFFFF"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp" android:text="高度"
-                    android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold"/>
-                <TextView android:id="@+id/tvHeightVal"
+                    android:layout_marginTop="10dp"
+                    android:text="高度（dp）" android:textColor="#FFFFFF" android:textSize="13sp"/>
+                <TextView android:id="@+id/tvCH"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:text="高度: 58dp"
-                    android:textColor="#B8A8E8" android:textSize="12sp"/>
-                <SeekBar android:id="@+id/sbHeight"
+                    android:layout_marginTop="2dp" android:text="54dp" android:textColor="#B8A8E8" android:textSize="11sp"/>
+                <SeekBar android:id="@+id/sbCH"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" android:progressTint="#FF6B9D"
-                    android:progressBackgroundTint="#44FFFFFF" android:thumbTint="#FF6B9D"/>
+                    android:max="60" android:progress="24"
+                    android:progressTint="#FF6B9D" android:progressBackgroundTint="#44FFFFFF"/>
             </LinearLayout>
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp" android:layout_marginTop="24dp"
+                android:layout_marginLeft="20dp" android:layout_marginTop="16dp"
+                android:text="📐 展开态尺寸" android:textColor="#FF6B9D"
+                android:textSize="14sp" android:textStyle="bold"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="10dp" android:padding="14dp"
+                android:background="@drawable/theme_option_bg">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="宽度（屏幕百分比）" android:textColor="#FFFFFF" android:textSize="13sp"/>
+                <TextView android:id="@+id/tvEW"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp" android:text="90%" android:textColor="#B8A8E8" android:textSize="11sp"/>
+                <SeekBar android:id="@+id/sbEW"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:max="60" android:progress="40"
+                    android:progressTint="#FF6B9D" android:progressBackgroundTint="#44FFFFFF"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="高度（dp）" android:textColor="#FFFFFF" android:textSize="13sp"/>
+                <TextView android:id="@+id/tvEH"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp" android:text="210dp" android:textColor="#B8A8E8" android:textSize="11sp"/>
+                <SeekBar android:id="@+id/sbEH"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:max="180" android:progress="60"
+                    android:progressTint="#FF6B9D" android:progressBackgroundTint="#44FFFFFF"/>
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginTop="16dp"
                 android:text="⚡ 帧率" android:textColor="#FF6B9D"
                 android:textSize="14sp" android:textStyle="bold"/>
 
-            <TextView android:id="@+id/tvFpsVal"
+            <TextView android:id="@+id/tvFps"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp" android:layout_marginTop="6dp"
-                android:text="当前: 60fps" android:textColor="#B8A8E8" android:textSize="12sp"/>
+                android:text="当前：60fps" android:textColor="#B8A8E8" android:textSize="12sp"/>
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:layout_marginHorizontal="20dp"
+                android:orientation="horizontal" android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="10dp" android:weightSum="5">
-                <LinearLayout android:id="@+id/btnFps30"
+                <TextView android:id="@+id/fps30"
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:padding="10dp" android:gravity="center"
-                    android:layout_marginRight="4dp" android:background="@drawable/theme_option_bg"
-                    android:clickable="true" android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="30" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/btnFps60"
+                    android:text="30" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
+                    android:background="@drawable/theme_option_bg" android:layout_marginRight="4dp"
+                    android:clickable="true" android:focusable="true"/>
+                <TextView android:id="@+id/fps60"
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:padding="10dp" android:gravity="center"
-                    android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
+                    android:text="60" android:textColor="#FF6B9D" android:textSize="12sp" android:textStyle="bold"
                     android:background="@drawable/theme_option_bg"
-                    android:clickable="true" android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="60" android:textColor="#FF6B9D" android:textSize="12sp" android:textStyle="bold"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/btnFps90"
-                    android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:padding="10dp" android:gravity="center"
                     android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
-                    android:background="@drawable/theme_option_bg"
-                    android:clickable="true" android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="90" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/btnFps120"
+                    android:clickable="true" android:focusable="true"/>
+                <TextView android:id="@+id/fps90"
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:padding="10dp" android:gravity="center"
+                    android:text="90" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
+                    android:background="@drawable/theme_option_bg"
                     android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
-                    android:background="@drawable/theme_option_bg"
-                    android:clickable="true" android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="120" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/btnFps144"
+                    android:clickable="true" android:focusable="true"/>
+                <TextView android:id="@+id/fps120"
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:padding="10dp" android:gravity="center"
-                    android:layout_marginLeft="4dp" android:background="@drawable/theme_option_bg"
-                    android:clickable="true" android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="144" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
-                </LinearLayout>
+                    android:text="120" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
+                    android:background="@drawable/theme_option_bg"
+                    android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
+                    android:clickable="true" android:focusable="true"/>
+                <TextView android:id="@+id/fps144"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:padding="10dp" android:gravity="center"
+                    android:text="144" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"
+                    android:background="@drawable/theme_option_bg" android:layout_marginLeft="4dp"
+                    android:clickable="true" android:focusable="true"/>
             </LinearLayout>
+
+            <TextView android:id="@+id/btnReset"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp" android:layout_marginTop="24dp"
+                android:padding="16dp" android:gravity="center"
+                android:text="恢复默认设置"
+                android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"
+                android:background="@drawable/theme_option_bg"
+                android:clickable="true" android:focusable="true"/>
+
+            <TextView android:id="@+id/tvPath"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp" android:layout_marginTop="16dp"
+                android:text="配置文件：/storage/emulated/0/Download/island_settings.json"
+                android:textColor="#8E8E93" android:textSize="11sp"
+                android:gravity="center"/>
 
             <View android:layout_width="match_parent" android:layout_height="60dp"/>
         </LinearLayout>
