@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -47,6 +48,9 @@ public class IslandService extends Service {
     private View collapsedBox, expandedBox;
     private ImageView imgCover, imgCoverBig;
     private TextView txtTitle, txtTitleBig, txtArtistBig, txtMiniLyric;
+    private TextView txtBattery, txtBatteryBig;
+    private int batteryLevel = 100;
+    private boolean batteryCharging = false;
     private TextView[] lyricViews = new TextView[5];
     private TextView txtTimeCur, txtTimeTot;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
@@ -85,6 +89,7 @@ public class IslandService extends Service {
             measure();
             initView();
             initChargeReceiver();
+            updateBatteryUI();
             h.post(tick);
         } catch (Throwable t) {
             Log.e(TAG, "init", t);
@@ -98,9 +103,14 @@ public class IslandService extends Service {
                 @Override public void onReceive(android.content.Context c, Intent it) {
                     try {
                         if (it == null) return;
+                        int level = it.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, 0);
+                        int scale = it.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100);
                         int status = it.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
                         boolean nowCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING
                             || status == android.os.BatteryManager.BATTERY_STATUS_FULL;
+                        if (scale > 0) batteryLevel = level * 100 / scale;
+                        batteryCharging = nowCharging;
+                        updateBatteryUI();
                         if (nowCharging && !charging) {
                             charging = true;
                             showChargeAnim();
@@ -112,6 +122,31 @@ public class IslandService extends Service {
             };
             IntentFilter f = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
             registerReceiver(chargeReceiver, f);
+        } catch (Throwable ignored) {}
+    }
+
+    private void updateBatteryUI() {
+        try {
+            int color;
+            String icon;
+            if (batteryCharging) {
+                color = 0xFF00FF88;
+                icon = "⚡" + batteryLevel + "%";
+            } else {
+                if (batteryLevel >= 80) color = 0xFF4CD964;
+                else if (batteryLevel >= 50) color = 0xFF5AC8FA;
+                else if (batteryLevel >= 20) color = 0xFFFFCC00;
+                else color = 0xFFFF3B30;
+                icon = batteryLevel + "%";
+            }
+            if (txtBattery != null) {
+                txtBattery.setText(icon);
+                txtBattery.setTextColor(color);
+            }
+            if (txtBatteryBig != null) {
+                txtBatteryBig.setText(icon);
+                txtBatteryBig.setTextColor(color);
+            }
         } catch (Throwable ignored) {}
     }
 
@@ -199,6 +234,8 @@ public class IslandService extends Service {
         txtTitleBig = root.findViewById(R.id.txtTitleBig);
         txtArtistBig = root.findViewById(R.id.txtArtistBig);
         txtMiniLyric = root.findViewById(R.id.txtMiniLyric);
+        txtBattery = root.findViewById(R.id.txtBattery);
+        txtBatteryBig = root.findViewById(R.id.txtBatteryBig);
         lyricViews[0] = root.findViewById(R.id.lyric1);
         lyricViews[1] = root.findViewById(R.id.lyric2);
         lyricViews[2] = root.findViewById(R.id.lyric3);
@@ -354,11 +391,10 @@ public class IslandService extends Service {
     public void reloadConfig() {
         cfg = IslandConfig.load();
         try {
-            if (!expanded) {
-                lp.width = cW();
-                lp.height = cH();
-                wm.updateViewLayout(root, lp);
-            }
+            // ★ 展开/折叠都能实时调尺寸
+            lp.width = expanded ? eW() : cW();
+            lp.height = expanded ? eH() : cH();
+            wm.updateViewLayout(root, lp);
         } catch (Throwable ignored) {}
     }
 
@@ -393,6 +429,10 @@ public class IslandService extends Service {
 
             if (songId != lastSongId) {
                 lastSongId = songId;
+                // ★ 切歌时清空歌词缓存，避免上一首歌词残留
+                com.music.app.PlayerActivity.currentLyric = "";
+                lyricLines = new ArrayList<LyricsParser.Line>();
+                lastLyric = "";
                 try {
                     String name = WallpaperHelper.forSong(this, songId);
                     Bitmap bm = WallpaperHelper.loadSmall(this, name);
@@ -432,7 +472,11 @@ public class IslandService extends Service {
                 if (curSong != null) lrc = curSong.lyric;
             }
 
-            if (lrc != null && !lrc.isEmpty()) {
+            if (lrc == null || lrc.isEmpty()) {
+                // 没歌词 → 清空显示
+                if (txtMiniLyric != null) txtMiniLyric.setText("");
+                for (TextView tv : lyricViews) if (tv != null) tv.setText("");
+            } else if (lrc != null && !lrc.isEmpty()) {
                 if (!lrc.equals(lastLyric)) {
                     lastLyric = lrc;
                     lyricLines = LyricsParser.parse(lrc);
