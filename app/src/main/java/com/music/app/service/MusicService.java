@@ -202,6 +202,16 @@ public class MusicService extends MediaSessionService {
         return "file://" + sg.path;
     }
 
+    /** 立即用列表替换播放，不等 URL 预加载 */
+    public static void playItems(List<androidx.media3.common.MediaItem> items, int startIdx) {
+        if (sharedPlayer == null) return;
+        try {
+            sharedPlayer.setMediaItems(items, startIdx, 0);
+            sharedPlayer.prepare();
+            sharedPlayer.play();
+        } catch (Throwable ignored) {}
+    }
+
     public static void play(Context ctx) {
         ensure(ctx);
         if (sharedPlayer == null) return;

@@ -2,29 +2,39 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
     <ImageView android:id="@+id/ivWallpaper"
         android:layout_width="match_parent" android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:layerType="hardware"/>
+        android:scaleType="centerCrop"/>
+
     <View android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="#AA0D0B1F"/>
+
     <View android:layout_width="match_parent" android:layout_height="240dp"
         android:background="@drawable/top_gradient"/>
+
     <com.music.app.widget.FloatingHeartsView
         android:id="@+id/hearts"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:clickable="false" android:focusable="false"/>
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent" android:layout_height="match_parent">
+
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBar"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:background="@android:color/transparent" app:elevation="0dp">
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
+
+            <!-- 顶部栏：Logo + 问候 + 4 个中文圆钮 -->
             <LinearLayout
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:padding="12dp"
-                android:gravity="center_vertical">
+                android:orientation="horizontal" android:paddingLeft="12dp"
+                android:paddingRight="12dp" android:paddingTop="10dp"
+                android:paddingBottom="6dp" android:gravity="center_vertical">
 
                 <ImageView android:id="@+id/ivAppLogo"
                     android:layout_width="40dp" android:layout_height="40dp"
@@ -34,75 +44,61 @@
                 <LinearLayout
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:orientation="vertical"
-                    android:layout_marginLeft="10dp">
+                    android:layout_marginLeft="10dp" android:layout_marginRight="6dp">
 
                     <TextView android:id="@+id/tvGreeting"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="早上好呀" android:textColor="#FFFFFF"
-                        android:textSize="15sp" android:textStyle="bold"/>
+                        android:text="下午好" android:textColor="#FFFFFF"
+                        android:textSize="15sp" android:textStyle="bold"
+                        android:singleLine="true"/>
 
                     <TextView android:id="@+id/tvGreetingSub"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:layout_marginTop="1dp"
                         android:text="让音乐陪你度过下午" android:textColor="#D6CCF5"
-                        android:textSize="11sp"/>
+                        android:textSize="11sp" android:singleLine="true"/>
                 </LinearLayout>
 
                 <TextView android:id="@+id/btnLock"
                     android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center"
-                    android:text="锁" android:textSize="13sp"
-                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:gravity="center" android:text="锁"
+                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="3dp"
                     android:clickable="true" android:focusable="true"/>
 
                 <TextView android:id="@+id/btnIsland"
                     android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center"
-                    android:text="岛" android:textSize="13sp"
-                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:gravity="center" android:text="岛"
+                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="3dp"
                     android:clickable="true" android:focusable="true"/>
 
                 <TextView android:id="@+id/btnTheme"
                     android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center"
-                    android:text="肤" android:textSize="13sp"
-                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:gravity="center" android:text="肤"
+                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="3dp"
                     android:clickable="true" android:focusable="true"/>
 
                 <TextView android:id="@+id/btnGallery"
                     android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center"
-                    android:text="图" android:textSize="13sp"
-                    android:textColor="#FFFFFF" android:textStyle="bold"
+                    android:gravity="center" android:text="图"
+                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="4dp"
+                    android:layout_marginLeft="3dp"
                     android:clickable="true" android:focusable="true"/>
             </LinearLayout>
-                <TextView android:id="@+id/btnGallery"
-                    android:layout_width="36dp" android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="🖼" android:textSize="18sp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true" android:focusable="true"/>
-                <TextView android:id="@+id/btnTheme"
-                    android:layout_width="36dp" android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="🎨" android:textSize="18sp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true" android:focusable="true"/>
-            </LinearLayout>
+
+            <!-- 每日寄语 -->
             <LinearLayout android:id="@+id/greetingCard"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
                 android:layout_marginBottom="10dp" android:padding="14dp"
-                android:background="@drawable/greeting_card_bg">
+                android:background="@drawable/bg_liquid_glass_card">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="♡ 今日寄语" android:textColor="#FFB6D0"
                     android:textSize="11sp" android:letterSpacing="0.15"/>
@@ -112,6 +108,8 @@
                     android:textColor="#FFFFFF" android:textSize="14sp"
                     android:lineSpacingExtra="3dp"/>
             </LinearLayout>
+
+            <!-- 本地/在线 Tab -->
             <LinearLayout
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -146,6 +144,7 @@
                         android:background="@drawable/bg_tab_indicator"/>
                 </LinearLayout>
             </LinearLayout>
+
             <EditText android:id="@+id/etSearch"
                 android:layout_width="match_parent" android:layout_height="48dp"
                 android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
@@ -156,11 +155,13 @@
                 android:textSize="14sp" android:paddingLeft="20dp" android:paddingRight="16dp"
                 android:singleLine="true" android:imeOptions="actionSearch"
                 android:inputType="text"/>
+
             <TextView android:id="@+id/tvCount"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp" android:layout_marginTop="4dp"
                 android:text="共 0 首" android:textColor="#D6CCF5" android:textSize="12sp"/>
         </com.google.android.material.appbar.AppBarLayout>
+
         <FrameLayout
             android:layout_width="match_parent" android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -173,8 +174,10 @@
                 android:layout_width="match_parent" android:layout_height="match_parent"
                 android:gravity="center" android:text="正在扫描本地音乐…"
                 android:textColor="#D6CCF5" android:textSize="14sp"
-                android:paddingHorizontal="40dp" android:lineSpacingExtra="8dp"/>
+                android:paddingLeft="40dp" android:paddingRight="40dp"
+                android:lineSpacingExtra="8dp"/>
         </FrameLayout>
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content" android:layout_height="wrap_content"

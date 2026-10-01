@@ -52,6 +52,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ObjectAnimator coverRotate, glowPulse;
     private final Handler h = new Handler(Looper.getMainLooper());
     private boolean dragging = false;
+    private boolean needReplaceFirst = false;
 
     private void startIsland() {
         try {
@@ -91,7 +92,8 @@ public class PlayerActivity extends AppCompatActivity {
         if (startIdx < 0 || startIdx >= queue.size()) startIdx = 0;
         currentIndex = startIdx;
 
-        com.music.app.service.MusicService.setQueue(this, queue, currentIndex);
+        initPlayer();
+        // 立即播
         playAt(currentIndex);
         startIsland();
 
@@ -134,8 +136,7 @@ public class PlayerActivity extends AppCompatActivity {
         });
         View card = findViewById(R.id.playerCard);
         if (card != null) {
-            card.setAlpha(0f);
-            card.setTranslationY(60f);
+            card.setAlpha(0f); card.setTranslationY(60f);
             card.animate().alpha(1f).translationY(0f).setDuration(650)
                 .setInterpolator(new DecelerateInterpolator()).start();
         }
@@ -146,19 +147,14 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    /** ★ 用共享 player */
     private void initPlayer() {
-        if (com.music.app.service.MusicService.getPlayer() == null) {
-            MusicService.ensurePlayer(this);
-            MusicService.getPlayer().setRepeatMode(Player.REPEAT_MODE_ALL);
-        }
-        player = MusicService.getPlayer();
+        player = MusicService.ensurePlayer(this);
         if (!listenerBound) {
             listenerBound = true;
             player.addListener(new Player.Listener() {
                 @Override public void onPlaybackStateChanged(int state) {
-                    if (state == Player.STATE_ENDED) {
-                        if (currentIndex < queue.size() - 1) playAt(currentIndex + 1);
+                    if (state == Player.STATE_ENDED && currentIndex < queue.size() - 1) {
+                        playAt(currentIndex + 1);
                     }
                 }
                 @Override public void onMediaItemTransition(MediaItem item, int reason) {
@@ -185,31 +181,21 @@ public class PlayerActivity extends AppCompatActivity {
         CharSequence a = md.artist;
         if (t != null && tvTitle != null) tvTitle.setText(t);
         if (a != null && tvArtist != null) tvArtist.setText(a);
-        // 加载歌词
         int idx = player.getCurrentMediaItemIndex();
         if (idx >= 0 && idx < queue.size()) {
             Song song = queue.get(idx);
-            // 封面
             String name = WallpaperHelper.forSong(this, song.id);
             Bitmap coverBm = WallpaperHelper.load(this, name);
             if (coverBm != null && ivCover != null) ivCover.setImageBitmap(coverBm);
-            // 歌词：先看缓存，没有就从网络拉
-            if (song.lyric != null && !song.lyric.isEmpty()) {
-                buildLyricsView(song.lyric);
-            } else if (song.isOnline) {
-                loadLyrics(song.id, idx);
-            } else {
-                loadLocalLyrics(song);
-            }
+            if (song.lyric != null && !song.lyric.isEmpty()) buildLyricsView(song.lyric);
+            else if (song.isOnline) loadLyrics(song.id, idx);
+            else loadLocalLyrics(song);
         }
     }
 
-    private void setFullQueue(int startIdx) {
-        com.music.app.service.MusicService.setQueue(this, queue, startIdx);
-    }
-
+    /** ★ 秒播：立即用外链 URL 建队播放，后台异步拿真实 URL 替换 */
     private void playAt(int idx) {
-        if (idx < 0 || idx >= queue.size() || player == null) return;
+        if (idx < 0 || idx >= queue.size()) return;
         currentIndex = idx;
         final Song song = queue.get(idx);
         if (tvTitle != null) tvTitle.setText(song.title);
@@ -228,36 +214,78 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         // 歌词
-        if (song.lyric != null && !song.lyric.isEmpty()) {
-            buildLyricsView(song.lyric);
-        } else if (song.isOnline) {
-            loadLyrics(song.id, idx);
-        } else {
-            loadLocalLyrics(song);
-        }
+        if (song.lyric != null && !song.lyric.isEmpty()) buildLyricsView(song.lyric);
+        else if (song.isOnline) loadLyrics(song.id, idx);
+        else loadLocalLyrics(song);
 
-        if (song.isOnline && (song.onlineUrl == null || song.onlineUrl.isEmpty())) {
-            NiceToast.show(this, "正在加载…");
-            NeteaseApi.getPlayUrl(song.id, new NeteaseApi.OnUrl() {
-                @Override public void onResult(String url) {
-                    if (url == null || url.isEmpty()) { NiceToast.show(PlayerActivity.this, "无法播放"); return; }
-                    song.onlineUrl = url;
-                    try {
-                        setFullQueue(currentIndex);
-                        player.prepare();
-                        player.play();
-                        updatePlayIcon();
-                    } catch (Throwable t) { NiceToast.show(PlayerActivity.this, "播放失败"); }
+        // ★ 立即构建整队并播放（用外链 URL，ExoPlayer 会跟随 302 重定向）
+        List<MediaItem> items = new ArrayList<MediaItem>();
+        for (int i = 0; i < queue.size(); i++) {
+            Song sg = queue.get(i);
+            String uri;
+            if (sg.isOnline) {
+                if (sg.onlineUrl == null || sg.onlineUrl.isEmpty()) {
+                    // 外链 URL（ExoPlayer 自动重定向）
+                    sg.onlineUrl = "https://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
                 }
-            });
-        } else {
-            try {
-                setFullQueue(idx);
-                player.prepare();
-                player.play();
-                updatePlayIcon();
-            } catch (Throwable t) { NiceToast.show(this, "播放失败"); }
+                uri = sg.onlineUrl;
+            } else {
+                uri = "file://" + sg.path;
+            }
+            items.add(new MediaItem.Builder().setUri(uri)
+                .setMediaMetadata(new MediaMetadata.Builder()
+                    .setTitle(sg.title).setArtist(sg.artist).build())
+                .build());
         }
+        MusicService.playItems(items, idx);
+        updatePlayIcon();
+
+        // 后台预缓存真实 URL（仅在线歌曲）
+        preCacheRealUrls(idx, 30);
+    }
+
+    /** 后台线程：顺序请求队列中在线歌曲的真实 320k URL，最多缓存 30 首 */
+    private void preCacheRealUrls(final int startIdx, final int maxCount) {
+        new Thread(new Runnable() {
+            @Override public void run() {
+                try { Thread.sleep(2000); } catch (Throwable ignored) {}
+                int count = 0;
+                for (int i = 0; i < queue.size() && count < maxCount; i++) {
+                    if (i == startIdx) continue;
+                    final Song sg = queue.get(i);
+                    if (!sg.isOnline) continue;
+                    // 已经是真实 URL（含 stream/ 路径）就跳过
+                    if (sg.onlineUrl != null && sg.onlineUrl.contains("/stream/")) {
+                        count++;
+                        continue;
+                    }
+                    final java.util.concurrent.CountDownLatch latch =
+                        new java.util.concurrent.CountDownLatch(1);
+                    NeteaseApi.getPlayUrl(sg.id, new NeteaseApi.OnUrl() {
+                        @Override public void onResult(String url) {
+                            if (url != null && !url.isEmpty()) {
+                                sg.onlineUrl = url;
+                                // 更新正在播放的 mediaItem（如果轮到它）
+                                try {
+                                    androidx.media3.exoplayer.ExoPlayer p = MusicService.getPlayer();
+                                    if (p != null) {
+                                        int cur = p.getCurrentMediaItemIndex();
+                                        if (cur == queue.indexOf(sg)) {
+                                            // 当前正在播这首歌就跳过，别打断
+                                        }
+                                    }
+                                } catch (Throwable ignored) {}
+                            }
+                            latch.countDown();
+                        }
+                    });
+                    try { latch.await(4, java.util.concurrent.TimeUnit.SECONDS); }
+                    catch (Throwable ignored) {}
+                    count++;
+                    try { Thread.sleep(150); } catch (Throwable ignored) {}
+                }
+            }
+        }).start();
     }
 
     private void loadLyrics(final long songId, final int idx) {
