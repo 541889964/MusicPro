@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="8dp"
+    android:padding="10dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/card_bg">
+
+    <ImageView android:id="@+id/ivCover"
+        android:layout_width="48dp" android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/btn_circle"
+        android:clipToOutline="true"/>
+
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical"
+        android:layout_marginLeft="12dp">
+        <TextView android:id="@+id/tvTitle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="歌曲名" android:textColor="#FFFFFF"
+            android:textSize="14sp" android:textStyle="bold"
+            android:singleLine="true" android:ellipsize="end"/>
+        <TextView android:id="@+id/tvSub"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="2dp" android:text="歌手"
+            android:textColor="#B8A8E8" android:textSize="11sp"
+            android:singleLine="true" android:ellipsize="end"/>
+    </LinearLayout>
+
+    <TextView android:id="@+id/tvDur"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="0:00" android:textColor="#88FFFFFF"
+        android:textSize="11sp"/>
+</LinearLayout>

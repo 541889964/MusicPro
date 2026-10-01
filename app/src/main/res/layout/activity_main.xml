@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView android:id="@+id/ivWallpaper"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="@drawable/wallpaper_overlay"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="40dp"
+            android:paddingBottom="100dp">
+
+            <!-- 顶部问候卡片 -->
+            <LinearLayout android:id="@+id/greetingCard"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:background="@drawable/card_bg">
+
+                <TextView android:id="@+id/tvGreeting"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="早上好呀 ☀️"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp" android:textStyle="bold"/>
+
+                <TextView android:id="@+id/tvSubGreeting"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="今天也要开心呀"
+                    android:textColor="#B8A8E8"
+                    android:textSize="13sp"/>
+
+                <TextView android:id="@+id/tvDailyQuote"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingHorizontal="14dp"
+                    android:background="@drawable/card_bg_solid"
+                    android:text="♡ 每一天都是新的开始"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="4dp"/>
+            </LinearLayout>
+
+            <!-- 快速操作卡片 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="14dp"
+                android:weightSum="3">
+
+                <LinearLayout android:id="@+id/btnLocal"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="16dp" android:gravity="center"
+                    android:layout_marginRight="6dp"
+                    android:background="@drawable/card_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="♪" android:textSize="28sp" android:textColor="#FF6B9D"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp" android:text="本地"
+                        android:textColor="#FFFFFF" android:textSize="12sp"/>
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/btnOnline"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="16dp" android:gravity="center"
+                    android:layout_marginHorizontal="6dp"
+                    android:background="@drawable/card_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="☁" android:textSize="28sp" android:textColor="#9B6BFF"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp" android:text="在线"
+                        android:textColor="#FFFFFF" android:textSize="12sp"/>
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/btnSettings"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="16dp" android:gravity="center"
+                    android:layout_marginLeft="6dp"
+                    android:background="@drawable/card_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="⚙" android:textSize="28sp" android:textColor="#5AC8FA"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp" android:text="设置"
+                        android:textColor="#FFFFFF" android:textSize="12sp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 搜索栏 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="14dp"
+                android:padding="4dp"
+                android:background="@drawable/card_bg"
+                android:gravity="center_vertical">
+
+                <EditText android:id="@+id/etSearch"
+                    android:layout_width="0dp" android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="搜索歌曲 / 歌手 / 专辑"
+                    android:textColorHint="#88FFFFFF"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:paddingHorizontal="14dp"
+                    android:singleLine="true"/>
+            </LinearLayout>
+
+            <!-- 标题 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center_vertical">
+
+                <TextView android:id="@+id/tvSectionTitle"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="本地音乐"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp" android:textStyle="bold"/>
+
+                <TextView android:id="@+id/tvCount"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="共 0 首"
+                    android:textColor="#B8A8E8"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <!-- 歌曲列表 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSongs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+
+            <!-- 空状态 -->
+            <TextView android:id="@+id/tvEmpty"
+                android:layout_width="match_parent" android:layout_height="200dp"
+                android:gravity="center"
+                android:text="正在扫描本地音乐…"
+                android:textColor="#B8A8E8"
+                android:textSize="14sp"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 底部迷你播放条 -->
+    <LinearLayout android:id="@+id/miniPlayer"
+        android:layout_width="match_parent" android:layout_height="64dp"
+        android:layout_gravity="bottom"
+        android:layout_margin="12dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/card_bg"
+        android:elevation="8dp"
+        android:visibility="gone"
+        android:clickable="true" android:focusable="true">
+
+        <ImageView android:id="@+id/miniCover"
+            android:layout_width="44dp" android:layout_height="44dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/btn_circle"/>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginLeft="12dp">
+            <TextView android:id="@+id/miniTitle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="" android:textColor="#FFFFFF"
+                android:textSize="13sp" android:textStyle="bold"
+                android:singleLine="true" android:ellipsize="end"/>
+            <TextView android:id="@+id/miniArtist"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="" android:textColor="#B8A8E8"
+                android:textSize="11sp"
+                android:singleLine="true" android:ellipsize="end"/>
+        </LinearLayout>
+
+        <TextView android:id="@+id/miniPlay"
+            android:layout_width="40dp" android:layout_height="40dp"
+            android:text="▶" android:textSize="18sp" android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:background="@drawable/btn_circle"
+            android:clickable="true" android:focusable="true"/>
+    </LinearLayout>
+</FrameLayout>

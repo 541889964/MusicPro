@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/islandRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical">
+
+    <!-- 主岛（左边）-->
+    <LinearLayout android:id="@+id/mainIsland"
+        android:layout_width="0dp" android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_island"
+        android:paddingLeft="6dp" android:paddingRight="6dp"
+        android:gravity="center_vertical"
+        android:clickable="true" android:focusable="true">
+
+        <!-- 折叠态 -->
+        <LinearLayout android:id="@+id/collapsedBox"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <FrameLayout android:layout_width="36dp" android:layout_height="36dp">
+                <View android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:background="@drawable/bg_cover_ring"/>
+                <ImageView android:id="@+id/imgCover"
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:layout_margin="3dp"
+                    android:src="@mipmap/ic_launcher"
+                    android:scaleType="centerCrop"
+                    android:clipToOutline="true"/>
+            </FrameLayout>
+
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical"
+                android:layout_marginLeft="10dp" android:layout_marginRight="4dp">
+                <TextView android:id="@+id/txtTitle"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="拾音" android:textColor="#FFFFFF"
+                    android:textSize="13sp" android:textStyle="bold"
+                    android:singleLine="true" android:ellipsize="end"/>
+                <TextView android:id="@+id/txtMiniLyric"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="未播放" android:textColor="#99FFB6D0"
+                    android:textSize="10sp"
+                    android:singleLine="true" android:ellipsize="end"/>
+            </LinearLayout>
+
+            <TextView android:id="@+id/txtBattery"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="100%" android:textColor="#4CD964"
+                android:textSize="10sp" android:textStyle="bold"
+                android:paddingHorizontal="4dp"/>
+
+            <TextView android:id="@+id/btnPlay"
+                android:layout_width="34dp" android:layout_height="34dp"
+                android:text="▶" android:textSize="14sp"
+                android:textColor="#FFFFFF" android:gravity="center"
+                android:background="@drawable/bg_island_btn"
+                android:clickable="true" android:focusable="true"/>
+        </LinearLayout>
+
+        <!-- 展开态 -->
+        <LinearLayout android:id="@+id/expandedBox"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <FrameLayout android:layout_width="42dp" android:layout_height="42dp">
+                    <View android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:background="@drawable/bg_cover_ring"/>
+                    <ImageView android:id="@+id/imgCoverBig"
+                        android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:layout_margin="3dp"
+                        android:src="@mipmap/ic_launcher"
+                        android:scaleType="centerCrop"
+                        android:clipToOutline="true"/>
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:layout_marginLeft="10dp">
+                    <TextView android:id="@+id/txtTitleBig"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="拾音" android:textColor="#FFFFFF"
+                        android:textSize="14sp" android:textStyle="bold"
+                        android:singleLine="true" android:ellipsize="end"/>
+                    <TextView android:id="@+id/txtArtistBig"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:text="" android:textColor="#8E8E93"
+                        android:textSize="10sp"
+                        android:singleLine="true" android:ellipsize="end"/>
+                </LinearLayout>
+                <TextView android:id="@+id/btnClose"
+                    android:layout_width="30dp" android:layout_height="30dp"
+                    android:text="✕" android:textSize="14sp"
+                    android:textColor="#8E8E93" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="100dp" android:orientation="vertical"
+                android:layout_marginTop="6dp" android:gravity="center_vertical">
+                <TextView android:id="@+id/lyric1"
+                    android:layout_width="match_parent" android:layout_height="0dp"
+                    android:layout_weight="1" android:text=""
+                    android:textColor="#22FFFFFF" android:textSize="10sp"
+                    android:gravity="center" android:singleLine="true" android:ellipsize="end"/>
+                <TextView android:id="@+id/lyric2"
+                    android:layout_width="match_parent" android:layout_height="0dp"
+                    android:layout_weight="1.1" android:text=""
+                    android:textColor="#88FFFFFF" android:textSize="12sp"
+                    android:gravity="center" android:singleLine="true" android:ellipsize="end"/>
+                <TextView android:id="@+id/lyric3"
+                    android:layout_width="match_parent" android:layout_height="0dp"
+                    android:layout_weight="1.4" android:text="♪"
+                    android:textColor="#FF6B9D" android:textSize="15sp" android:textStyle="bold"
+                    android:gravity="center" android:singleLine="true" android:ellipsize="end"/>
+                <TextView android:id="@+id/lyric4"
+                    android:layout_width="match_parent" android:layout_height="0dp"
+                    android:layout_weight="1.1" android:text=""
+                    android:textColor="#88FFFFFF" android:textSize="12sp"
+                    android:gravity="center" android:singleLine="true" android:ellipsize="end"/>
+                <TextView android:id="@+id/lyric5"
+                    android:layout_width="match_parent" android:layout_height="0dp"
+                    android:layout_weight="1" android:text=""
+                    android:textColor="#22FFFFFF" android:textSize="10sp"
+                    android:gravity="center" android:singleLine="true" android:ellipsize="end"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
+                android:layout_marginTop="4dp" android:gravity="center_vertical">
+                <TextView android:id="@+id/txtTimeCur"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="0:00" android:textColor="#8E8E93"
+                    android:textSize="9sp" android:minWidth="26dp"/>
+                <SeekBar android:id="@+id/seek"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginHorizontal="4dp"
+                    android:maxHeight="3dp" android:minHeight="3dp" android:max="1000"
+                    android:progressTint="#FFFFFF" android:progressBackgroundTint="#33FFFFFF"
+                    android:thumbTint="#FFFFFF"/>
+                <TextView android:id="@+id/txtTimeTot"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="0:00" android:textColor="#8E8E93"
+                    android:textSize="9sp" android:minWidth="26dp" android:gravity="right"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="52dp" android:orientation="horizontal"
+                android:layout_marginTop="4dp" android:gravity="center">
+                <TextView android:id="@+id/btnPrev"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="⏮" android:textSize="20sp"
+                    android:textColor="#FFFFFF" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+                <FrameLayout android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1.2">
+                    <TextView android:id="@+id/btnPlayBig"
+                        android:layout_width="46dp" android:layout_height="46dp"
+                        android:layout_gravity="center"
+                        android:text="▶" android:textSize="18sp"
+                        android:textColor="#0D0B1F" android:gravity="center"
+                        android:background="@drawable/bg_island_playbig"
+                        android:clickable="true" android:focusable="true"/>
+                </FrameLayout>
+                <TextView android:id="@+id/btnNext"
+                    android:layout_width="0dp" android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="⏭" android:textSize="20sp"
+                    android:textColor="#FFFFFF" android:gravity="center"
+                    android:clickable="true" android:focusable="true"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ★ 通知分裂卡（右边，初始隐藏）-->
+    <LinearLayout android:id="@+id/notifBox"
+        android:layout_width="0dp" android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_island"
+        android:paddingHorizontal="10dp"
+        android:layout_marginLeft="4dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <ImageView android:id="@+id/notifIcon"
+            android:layout_width="28dp" android:layout_height="28dp"
+            android:scaleType="centerCrop"/>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginLeft="8dp">
+            <TextView android:id="@+id/notifTitle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="通知" android:textColor="#FFFFFF"
+                android:textSize="12sp" android:textStyle="bold"
+                android:singleLine="true" android:ellipsize="end"/>
+            <TextView android:id="@+id/notifText"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="" android:textColor="#99FFFFFF"
+                android:textSize="10sp"
+                android:singleLine="true" android:ellipsize="end"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
