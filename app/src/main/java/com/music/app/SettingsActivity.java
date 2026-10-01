@@ -9,18 +9,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.music.app.util.NiceToast;
 
 public class SettingsActivity extends AppCompatActivity {
+    private void safeSetClick(int id, View.OnClickListener l) {
+        try { View v = findViewById(id); if (v != null) v.setOnClickListener(l); }
+        catch (Throwable ignored) {}
+    }
     @Override protected void onCreate(Bundle s) {
         super.onCreate(s);
         setContentView(R.layout.activity_settings);
-        findViewById(R.id.btnBack).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnBack,new View.OnClickListener() {
             @Override public void onClick(View v) { finish(); }
         });
-        findViewById(R.id.btnGallery).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnGallery,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 startActivity(new Intent(SettingsActivity.this, GalleryActivity.class));
             }
         });
-        findViewById(R.id.btnOverlay).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnOverlay,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= 23) {
                     try {
@@ -31,7 +35,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
         });
-        findViewById(R.id.btnNotif).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnNotif,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= 22) {
                     try {
@@ -43,7 +47,7 @@ public class SettingsActivity extends AppCompatActivity {
         final TextView tvAlarmText = findViewById(R.id.tvAlarmText);
         if (tvAlarmText != null) tvAlarmText.setText(com.music.app.util.AlarmHelper.getText(this));
 
-        findViewById(R.id.btnNotifTest).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnNotifTest,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
                     Class<?> cls = Class.forName("com.music.app.service.IslandService");
@@ -56,7 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btnAlarm).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnAlarm,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 java.util.Calendar c = java.util.Calendar.getInstance();
                 new android.app.TimePickerDialog(SettingsActivity.this,
@@ -71,7 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btnBattery).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnBattery,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 try {
                     Intent i = new Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
@@ -79,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity {
                 } catch (Throwable ignored) {}
             }
         });
-        findViewById(R.id.btnAbout).setOnClickListener(new View.OnClickListener() {
+        safeSetClick(R.id.btnAbout,new View.OnClickListener() {
             @Override public void onClick(View v) {
                 NiceToast.show(SettingsActivity.this, "拾音 v10.0");
             }

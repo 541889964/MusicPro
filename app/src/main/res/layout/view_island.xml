@@ -319,7 +319,7 @@
 
     <!-- 通知分裂卡 -->
     <LinearLayout android:id="@+id/notifBox"
-        android:layout_width="0dp" android:layout_height="match_parent"
+        android:layout_width="wrap_content" android:layout_height="match_parent"
         android:orientation="horizontal"
         android:background="@drawable/bg_island"
         android:paddingHorizontal="10dp"

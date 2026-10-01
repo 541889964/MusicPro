@@ -34,6 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private void safeSetClick(int id, View.OnClickListener l) {
+        try { View v = findViewById(id); if (v != null) v.setOnClickListener(l); }
+        catch (Throwable ignored) {}
+    }
     private static final int REQ = 1001;
     private RecyclerView rv;
     private SongAdapter adapter;
@@ -62,17 +66,17 @@ public class MainActivity extends AppCompatActivity {
             if (sub != null) sub.setText(WarmGreeting.dailyQuote());
             if (quote != null) quote.setText("♡ " + WarmGreeting.dailyQuote());
 
-            findViewById(R.id.btnLocal).setOnClickListener(new View.OnClickListener() {
+            safeSetClick(R.id.btnLocal,new View.OnClickListener() {
                 @Override public void onClick(View v) {
                     if (etSearch != null) { etSearch.setText(""); etSearch.clearFocus(); }
                 }
             });
-            findViewById(R.id.btnOnline).setOnClickListener(new View.OnClickListener() {
+            safeSetClick(R.id.btnOnline,new View.OnClickListener() {
                 @Override public void onClick(View v) {
                     NiceToast.show(MainActivity.this, "在线搜索开发中");
                 }
             });
-            findViewById(R.id.btnSettings).setOnClickListener(new View.OnClickListener() {
+            safeSetClick(R.id.btnSettings,new View.OnClickListener() {
                 @Override public void onClick(View v) {
                     startActivity(new Intent(MainActivity.this, SettingsActivity.class));
                 }

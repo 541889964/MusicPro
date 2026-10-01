@@ -11,48 +11,58 @@ public class LyricsParser {
     public static class Line {
         public long time;
         public String text;
+        public Line(long t, String x) { time = t; text = x; }
     }
-    private static final Pattern P = Pattern.compile(
-        "\\[(\\d{1,2}):(\\d{1,2})(?:[.:](\\d{1,3}))?\\](.*)");
+
+    private static final Pattern P = Pattern.compile("\\[(\\d+):(\\d+)(?:[.:](\\d+))?\\]");
+
     public static List<Line> parse(String lrc) {
-        List<Line> list = new ArrayList<Line>();
-        if (lrc == null || lrc.isEmpty()) return list;
-        String[] lines = lrc.split("\\n");
-        for (String line : lines) {
-            Matcher m = P.matcher(line);
-            while (m.find()) {
-                try {
-                    long min = Long.parseLong(m.group(1));
-                    long sec = Long.parseLong(m.group(2));
-                    String msStr = m.group(3);
+        List<Line> out = new ArrayList<Line>();
+        if (lrc == null || lrc.isEmpty()) return out;
+        try {
+            String[] lines = lrc.split("\n");
+            for (String raw : lines) {
+                if (raw == null) continue;
+                Matcher m = P.matcher(raw);
+                List<Long> times = new ArrayList<Long>();
+                int lastEnd = 0;
+                while (m.find()) {
+                    long mm = parseLong(m.group(1));
+                    long ss = parseLong(m.group(2));
                     long ms = 0;
-                    if (msStr != null) {
-                        if (msStr.length() == 1) ms = Long.parseLong(msStr) * 100;
-                        else if (msStr.length() == 2) ms = Long.parseLong(msStr) * 10;
-                        else ms = Long.parseLong(msStr.substring(0, 3));
+                    if (m.group(3) != null) {
+                        String g = m.group(3);
+                        if (g.length() == 2) ms = parseLong(g) * 10;
+                        else ms = parseLong(g);
                     }
-                    String text = m.group(4).trim();
-                    if (!text.isEmpty()) {
-                        Line l = new Line();
-                        l.time = min * 60000 + sec * 1000 + ms;
-                        l.text = text;
-                        list.add(l);
-                    }
-                } catch (Throwable ignored) {}
+                    times.add(mm * 60000 + ss * 1000 + ms);
+                    lastEnd = m.end();
+                }
+                String text = raw.substring(lastEnd).trim();
+                if (text.isEmpty()) continue;
+                for (Long t : times) out.add(new Line(t, text));
             }
-        }
-        Collections.sort(list, new Comparator<Line>() {
-            @Override public int compare(Line a, Line b) {
-                return Long.compare(a.time, b.time);
-            }
-        });
-        return list;
+            Collections.sort(out, new Comparator<Line>() {
+                @Override public int compare(Line a, Line b) {
+                    return a.time < b.time ? -1 : (a.time > b.time ? 1 : 0);
+                }
+            });
+        } catch (Throwable ignored) {}
+        return out;
     }
-    public static int findIndex(List<Line> lines, long ms) {
+
+    private static long parseLong(String s) {
+        try { return Long.parseLong(s); } catch (Throwable t) { return 0; }
+    }
+
+    public static int findIndex(List<Line> lines, long posMs) {
         if (lines == null || lines.isEmpty()) return -1;
-        for (int i = lines.size() - 1; i >= 0; i--) {
-            if (lines.get(i).time <= ms) return i;
+        int lo = 0, hi = lines.size() - 1, ans = -1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            if (lines.get(mid).time <= posMs) { ans = mid; lo = mid + 1; }
+            else hi = mid - 1;
         }
-        return 0;
+        return ans;
     }
 }
