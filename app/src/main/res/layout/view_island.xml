@@ -4,12 +4,46 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- ★ 生活区：未播放时显示 -->
+    <LinearLayout android:id="@+id/lifeBox"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_island"
+        android:paddingLeft="8dp" android:paddingRight="8dp"
+        android:gravity="center_vertical">
+
+        <TextView android:id="@+id/txtClock"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="#FFFFFF" android:textSize="18sp"
+            android:textStyle="bold" android:fontFamily="monospace"/>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginLeft="10dp">
+            <TextView android:id="@+id/txtDate"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="周一" android:textColor="#CCFFFFFF"
+                android:textSize="10sp"/>
+            <TextView android:id="@+id/txtLifeTip"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="生活区" android:textColor="#99FFB6D0"
+                android:textSize="10sp"/>
+        </LinearLayout>
+
+        <TextView android:id="@+id/txtBatteryLife"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="100%" android:textColor="#4CD964"
+            android:textSize="11sp" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- 折叠态：播放时显示 -->
     <LinearLayout android:id="@+id/collapsedBox"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
         android:background="@drawable/bg_island"
         android:paddingLeft="6dp" android:paddingRight="6dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical" android:visibility="gone">
 
         <FrameLayout android:layout_width="36dp" android:layout_height="36dp">
             <View android:layout_width="match_parent" android:layout_height="match_parent"
@@ -51,6 +85,7 @@
             android:clickable="true" android:focusable="true"/>
     </LinearLayout>
 
+    <!-- 展开态 -->
     <LinearLayout android:id="@+id/expandedBox"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -178,25 +213,52 @@
         <LinearLayout android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="horizontal"
             android:layout_marginTop="6dp" android:gravity="center_vertical">
-
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="通知" android:textColor="#8E8E93"
                 android:textSize="10sp" android:paddingRight="8dp"/>
-
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical">
                 <TextView android:id="@+id/txtNotifTitle"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="暂无新通知"
                     android:textColor="#FFFFFF" android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:singleLine="true" android:ellipsize="end"/>
+                    android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
                 <TextView android:id="@+id/txtNotifText"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:layout_marginTop="1dp" android:text=""
                     android:textColor="#99FFFFFF" android:textSize="10sp"
                     android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ★ 通知分裂区（右侧 1/3）-->
+    <LinearLayout android:id="@+id/notifSplit"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_island_notif"
+        android:paddingLeft="10dp" android:paddingRight="10dp"
+        android:visibility="gone">
+
+        <ImageView android:id="@+id/imgNotifApp"
+            android:layout_width="28dp" android:layout_height="28dp"
+            android:src="@mipmap/ic_launcher"
+            android:scaleType="centerCrop"/>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical"
+            android:layout_marginLeft="8dp">
+            <TextView android:id="@+id/txtSplitTitle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="" android:textColor="#FFFFFF"
+                android:textSize="11sp" android:textStyle="bold"
+                android:singleLine="true" android:ellipsize="end"/>
+            <TextView android:id="@+id/txtSplitText"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="1dp" android:text=""
+                android:textColor="#BBFFFFFF" android:textSize="10sp"
+                android:singleLine="true" android:ellipsize="end"/>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

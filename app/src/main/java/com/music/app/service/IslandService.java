@@ -34,8 +34,12 @@ import com.music.app.model.Song;
 import com.music.app.util.IslandConfig;
 import com.music.app.util.LyricsParser;
 import com.music.app.util.WallpaperHelper;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class IslandService extends Service {
     private static final String TAG = "Island";
@@ -46,23 +50,26 @@ public class IslandService extends Service {
     private WindowManager.LayoutParams lp;
     private IslandConfig cfg;
 
-    private View collapsedBox, expandedBox;
-    private ImageView imgCover, imgCoverBig;
+    private View lifeBox, collapsedBox, expandedBox, notifSplit;
+    private ImageView imgCover, imgCoverBig, imgNotifApp;
+    private TextView txtClock, txtDate, txtLifeTip, txtBatteryLife;
     private TextView txtTitle, txtTitleBig, txtArtistBig, txtMiniLyric, txtBattery, txtBatteryBig;
     private TextView[] lyricViews = new TextView[5];
     private TextView txtTimeCur, txtTimeTot;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
-    private TextView txtNotifTitle, txtNotifText;
+    private TextView txtNotifTitle, txtNotifText, txtSplitTitle, txtSplitText;
     private SeekBar seek;
 
     private int screenW, screenH, statusBarH;
     private float density;
     private boolean expanded = false, animating = false, dragging = false;
+    private boolean isPlayingMusic = false;
+    private boolean notifShowing = false;
 
     private long lastSongId = -1;
     private String lastLyric = "";
     private boolean lastPlaying = false;
-    private List<LyricsParser.Line> lyricLines = new ArrayList<LyricsParser.Line>();
+    private List<LyricsParser.Line> lyrics = new ArrayList<LyricsParser.Line>();
     private long lastNotifTime = 0;
 
     private ObjectAnimator coverRotate, breathe;
@@ -74,6 +81,12 @@ public class IslandService extends Service {
         @Override public void run() {
             try { update(); } catch (Throwable t) { Log.e(TAG, "tick", t); }
             h.postDelayed(this, 300);
+        }
+    };
+    private final Runnable clockTick = new Runnable() {
+        @Override public void run() {
+            try { updateClock(); } catch (Throwable ignored) {}
+            h.postDelayed(this, 1000);
         }
     };
 
@@ -92,8 +105,9 @@ public class IslandService extends Service {
             initView();
             initChargeReceiver();
             h.post(tick);
+            h.post(clockTick);
         } catch (Throwable t) {
-            Log.e(TAG, "init fail", t);
+            Log.e(TAG, "init", t);
             stopSelf();
         }
     }
@@ -144,6 +158,7 @@ public class IslandService extends Service {
 
         bindViews();
         bindClicks();
+        showLifeBox();
 
         root.setAlpha(0f);
         root.setScaleX(0.85f);
@@ -153,10 +168,17 @@ public class IslandService extends Service {
     }
 
     private void bindViews() {
+        lifeBox = root.findViewById(R.id.lifeBox);
         collapsedBox = root.findViewById(R.id.collapsedBox);
         expandedBox = root.findViewById(R.id.expandedBox);
+        notifSplit = root.findViewById(R.id.notifSplit);
         imgCover = root.findViewById(R.id.imgCover);
         imgCoverBig = root.findViewById(R.id.imgCoverBig);
+        imgNotifApp = root.findViewById(R.id.imgNotifApp);
+        txtClock = root.findViewById(R.id.txtClock);
+        txtDate = root.findViewById(R.id.txtDate);
+        txtLifeTip = root.findViewById(R.id.txtLifeTip);
+        txtBatteryLife = root.findViewById(R.id.txtBatteryLife);
         txtTitle = root.findViewById(R.id.txtTitle);
         txtTitleBig = root.findViewById(R.id.txtTitleBig);
         txtArtistBig = root.findViewById(R.id.txtArtistBig);
@@ -177,6 +199,8 @@ public class IslandService extends Service {
         btnClose = root.findViewById(R.id.btnClose);
         txtNotifTitle = root.findViewById(R.id.txtNotifTitle);
         txtNotifText = root.findViewById(R.id.txtNotifText);
+        txtSplitTitle = root.findViewById(R.id.txtSplitTitle);
+        txtSplitText = root.findViewById(R.id.txtSplitText);
         seek = root.findViewById(R.id.seek);
     }
 
@@ -186,6 +210,19 @@ public class IslandService extends Service {
         });
         if (expandedBox != null) expandedBox.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { if (expanded) collapse(); }
+        });
+        if (lifeBox != null) lifeBox.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                // 未播放时点击显示提示
+                if (txtLifeTip != null) {
+                    txtLifeTip.setText("播放音乐后切换");
+                    h.postDelayed(new Runnable() {
+                        @Override public void run() {
+                            if (txtLifeTip != null) txtLifeTip.setText("生活区");
+                        }
+                    }, 1500);
+                }
+            }
         });
 
         View.OnClickListener playClick = new View.OnClickListener() {
@@ -262,6 +299,47 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
+    /** 显示生活区 */
+    private void showLifeBox() {
+        if (isPlayingMusic) return;
+        try {
+            lifeBox.setVisibility(View.VISIBLE);
+            collapsedBox.setVisibility(View.GONE);
+            expandedBox.setVisibility(View.GONE);
+        } catch (Throwable ignored) {}
+        updateClock();
+    }
+
+    /** 显示音乐折叠态 */
+    private void showMusicBox() {
+        try {
+            lifeBox.setVisibility(View.GONE);
+            collapsedBox.setVisibility(View.VISIBLE);
+        } catch (Throwable ignored) {}
+    }
+
+    private void updateClock() {
+        try {
+            Calendar c = Calendar.getInstance();
+            String time = String.format(Locale.US, "%02d:%02d",
+                c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+            if (txtClock != null) txtClock.setText(time);
+            String[] days = {"周日","周一","周二","周三","周四","周五","周六"};
+            String date = String.format(Locale.US, "%d月%d日 %s",
+                c.get(Calendar.MONTH) + 1, c.get(Calendar.DAY_OF_MONTH),
+                days[c.get(Calendar.DAY_OF_WEEK) - 1]);
+            if (txtDate != null) txtDate.setText(date);
+            // 生活小贴士
+            if (txtLifeTip != null) {
+                String[] tips = {"今天也要开心", "喝口水吧", "慢慢来", "记得休息", "听听歌"};
+                int idx = c.get(Calendar.MINUTE) % tips.length;
+                String cur = txtLifeTip.getText().toString();
+                if (!"播放音乐后切换".equals(cur)) txtLifeTip.setText(tips[idx]);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    /** 展开 */
     private void expand() {
         if (expanded || animating) return;
         expanded = true;
@@ -315,6 +393,7 @@ public class IslandService extends Service {
         }
     }
 
+    /** 收起 */
     private void collapse() {
         if (!expanded || animating) return;
         expanded = false;
@@ -347,12 +426,9 @@ public class IslandService extends Service {
                                     wm.updateViewLayout(root, lp);
                                 } catch (Throwable ignored) {}
                                 expandedBox.setVisibility(View.GONE);
-                                collapsedBox.setVisibility(View.VISIBLE);
-                                collapsedBox.setAlpha(0f);
-                                collapsedBox.animate().alpha(1f).setDuration(180)
-                                    .withEndAction(new Runnable() {
-                                        @Override public void run() { animating = false; }
-                                    }).start();
+                                if (isPlayingMusic) collapsedBox.setVisibility(View.VISIBLE);
+                                else lifeBox.setVisibility(View.VISIBLE);
+                                animating = false;
                             }
                         });
                         wa.start();
@@ -364,32 +440,68 @@ public class IslandService extends Service {
         }
     }
 
-    public void reloadConfig() {
-        try {
-            cfg = IslandConfig.load();
-            if (!expanded) {
-                lp.width = cW();
-                lp.height = cH();
-                wm.updateViewLayout(root, lp);
-            }
-        } catch (Throwable ignored) {}
-    }
-
-    /** 通知回调 */
+    /** ★ 通知分裂动画（右侧 1/3 冒出，5 秒后回收）*/
     public void onNewNotification() {
         try {
             lastNotifTime = System.currentTimeMillis();
             updateNotifUI();
-            // 灵动岛闪一下
-            if (root != null) {
-                root.animate().scaleX(1.03f).scaleY(1.03f).setDuration(150)
-                    .withEndAction(new Runnable() {
-                        @Override public void run() {
-                            root.animate().scaleX(1f).scaleY(1f).setDuration(200).start();
-                        }
-                    }).start();
+            if (!notifShowing) {
+                showNotifSplit();
             }
         } catch (Throwable ignored) {}
+    }
+
+    private void showNotifSplit() {
+        if (notifShowing) return;
+        notifShowing = true;
+
+        try {
+            // 更新内容
+            String app = NotifListener.lastApp;
+            String title = NotifListener.lastTitle;
+            String text = NotifListener.lastText;
+            if (txtSplitTitle != null) {
+                txtSplitTitle.setText((app.isEmpty() ? "" : app + " · ") + title);
+            }
+            if (txtSplitText != null) txtSplitText.setText(text);
+
+            notifSplit.setVisibility(View.VISIBLE);
+            notifSplit.setTranslationX(screenW);  // 从右边外面开始
+            notifSplit.setAlpha(0f);
+
+            // 滑入
+            notifSplit.animate()
+                .translationX(0f)
+                .alpha(1f)
+                .setDuration(350)
+                .setInterpolator(new OvershootInterpolator(1.1f))
+                .start();
+
+            // 5 秒后回收
+            h.postDelayed(new Runnable() {
+                @Override public void run() {
+                    hideNotifSplit();
+                }
+            }, 5000);
+        } catch (Throwable ignored) {}
+    }
+
+    private void hideNotifSplit() {
+        try {
+            notifSplit.animate()
+                .translationX(screenW)
+                .alpha(0f)
+                .setDuration(280)
+                .setInterpolator(new DecelerateInterpolator())
+                .withEndAction(new Runnable() {
+                    @Override public void run() {
+                        notifSplit.setVisibility(View.GONE);
+                        notifShowing = false;
+                    }
+                }).start();
+        } catch (Throwable ignored) {
+            notifShowing = false;
+        }
     }
 
     private void updateNotifUI() {
@@ -398,17 +510,25 @@ public class IslandService extends Service {
             String app = NotifListener.lastApp;
             String title = NotifListener.lastTitle;
             String text = NotifListener.lastText;
-
-            // 5 分钟内有效
             boolean fresh = System.currentTimeMillis() - lastNotifTime < 5 * 60 * 1000;
             if (!fresh || (title.isEmpty() && text.isEmpty())) {
                 txtNotifTitle.setText("暂无新通知");
                 if (txtNotifText != null) txtNotifText.setText("");
                 return;
             }
-            String head = app.isEmpty() ? title : (app + " · " + title);
-            txtNotifTitle.setText(head);
+            txtNotifTitle.setText(app.isEmpty() ? title : (app + " · " + title));
             if (txtNotifText != null) txtNotifText.setText(text);
+        } catch (Throwable ignored) {}
+    }
+
+    public void reloadConfig() {
+        try {
+            cfg = IslandConfig.load();
+            if (!expanded) {
+                lp.width = cW();
+                lp.height = cH();
+                wm.updateViewLayout(root, lp);
+            }
         } catch (Throwable ignored) {}
     }
 
@@ -452,6 +572,7 @@ public class IslandService extends Service {
             }
             if (txtBattery != null) { txtBattery.setText(txt); txtBattery.setTextColor(color); }
             if (txtBatteryBig != null) { txtBatteryBig.setText(txt); txtBatteryBig.setTextColor(color); }
+            if (txtBatteryLife != null) { txtBatteryLife.setText(txt); txtBatteryLife.setTextColor(color); }
         } catch (Throwable ignored) {}
     }
 
@@ -466,7 +587,7 @@ public class IslandService extends Service {
                         }
                     }).start();
             }
-            if (!expanded) {
+            if (!expanded && isPlayingMusic) {
                 expand();
                 h.postDelayed(new Runnable() {
                     @Override public void run() { if (expanded) collapse(); }
@@ -479,7 +600,7 @@ public class IslandService extends Service {
         try {
             if (root == null) return;
             if (breathe != null) breathe.cancel();
-            breathe = ObjectAnimator.ofFloat(root, "alpha", 1f, 0.88f, 1f);
+            breathe = ObjectAnimator.ofFloat(root, "alpha", 1f, 0.9f, 1f);
             breathe.setDuration(2200);
             breathe.setRepeatCount(ObjectAnimator.INFINITE);
             breathe.start();
@@ -508,7 +629,22 @@ public class IslandService extends Service {
     private void update() {
         try {
             ExoPlayer p = MusicService.getPlayer();
-            if (p == null) return;
+            boolean nowPlaying = p != null && p.getCurrentMediaItem() != null;
+
+            // ★ 切换生活区/音乐态
+            if (nowPlaying != isPlayingMusic) {
+                isPlayingMusic = nowPlaying;
+                if (nowPlaying) {
+                    if (!expanded) showMusicBox();
+                } else {
+                    if (!expanded) showLifeBox();
+                }
+            }
+
+            if (!nowPlaying) {
+                if (expanded) updateNotifUI();
+                return;
+            }
 
             MediaItem item = p.getCurrentMediaItem();
             long songId = 0;
@@ -537,7 +673,7 @@ public class IslandService extends Service {
             if (songId != lastSongId) {
                 lastSongId = songId;
                 PlayerActivity.currentLyric = "";
-                lyricLines = new ArrayList<LyricsParser.Line>();
+                lyrics = new ArrayList<LyricsParser.Line>();
                 lastLyric = "";
                 try {
                     String name = WallpaperHelper.forSong(this, songId);
@@ -581,22 +717,22 @@ public class IslandService extends Service {
             } else {
                 if (!lrc.equals(lastLyric)) {
                     lastLyric = lrc;
-                    lyricLines = LyricsParser.parse(lrc);
+                    lyrics = LyricsParser.parse(lrc);
                 }
-                if (!lyricLines.isEmpty()) {
+                if (!lyrics.isEmpty()) {
                     long pos = p.getCurrentPosition();
-                    int li = LyricsParser.findIndex(lyricLines, pos);
+                    int li = LyricsParser.findIndex(lyrics, pos);
 
-                    if (txtMiniLyric != null && li >= 0 && li < lyricLines.size()) {
-                        String cur = lyricLines.get(li).text;
+                    if (txtMiniLyric != null && li >= 0 && li < lyrics.size()) {
+                        String cur = lyrics.get(li).text;
                         if (!cur.equals(txtMiniLyric.getText().toString()))
                             txtMiniLyric.setText(cur);
                     }
                     if (expanded) {
                         for (int i = -2; i <= 2; i++) {
                             int ii = li + i;
-                            String txt = (ii >= 0 && ii < lyricLines.size())
-                                ? lyricLines.get(ii).text : "";
+                            String txt = (ii >= 0 && ii < lyrics.size())
+                                ? lyrics.get(ii).text : "";
                             TextView tv = lyricViews[i + 2];
                             if (tv != null && !txt.equals(tv.getText().toString()))
                                 tv.setText(txt);
