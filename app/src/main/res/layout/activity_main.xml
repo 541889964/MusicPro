@@ -5,7 +5,8 @@
     android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/ivWallpaper"
         android:layout_width="match_parent" android:layout_height="match_parent"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop"
+        android:layerType="hardware"/>
     <View android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="#AA0D0B1F"/>
     <View android:layout_width="match_parent" android:layout_height="240dp"

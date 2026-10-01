@@ -173,7 +173,13 @@ public class MainActivity extends AppCompatActivity {
         tvEmpty = findViewById(R.id.tvEmpty);
         tvCount = findViewById(R.id.tvCount);
         if (rv != null) {
-            rv.setLayoutManager(new LinearLayoutManager(this));
+            rv.setHasFixedSize(true);
+            rv.setItemViewCacheSize(20);
+            rv.setDrawingCacheEnabled(true);
+            rv.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+            rv.setItemAnimator(null);
+            LinearLayoutManager lm = new LinearLayoutManager(this);
+            rv.setLayoutManager(lm);
             adapter = new SongAdapter(new SongAdapter.OnItemClick() {
                 @Override public void onClick(Song s, int pos) { openPlayer(pos); }
             }, new SongAdapter.OnItemLongClick() {

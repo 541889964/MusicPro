@@ -1,46 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:layout_marginLeft="12dp" android:layout_marginRight="12dp"
-    android:layout_marginTop="5dp" android:layout_marginBottom="5dp">
+    android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/card_song_bg">
+    <ImageView android:id="@+id/ivCover"
+        android:layout_width="54dp" android:layout_height="54dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/cover_placeholder"/>
     <LinearLayout
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical"
-        android:background="@drawable/card_song_bg">
-        <FrameLayout
-            android:layout_width="54dp" android:layout_height="54dp">
-            <View
-                android:layout_width="match_parent" android:layout_height="match_parent"
-                android:layout_margin="2dp"
-                android:background="@drawable/cover_glow_soft"/>
-            <ImageView android:id="@+id/ivCover"
-                android:layout_width="match_parent" android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:background="@drawable/cover_placeholder"
-                android:elevation="3dp"/>
-        </FrameLayout>
-        <LinearLayout
-            android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:orientation="vertical"
-            android:layout_marginLeft="14dp">
-            <TextView android:id="@+id/tvTitle"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="歌曲名" android:textColor="#FFFFFF"
-                android:textSize="15sp" android:textStyle="bold"
-                android:singleLine="true" android:ellipsize="end"/>
-            <TextView android:id="@+id/tvSub"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:text="歌手 · 专辑"
-                android:textColor="#B8A8E8" android:textSize="12sp"
-                android:singleLine="true" android:ellipsize="end"/>
-        </LinearLayout>
-        <TextView android:id="@+id/tvDur"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="0:00" android:textColor="#D6CCF5"
-            android:textSize="12sp" android:layout_marginLeft="10dp"
-            android:padding="6dp"/>
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical"
+        android:layout_marginLeft="14dp">
+        <TextView android:id="@+id/tvTitle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="歌曲名" android:textColor="#FFFFFF"
+            android:textSize="15sp" android:textStyle="bold"
+            android:singleLine="true" android:ellipsize="end"/>
+        <TextView android:id="@+id/tvSub"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" android:text="歌手 · 专辑"
+            android:textColor="#B8A8E8" android:textSize="12sp"
+            android:singleLine="true" android:ellipsize="end"/>
     </LinearLayout>
-</FrameLayout>
+    <TextView android:id="@+id/tvDur"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="0:00" android:textColor="#D6CCF5"
+        android:textSize="12sp" android:layout_marginLeft="10dp"
+        android:padding="6dp"/>
+</LinearLayout>

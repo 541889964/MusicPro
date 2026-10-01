@@ -10,6 +10,6 @@ public class Prefs {
     public static void incOpen(Context c) { sp(c).edit().putInt("cnt", openCount(c) + 1).apply(); }
     public static String wallpaper(Context c) { return sp(c).getString("wp", ""); }
     public static void setWallpaper(Context c, String v) { sp(c).edit().putString("wp", v).apply(); }
-    public static boolean autoRotate(Context c) { return sp(c).getBoolean("rot", true); }
+    public static boolean autoRotate(Context c) { return sp(c).getBoolean("rot", false); }
     public static void setAutoRotate(Context c, boolean v) { sp(c).edit().putBoolean("rot", v).apply(); }
 }

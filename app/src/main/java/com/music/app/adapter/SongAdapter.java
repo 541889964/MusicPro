@@ -1,5 +1,7 @@
 package com.music.app.adapter;
 import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +23,9 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
     private final List<Song> data = new ArrayList<Song>();
     private final OnItemClick listener;
     private final OnItemLongClick longListener;
+    private final Handler ui = new Handler(Looper.getMainLooper());
     private int lastAnimatedPos = -1;
+
     public SongAdapter(OnItemClick l) { this(l, null); }
     public SongAdapter(OnItemClick l, OnItemLongClick ll) { this.listener = l; this.longListener = ll; }
     public void setData(List<Song> list) {
@@ -39,58 +43,55 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
         h.tvTitle.setText(s.title);
         h.tvSub.setText(s.artist + " · " + s.album);
         h.tvDur.setText(s.getDurationText());
+
+        // 关键：用 loadSmall 缓存小图，避免重复解码大图
         String name = WallpaperHelper.forSong(h.ivCover.getContext(), s.id);
-        Bitmap bm = WallpaperHelper.load(h.ivCover.getContext(), name);
-        if (bm != null) h.ivCover.setImageBitmap(bm);
-        else if (s.cover != null && !s.cover.isEmpty()) {
+        Bitmap bm = WallpaperHelper.loadSmall(h.ivCover.getContext(), name);
+        if (bm != null) {
+            h.ivCover.setImageBitmap(bm);
+        } else if (s.cover != null && !s.cover.isEmpty()) {
             Glide.with(h.ivCover.getContext()).load(s.cover)
                 .placeholder(R.drawable.cover_placeholder)
-                .error(R.drawable.cover_placeholder).into(h.ivCover);
-        } else h.ivCover.setImageResource(R.drawable.cover_placeholder);
+                .error(R.drawable.cover_placeholder)
+                .into(h.ivCover);
+        } else {
+            h.ivCover.setImageResource(R.drawable.cover_placeholder);
+        }
 
+        // 点击反馈：缩短时长，减少掉帧
         h.itemView.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(final View v) {
-                v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80).start();
+                v.animate().scaleX(0.96f).scaleY(0.96f).setDuration(60).start();
                 v.postDelayed(new Runnable() {
                     @Override public void run() {
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(250)
-                            .setInterpolator(new OvershootInterpolator(2.5f)).start();
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(180)
+                            .setInterpolator(new OvershootInterpolator(2f)).start();
                     }
-                }, 80);
-                v.postDelayed(new Runnable() {
-                    @Override public void run() {
-                        if (listener != null) listener.onClick(s, h.getAdapterPosition());
-                    }
-                }, 160);
+                }, 60);
+                if (listener != null) listener.onClick(s, h.getAdapterPosition());
             }
         });
         h.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override public boolean onLongClick(View v) {
-                v.animate().scaleX(1.05f).scaleY(1.05f).setDuration(120).start();
-                v.postDelayed(new Runnable() {
-                    @Override public void run() {
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(200)
-                            .setInterpolator(new OvershootInterpolator(2f)).start();
-                    }
-                }, 120);
                 if (longListener != null) { longListener.onLongClick(s, h.getAdapterPosition()); return true; }
                 return false;
             }
         });
 
-        // 逐条入场：滑动 + 缩放 + 淡入
-        if (pos > lastAnimatedPos) {
+        // 入场：只对新出现的条目（not scrolling）做动画，避免滚动重绘
+        if (pos > lastAnimatedPos && !h.itemView.isShown()) {
             h.itemView.setAlpha(0f);
-            h.itemView.setTranslationY(60f);
-            h.itemView.setScaleX(0.92f);
-            h.itemView.setScaleY(0.92f);
+            h.itemView.setTranslationY(40f);
             h.itemView.animate()
-                .alpha(1f).translationY(0f).scaleX(1f).scaleY(1f)
-                .setStartDelay(pos * 30L)
-                .setDuration(500)
+                .alpha(1f).translationY(0f)
+                .setStartDelay(pos * 20L)
+                .setDuration(300)
                 .setInterpolator(new DecelerateInterpolator())
                 .start();
             lastAnimatedPos = pos;
+        } else if (h.itemView.getAlpha() < 1f) {
+            h.itemView.setAlpha(1f);
+            h.itemView.setTranslationY(0f);
         }
     }
     @Override public int getItemCount() { return data.size(); }
