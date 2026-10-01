@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/splashRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/splash_bg">
+
+    <ImageView android:id="@+id/ivWallpaper"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop" android:alpha="0.55"/>
+
+    <View android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#88000000"/>
+
+    <com.music.app.widget.ParticleView
+        android:id="@+id/particles"
+        android:layout_width="match_parent" android:layout_height="match_parent"/>
+
+    <View android:id="@+id/bgGlow"
+        android:layout_width="520dp" android:layout_height="520dp"
+        android:layout_gravity="center"
+        android:background="@drawable/glow_radial"/>
+
+    <com.music.app.widget.RippleView
+        android:id="@+id/rippleView"
+        android:layout_width="320dp" android:layout_height="320dp"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="120dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:orientation="vertical"
+        android:gravity="center" android:paddingLeft="32dp" android:paddingRight="32dp">
+
+        <ImageView android:id="@+id/ivLogo"
+            android:layout_width="120dp" android:layout_height="120dp"
+            android:src="@mipmap/ic_launcher"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginTop="28dp">
+            <TextView android:id="@+id/t1" style="@style/SplashBrand" android:text="M"/>
+            <TextView android:id="@+id/t2" style="@style/SplashBrand" android:text="U"/>
+            <TextView android:id="@+id/t3" style="@style/SplashBrand" android:text="S"/>
+            <TextView android:id="@+id/t4" style="@style/SplashBrand" android:text="I"/>
+            <TextView android:id="@+id/t5" style="@style/SplashBrand" android:text="C"/>
+            <TextView android:id="@+id/t6" style="@style/SplashBrand" android:text="·" android:textColor="#FF6B9D"/>
+        </LinearLayout>
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieWave"
+            android:layout_width="200dp" android:layout_height="60dp"
+            android:layout_marginTop="18dp" android:visibility="gone"
+            app:lottie_fileName="wave.json" app:lottie_loop="true" app:lottie_autoPlay="false"/>
+
+        <TextView android:id="@+id/tvSlogan"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:letterSpacing="0.3"
+            android:text="让每一个音符都动起来"
+            android:textColor="#E8DDFF" android:textSize="14sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom" android:orientation="vertical"
+        android:gravity="center" android:paddingBottom="72dp">
+
+        <com.music.app.widget.RingProgressView
+            android:id="@+id/progressRing"
+            android:layout_width="56dp" android:layout_height="56dp"
+            android:visibility="gone"/>
+
+        <TextView android:id="@+id/tvTip"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="14dp" android:text="正在启动…"
+            android:textColor="#D6CCF5" android:textSize="12sp"/>
+    </LinearLayout>
+</FrameLayout>

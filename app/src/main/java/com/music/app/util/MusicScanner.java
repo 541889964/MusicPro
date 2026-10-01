@@ -1,0 +1,56 @@
+package com.music.app.util;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.provider.MediaStore;
+import com.music.app.model.Song;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MusicScanner {
+    public static List<Song> scan(Context ctx) {
+        List<Song> list = new ArrayList<>();
+        String[] proj = {
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.DATA,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.ALBUM_ID
+        };
+        try {
+            Cursor c = ctx.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                proj,
+                MediaStore.Audio.Media.IS_MUSIC + " != 0",
+                null,
+                MediaStore.Audio.Media.TITLE + " ASC");
+            if (c != null) {
+                int iId = c.getColumnIndex(MediaStore.Audio.Media._ID);
+                int iTitle = c.getColumnIndex(MediaStore.Audio.Media.TITLE);
+                int iArtist = c.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+                int iAlbum = c.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+                int iPath = c.getColumnIndex(MediaStore.Audio.Media.DATA);
+                int iDur = c.getColumnIndex(MediaStore.Audio.Media.DURATION);
+                int iAlbId = c.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
+                while (c.moveToNext()) {
+                    Song s = new Song();
+                    s.id = c.getLong(iId);
+                    s.title = c.getString(iTitle);
+                    s.artist = c.getString(iArtist);
+                    s.album = c.getString(iAlbum);
+                    s.path = c.getString(iPath);
+                    s.duration = c.getLong(iDur);
+                    s.albumId = c.getLong(iAlbId);
+                    if (s.title == null) s.title = "未知歌曲";
+                    if (s.artist == null || s.artist.equals("<unknown>")) s.artist = "未知歌手";
+                    if (s.album == null) s.album = "未知专辑";
+                    if (s.path != null) list.add(s);
+                }
+                c.close();
+            }
+        } catch (Throwable ignored) {}
+        return list;
+    }
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialogRoot"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:background="@drawable/bg_dialog"
+    android:elevation="24dp">
+
+    <ImageView android:id="@+id/ivIcon"
+        android:layout_width="56dp" android:layout_height="56dp"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="24dp"
+        android:src="@android:drawable/ic_dialog_info"
+        android:background="@drawable/bg_icon_circle"/>
+
+    <TextView android:id="@+id/tvTitle"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="12dp"
+        android:text="欢迎回来 ♡" android:textColor="#FFFFFF"
+        android:textSize="20sp" android:textStyle="bold"/>
+
+    <View android:id="@+id/divider"
+        android:layout_width="48dp" android:layout_height="3dp"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="10dp"
+        android:background="@drawable/bg_divider"/>
+
+    <ScrollView android:id="@+id/svContent"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:layout_marginTop="16dp"
+        android:paddingLeft="20dp" android:paddingRight="20dp">
+        <TextView android:id="@+id/tvContent"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:lineSpacingExtra="6dp" android:textColor="#E8DDFF"
+            android:textSize="13sp"/>
+    </ScrollView>
+
+    <TextView android:id="@+id/tvCountdown"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="8dp"
+        android:textColor="#B8A8E8" android:textSize="11sp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnConfirm"
+        android:layout_width="match_parent" android:layout_height="52dp"
+        android:layout_marginLeft="20dp" android:layout_marginRight="20dp"
+        android:layout_marginTop="12dp" android:layout_marginBottom="20dp"
+        android:text="我已知晓 ♡" android:textColor="#FFFFFF" android:textSize="15sp"
+        app:cornerRadius="26dp" app:backgroundTint="#FF6B9D"/>
+</LinearLayout>
