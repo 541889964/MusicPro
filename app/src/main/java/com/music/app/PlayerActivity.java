@@ -91,8 +91,7 @@ public class PlayerActivity extends AppCompatActivity {
         if (startIdx < 0 || startIdx >= queue.size()) startIdx = 0;
         currentIndex = startIdx;
 
-        initPlayer();
-        com.music.app.service.IslandService.queue = queue;
+        com.music.app.service.MusicService.setQueue(this, queue, currentIndex);
         playAt(currentIndex);
         startIsland();
 
@@ -206,28 +205,7 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void setFullQueue(int startIdx) {
-        java.util.List<MediaItem> items = new java.util.ArrayList<MediaItem>();
-        for (int i = 0; i < queue.size(); i++) {
-            Song sg = queue.get(i);
-            String uri;
-            if (sg.isOnline) {
-                uri = sg.onlineUrl;
-                if (uri == null || uri.isEmpty())
-                    uri = "https://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
-            } else {
-                uri = "file://" + sg.path;
-            }
-            MediaItem item = new MediaItem.Builder()
-                .setUri(uri)
-                .setMediaMetadata(new MediaMetadata.Builder()
-                    .setTitle(sg.title)
-                    .setArtist(sg.artist)
-                    .setAlbumTitle(sg.album)
-                    .build())
-                .build();
-            items.add(item);
-        }
-        player.setMediaItems(items, startIdx, 0);
+        com.music.app.service.MusicService.setQueue(this, queue, startIdx);
     }
 
     private void playAt(int idx) {

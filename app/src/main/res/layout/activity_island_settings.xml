@@ -55,6 +55,73 @@
             </LinearLayout>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp" android:layout_marginTop="24dp"
+                android:text="⚡ 帧率" android:textColor="#FF6B9D"
+                android:textSize="14sp" android:textStyle="bold"/>
+
+            <TextView android:id="@+id/tvFpsVal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginTop="6dp"
+                android:text="当前: 60fps" android:textColor="#B8A8E8" android:textSize="12sp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginLeft="20dp" android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp" android:weightSum="5">
+                <LinearLayout android:id="@+id/btnFps30"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="10dp" android:gravity="center"
+                    android:layout_marginRight="4dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="30" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/btnFps60"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="10dp" android:gravity="center"
+                    android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="60" android:textColor="#FF6B9D" android:textSize="12sp" android:textStyle="bold"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/btnFps90"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="10dp" android:gravity="center"
+                    android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="90" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/btnFps120"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="10dp" android:gravity="center"
+                    android:layout_marginLeft="4dp" android:layout_marginRight="4dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="120" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/btnFps144"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:padding="10dp" android:gravity="center"
+                    android:layout_marginLeft="4dp"
+                    android:background="@drawable/theme_option_bg"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="144" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp" android:layout_marginTop="24dp"
                 android:text="⚡ 快速预设" android:textColor="#FF6B9D"
                 android:textSize="14sp" android:textStyle="bold"/>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
