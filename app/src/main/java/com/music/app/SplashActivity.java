@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
@@ -34,7 +35,7 @@ public class SplashActivity extends AppCompatActivity {
         final ImageView logo = findViewById(R.id.logo);
         final TextView brand = findViewById(R.id.brand);
         final TextView tip = findViewById(R.id.tip);
-        if (glow == null || logo == null || brand == null || tip == null) { jump(); return; }
+        final View progress = findViewById(R.id.progressBar);
 
         ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
         va.setDuration(1500);
@@ -46,16 +47,28 @@ public class SplashActivity extends AppCompatActivity {
         });
         va.start();
 
-        logo.setAlpha(0f); logo.setScaleX(0.4f); logo.setScaleY(0.4f);
-        logo.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(1400)
-            .setInterpolator(new OvershootInterpolator(1.6f))
-            .start();
+        logo.setAlpha(0f);
+        logo.setScaleX(0.4f);
+        logo.setScaleY(0.4f);
+        logo.setRotation(-180f);
+        logo.animate().alpha(1f).scaleX(1f).scaleY(1f).rotation(0f)
+            .setDuration(1400).setInterpolator(new OvershootInterpolator(1.6f)).start();
 
-        brand.setAlpha(0f); brand.setTranslationY(30f);
+        brand.setAlpha(0f);
+        brand.setTranslationY(30f);
         brand.animate().alpha(1f).translationY(0f)
             .setStartDelay(400).setDuration(800)
             .setInterpolator(new DecelerateInterpolator()).start();
+
+        ValueAnimator pw = ValueAnimator.ofFloat(0f, 1f);
+        pw.setDuration(3800);
+        pw.addUpdateListener(a -> {
+            float v = (float) a.getAnimatedValue();
+            ViewGroup.LayoutParams lp = progress.getLayoutParams();
+            lp.width = (int)(200 * v);
+            progress.setLayoutParams(lp);
+        });
+        pw.start();
 
         final String[] tips = {"正在准备…", "加载音乐库…", "扫描本地…", "马上就好…"};
         final Handler h = new Handler(Looper.getMainLooper());

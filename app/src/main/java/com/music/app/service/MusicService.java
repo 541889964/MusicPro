@@ -17,8 +17,7 @@ public class MusicService extends MediaSessionService {
         } catch (Throwable ignored) {}
     }
 
-    @Nullable @Override
-    public MediaSession onGetSession(MediaSession.ControllerInfo c) { return session; }
+    @Nullable @Override public MediaSession onGetSession(MediaSession.ControllerInfo c) { return session; }
 
     @Override public void onDestroy() {
         if (session != null) { session.release(); session = null; }

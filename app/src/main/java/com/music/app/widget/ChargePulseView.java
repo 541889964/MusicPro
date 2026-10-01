@@ -11,8 +11,10 @@ public class ChargePulseView extends View {
     private float phase = 0f;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private ValueAnimator va;
+
     public ChargePulseView(Context c) { super(c); }
     public ChargePulseView(Context c, AttributeSet a) { super(c, a); }
+
     public void start() {
         if (va != null) va.cancel();
         va = ValueAnimator.ofFloat(0f, 1f);
@@ -21,11 +23,13 @@ public class ChargePulseView extends View {
         va.addUpdateListener(a -> { phase = (float) a.getAnimatedValue(); postInvalidateOnAnimation(); });
         va.start();
     }
+
     public void stop() {
         if (va != null) va.cancel();
         phase = 0;
         postInvalidateOnAnimation();
     }
+
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
         float cx = getWidth() / 2f, cy = getHeight() / 2f;

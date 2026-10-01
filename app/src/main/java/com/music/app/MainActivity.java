@@ -3,6 +3,8 @@ package com.music.app;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.music.app.adapter.SongAdapter;
 import com.music.app.model.Song;
 import com.music.app.util.MusicScanner;
+import com.music.app.util.RandomAssets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
             tvCount = findViewById(R.id.tvCount);
             tvEmpty = findViewById(R.id.tvEmpty);
             etSearch = findViewById(R.id.etSearch);
+
+            applyRandomBg();
 
             if (rv != null) {
                 rv.setLayoutManager(new LinearLayoutManager(this));
@@ -70,15 +75,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** 用 assets/icons 里随机一张作为背景 */
+    private void applyRandomBg() {
+        try {
+            Bitmap bmp = RandomAssets.bg(this);
+            if (bmp == null) return;
+            BitmapDrawable d = new BitmapDrawable(getResources(), bmp);
+            d.setAlpha(90); // 半透明，不压住内容
+            View root = findViewById(android.R.id.content);
+            if (root != null) root.setBackground(d);
+        } catch (Throwable ignored) {}
+    }
+
     private void requestPermAndScan() {
         String perm = Build.VERSION.SDK_INT >= 33
             ? "android.permission.READ_MEDIA_AUDIO"
             : Manifest.permission.READ_EXTERNAL_STORAGE;
-        if (ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED) {
-            scanAsync();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{perm}, REQ_PERM);
-        }
+        if (ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED) scanAsync();
+        else ActivityCompat.requestPermissions(this, new String[]{perm}, REQ_PERM);
     }
 
     @Override public void onRequestPermissionsResult(int req, @NonNull String[] p, @NonNull int[] r) {
@@ -89,19 +103,24 @@ public class MainActivity extends AppCompatActivity {
     private void scanAsync() {
         new Thread(() -> {
             List<Song> songs = MusicScanner.scan(this);
-            runOnUiThread(() -> { showing.clear(); showing.addAll(songs); refresh(); });
+            runOnUiThread(() -> {
+                showing.clear();
+                showing.addAll(songs);
+                refresh();
+            });
         }).start();
     }
 
     private void filter(String q) {
         if (q == null || q.trim().isEmpty()) {
-            showing.clear(); showing.addAll(MusicScanner.lastList);
+            showing.clear();
+            showing.addAll(MusicScanner.lastList);
         } else {
             String k = q.toLowerCase().trim();
             showing.clear();
-            for (Song s : MusicScanner.lastList)
-                if (s.title.toLowerCase().contains(k) || s.artist.toLowerCase().contains(k))
-                    showing.add(s);
+            for (Song s : MusicScanner.lastList) {
+                if (s.title.toLowerCase().contains(k) || s.artist.toLowerCase().contains(k)) showing.add(s);
+            }
         }
         refresh();
     }
@@ -124,7 +143,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkOverlayAndStart() {
         try {
-            if (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(this)) { startIsland(); return; }
+            if (Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(this)) {
+                startIsland();
+                return;
+            }
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 if (isFinishing() || isDestroyed()) return;
                 try {

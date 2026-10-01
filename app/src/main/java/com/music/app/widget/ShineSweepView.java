@@ -35,10 +35,10 @@ public class ShineSweepView extends View {
         super.onDraw(c);
         if (x < -0.5f || x > 1.5f) return;
         float w = getWidth(), h = getHeight();
-        float bandW = w * 0.2f;
+        float bandW = w * 0.22f;
         if (grad == null) {
             grad = new LinearGradient(0, 0, bandW * 2, 0,
-                new int[]{0x00FFFFFF, 0x88FFFFFF, 0x00FFFFFF},
+                new int[]{0x00FFFFFF, 0x99FFFFFF, 0x00FFFFFF},
                 null, Shader.TileMode.CLAMP);
         }
         mtx.reset();

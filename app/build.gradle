@@ -1,7 +1,9 @@
 plugins { id 'com.android.application' }
+
 android {
     namespace 'com.music.app'
     compileSdk 34
+
     defaultConfig {
         applicationId "com.music.app"
         minSdk 21
@@ -10,6 +12,7 @@ android {
         versionName "10.0.0"
         multiDexEnabled true
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -17,13 +20,22 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-    packagingOptions { resources.excludes += ['META-INF/*.kotlin_module','META-INF/DEPENDENCIES'] }
-    aaptOptions { noCompress 'mp3','json' }
+
+    packagingOptions {
+        resources.excludes += ['META-INF/*.kotlin_module', 'META-INF/DEPENDENCIES']
+    }
+    aaptOptions {
+        noCompress 'mp3', 'json'
+        // 图标已在生成时可能是 jpg/png，禁止再压缩
+        noCompress 'jpg', 'jpeg', 'png', 'webp'
+    }
 }
+
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core:1.12.0'

@@ -18,6 +18,8 @@ public class WallpaperHelper {
             p.setShader(lg);
             cv.drawCircle(size / 2f, size / 2f, size / 2f, p);
             return bm;
-        } catch (Throwable t) { return null; }
+        } catch (Throwable t) {
+            return null;
+        }
     }
 }

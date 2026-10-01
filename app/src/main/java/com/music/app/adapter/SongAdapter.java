@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
-
     public interface OnClick { void click(Song s, int pos); }
 
     private final List<Song> data = new ArrayList<>();
@@ -30,8 +29,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
 
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup p, int v) {
-        View view = LayoutInflater.from(p.getContext())
-            .inflate(R.layout.item_song, p, false);
+        View view = LayoutInflater.from(p.getContext()).inflate(R.layout.item_song, p, false);
         return new VH(view);
     }
 
@@ -41,25 +39,22 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
         h.title.setText(s.title);
         h.sub.setText(s.artist + " · " + s.album);
         h.dur.setText(s.getDur());
-
         h.itemView.setOnClickListener(v -> {
             int p = h.getAdapterPosition();
             if (p != RecyclerView.NO_POSITION && l != null) l.click(s, p);
         });
-
+        // 回收前重置，防止列表抖动
         h.itemView.setAlpha(1f);
         h.itemView.setTranslationY(0f);
         if (pos > last) {
             h.itemView.setAlpha(0f);
             h.itemView.setTranslationY(40f);
-            h.itemView.animate().alpha(1f).translationY(0f)
-                .setDuration(350).start();
+            h.itemView.animate().alpha(1f).translationY(0f).setDuration(350).start();
             last = pos;
         }
     }
 
-    @Override
-    public int getItemCount() { return data.size(); }
+    @Override public int getItemCount() { return data.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
         TextView title, sub, dur;

@@ -23,8 +23,7 @@ public class MusicScanner {
                     MediaStore.Audio.Media.DATA,
                     MediaStore.Audio.Media.DURATION
                 },
-                MediaStore.Audio.Media.IS_MUSIC + " != 0",
-                null,
+                MediaStore.Audio.Media.IS_MUSIC + " != 0", null,
                 MediaStore.Audio.Media.TITLE + " ASC");
             if (cur != null) {
                 int iId = cur.getColumnIndex(MediaStore.Audio.Media._ID);

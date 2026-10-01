@@ -1,26 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/splashRoot"
-    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="#0D0B1F">
+
     <View android:id="@+id/glow"
-        android:layout_width="500dp" android:layout_height="500dp"
-        android:layout_gravity="center" android:background="@drawable/glow_radial"/>
-    <LinearLayout android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:layout_gravity="center"
+        android:layout_width="600dp" android:layout_height="600dp"
+        android:layout_gravity="center"
+        android:background="@drawable/glow_radial"/>
+
+    <View
+        android:layout_width="400dp" android:layout_height="400dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="100dp"
+        android:background="@drawable/glow_cyan"
+        android:alpha="0.4"/>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" android:layout_marginTop="180dp"
         android:orientation="vertical" android:gravity="center">
-        <ImageView android:id="@+id/logo"
-            android:layout_width="120dp" android:layout_height="120dp"
-            android:src="@mipmap/ic_launcher"/>
-        <TextView android:id="@+id/brand"
+
+        <FrameLayout
+            android:layout_width="140dp" android:layout_height="140dp">
+            <View android:layout_width="match_parent" android:layout_height="match_parent"
+                android:background="@drawable/bg_cover_circle"/>
+            <ImageView android:id="@+id/logo"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="12dp"
+                android:src="@mipmap/ic_launcher"/>
+        </FrameLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="24dp" android:text="拾音"
-            android:textColor="#FFFFFF" android:textSize="42sp"
-            android:textStyle="bold" android:letterSpacing="0.25"/>
+            android:layout_marginTop="32dp" android:orientation="horizontal">
+            <TextView android:id="@+id/brand"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="拾音"
+                android:textColor="#FFFFFF" android:textSize="48sp"
+                android:textStyle="bold" android:letterSpacing="0.3"/>
+        </LinearLayout>
     </LinearLayout>
-    <TextView android:id="@+id/tip"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="80dp" android:text="正在准备…"
-        android:textColor="#99FFFFFF" android:textSize="13sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom" android:orientation="vertical"
+        android:gravity="center" android:paddingBottom="100dp">
+
+        <FrameLayout
+            android:layout_width="200dp" android:layout_height="4dp"
+            android:background="#22FFFFFF">
+            <View android:id="@+id/progressBar"
+                android:layout_width="0dp" android:layout_height="match_parent"
+                android:background="@drawable/bg_card_gradient"/>
+        </FrameLayout>
+
+        <TextView android:id="@+id/tip"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="正在准备…"
+            android:textColor="#99FFFFFF" android:textSize="13sp"/>
+    </LinearLayout>
 </FrameLayout>

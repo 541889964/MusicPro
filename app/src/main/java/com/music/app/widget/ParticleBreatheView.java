@@ -30,6 +30,7 @@ public class ParticleBreatheView extends View {
             parts[i].alpha = 0.3f + rnd.nextFloat() * 0.5f;
         }
     }
+
     public void start() {
         if (running) return;
         running = true;
@@ -45,11 +46,13 @@ public class ParticleBreatheView extends View {
         });
         va.start();
     }
+
     public void stop() {
         running = false;
         if (va != null) va.cancel();
         postInvalidateOnAnimation();
     }
+
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
         if (!running) return;

@@ -11,9 +11,12 @@ import android.view.animation.DecelerateInterpolator;
 public class RippleView extends View {
     private float progress = 0f;
     private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     public RippleView(Context c) { super(c); init(); }
     public RippleView(Context c, AttributeSet a) { super(c, a); init(); }
+
     private void init() { p.setStyle(Paint.Style.STROKE); p.setColor(0xFFFF6B9D); }
+
     public void startOnce(long d) {
         ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
         va.setDuration(d);
@@ -21,7 +24,9 @@ public class RippleView extends View {
         va.addUpdateListener(a -> { progress = (float) a.getAnimatedValue(); postInvalidateOnAnimation(); });
         va.start();
     }
+
     public void start(long d) { startOnce(d); }
+
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
         float cx = getWidth() / 2f, cy = getHeight() / 2f;

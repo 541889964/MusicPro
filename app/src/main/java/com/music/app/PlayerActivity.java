@@ -1,6 +1,7 @@
 package com.music.app;
 
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,16 +15,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.music.app.model.Song;
+import com.music.app.util.RandomAssets;
 import com.music.app.util.WallpaperHelper;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerActivity extends AppCompatActivity {
-
     public static ExoPlayer player;
     public static List<Song> queue = new ArrayList<>();
     public static int currentIndex = 0;
     public static String currentLyric = "";
+    /** 灵动岛复用的封面（同一 Bitmap，不再分配内存） */
+    public static Bitmap sharedCover;
 
     private SeekBar seek;
     private TextView tvTitle, tvArtist, tvCur, tvTot;
@@ -35,10 +38,7 @@ public class PlayerActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle s) {
         super.onCreate(s);
         try { setContentView(R.layout.activity_player); run(); }
-        catch (Throwable t) {
-            android.util.Log.e("Music", "Player", t);
-            finish();
-        }
+        catch (Throwable t) { android.util.Log.e("Music", "Player", t); finish(); }
     }
 
     private void run() {
@@ -53,6 +53,9 @@ public class PlayerActivity extends AppCompatActivity {
         btnClose = findViewById(R.id.btnClose);
         ivCover = findViewById(R.id.ivCover);
 
+        applyRandomBg();
+        applyRandomCover();
+
         int idx = getIntent().getIntExtra("index", 0);
         if (queue.isEmpty()) { finish(); return; }
         if (idx < 0 || idx >= queue.size()) idx = 0;
@@ -61,49 +64,56 @@ public class PlayerActivity extends AppCompatActivity {
         if (player == null) player = new ExoPlayer.Builder(this).build();
         playAt(currentIndex);
 
-        if (ivCover != null) {
-            Bitmap cover = WallpaperHelper.generateCircleCover(400);
-            if (cover != null) ivCover.setImageBitmap(cover);
-        }
+        btnPlay.setOnClickListener(v -> { toggle(); press(v); });
+        btnPrev.setOnClickListener(v -> { if (currentIndex > 0) playAt(currentIndex - 1); press(v); });
+        btnNext.setOnClickListener(v -> { if (currentIndex < queue.size() - 1) playAt(currentIndex + 1); press(v); });
+        btnClose.setOnClickListener(v -> finish());
 
-        if (btnPlay != null) btnPlay.setOnClickListener(v -> { toggle(); press(v); });
-        if (btnPrev != null) btnPrev.setOnClickListener(v -> {
-            if (currentIndex > 0) playAt(currentIndex - 1);
-            press(v);
-        });
-        if (btnNext != null) btnNext.setOnClickListener(v -> {
-            if (currentIndex < queue.size() - 1) playAt(currentIndex + 1);
-            press(v);
-        });
-        if (btnClose != null) btnClose.setOnClickListener(v -> finish());
-
-        if (seek != null) {
-            seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                public void onProgressChanged(SeekBar sb, int p, boolean u) {
-                    if (u && tvCur != null) tvCur.setText(fmt(p));
-                }
-                public void onStartTrackingTouch(SeekBar sb) { drag = true; }
-                public void onStopTrackingTouch(SeekBar sb) {
-                    if (player != null) player.seekTo(sb.getProgress());
-                    drag = false;
-                }
-            });
-        }
-
-        h.post(new Runnable() {
-            @Override public void run() {
-                updateProgress();
-                h.postDelayed(this, 250);
+        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar sb, int p, boolean u) {
+                if (u && tvCur != null) tvCur.setText(fmt(p));
+            }
+            public void onStartTrackingTouch(SeekBar sb) { drag = true; }
+            public void onStopTrackingTouch(SeekBar sb) {
+                if (player != null) player.seekTo(sb.getProgress());
+                drag = false;
             }
         });
+
+        h.post(new Runnable() {
+            @Override public void run() { updateProgress(); h.postDelayed(this, 250); }
+        });
+    }
+
+    private void applyRandomBg() {
+        try {
+            Bitmap bmp = RandomAssets.bg(this);
+            if (bmp == null) return;
+            BitmapDrawable d = new BitmapDrawable(getResources(), bmp);
+            d.setAlpha(80);
+            View root = findViewById(android.R.id.content);
+            if (root != null) root.setBackground(d);
+        } catch (Throwable ignored) {}
+    }
+
+    private void applyRandomCover() {
+        try {
+            Bitmap bmp = RandomAssets.cover(this);
+            if (bmp != null && ivCover != null) {
+                ivCover.setImageBitmap(bmp);
+                sharedCover = bmp; // 灵动态复用
+            } else {
+                Bitmap c = WallpaperHelper.generateCircleCover(400);
+                if (ivCover != null && c != null) ivCover.setImageBitmap(c);
+                sharedCover = c;
+            }
+        } catch (Throwable ignored) {}
     }
 
     private void press(View v) {
         v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(70)
-            .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f)
-                .setDuration(200)
-                .setInterpolator(new OvershootInterpolator(2f))
-                .start()).start();
+            .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(200)
+                .setInterpolator(new OvershootInterpolator(2f)).start()).start();
     }
 
     private void playAt(int i) {
@@ -145,19 +155,10 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    private String fmt(int ms) {
-        int s = ms / 1000;
-        return String.format("%d:%02d", s / 60, s % 60);
-    }
+    private String fmt(int ms) { int s = ms / 1000; return String.format("%d:%02d", s / 60, s % 60); }
 
     @Override protected void onDestroy() {
         h.removeCallbacksAndMessages(null);
-        if (isFinishing() && player != null) {
-            try { player.stop(); player.release(); } catch (Throwable ignored) {}
-            player = null;
-            queue.clear();
-            currentIndex = 0;
-        }
         super.onDestroy();
     }
 }

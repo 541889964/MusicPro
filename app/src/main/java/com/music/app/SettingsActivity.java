@@ -19,6 +19,7 @@ public class SettingsActivity extends AppCompatActivity {
         SeekBar sbCw = findViewById(R.id.sbCw);
         TextView tvCh = findViewById(R.id.tvCh);
         SeekBar sbCh = findViewById(R.id.sbCh);
+
         int cw = com.music.app.util.Prefs.cW(this);
         int ch = com.music.app.util.Prefs.cH(this);
         sbCw.setProgress(cw - 20);
@@ -28,29 +29,32 @@ public class SettingsActivity extends AppCompatActivity {
 
         sbCw.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar sb, int p, boolean u) {
-                int v = p + 20; tvCw.setText(v + "%");
+                int v = p + 20;
+                tvCw.setText(v + "%");
                 com.music.app.util.Prefs.setCW(SettingsActivity.this, v);
                 notifyIsland();
             }
             public void onStartTrackingTouch(SeekBar sb) {}
             public void onStopTrackingTouch(SeekBar sb) {}
         });
+
         sbCh.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar sb, int p, boolean u) {
-                int v = p + 30; tvCh.setText(v + "dp");
+                int v = p + 30;
+                tvCh.setText(v + "dp");
                 com.music.app.util.Prefs.setCH(SettingsActivity.this, v);
                 notifyIsland();
             }
             public void onStartTrackingTouch(SeekBar sb) {}
             public void onStopTrackingTouch(SeekBar sb) {}
         });
+
         findViewById(R.id.btnTestNotif).setOnClickListener(v -> testNotif());
     }
 
     private void notifyIsland() {
         try {
-            com.music.app.service.IslandService svc =
-                com.music.app.service.IslandService.instance;
+            com.music.app.service.IslandService svc = com.music.app.service.IslandService.instance;
             if (svc != null) svc.reloadConfig();
         } catch (Throwable ignored) {}
     }
@@ -60,9 +64,10 @@ public class SettingsActivity extends AppCompatActivity {
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             String CH = "test_ch";
             if (Build.VERSION.SDK_INT >= 26 && nm != null) {
-                if (nm.getNotificationChannel(CH) == null)
+                if (nm.getNotificationChannel(CH) == null) {
                     nm.createNotificationChannel(new NotificationChannel(
                         CH, "测试", NotificationManager.IMPORTANCE_HIGH));
+                }
             }
             androidx.core.app.NotificationCompat.Builder b =
                 new androidx.core.app.NotificationCompat.Builder(this, CH)
