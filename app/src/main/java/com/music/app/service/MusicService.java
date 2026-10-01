@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.media.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
