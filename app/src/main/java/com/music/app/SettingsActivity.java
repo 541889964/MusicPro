@@ -1,6 +1,10 @@
 package com.music.app;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -37,9 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
             safeClick(R.id.itemTestNotif, new Runnable() {
-                @Override public void run() {
-                    sendTestNotification();
-                }
+                @Override public void run() { sendTestNotification(); }
             });
             safeClick(R.id.itemTheme, new Runnable() {
                 @Override public void run() {
@@ -52,7 +54,6 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         } catch (Throwable t) {
-            android.util.Log.e("Music", "SettingsActivity fail", t);
             Toast.makeText(this, "设置页出错: " + t.getMessage(), Toast.LENGTH_LONG).show();
             finish();
         }
@@ -61,23 +62,22 @@ public class SettingsActivity extends AppCompatActivity {
     private void sendTestNotification() {
         try {
             String CH = "test_channel";
-            android.app.NotificationManager nm =
-                (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26 && nm != null) {
                 if (nm.getNotificationChannel(CH) == null) {
-                    android.app.NotificationChannel ch = new android.app.NotificationChannel(
-                        CH, "测试通知", android.app.NotificationManager.IMPORTANCE_HIGH);
+                    NotificationChannel ch = new NotificationChannel(
+                        CH, "测试通知", NotificationManager.IMPORTANCE_HIGH);
                     nm.createNotificationChannel(ch);
                 }
             }
             Intent it = new Intent(this, MainActivity.class);
-            int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= 23) flags |= android.app.PendingIntent.FLAG_IMMUTABLE;
-            android.app.PendingIntent pi = android.app.PendingIntent.getActivity(this, 0, it, flags);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
+            PendingIntent pi = PendingIntent.getActivity(this, 0, it, flags);
 
             androidx.core.app.NotificationCompat.Builder b =
                 new androidx.core.app.NotificationCompat.Builder(this, CH)
-                .setSmallIcon(com.music.app.R.mipmap.ic_launcher)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("测试通知")
                 .setContentText("这是一条测试通知，灵动岛应该分裂")
                 .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)

@@ -1,4 +1,5 @@
 package com.music.app.widget;
+
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -21,19 +22,26 @@ public class RippleView extends View {
 
     public void setColor(int c) { this.color = c; }
 
+    /** 单次播放 */
     public void startOnce(long dur) {
         stop();
         looping = false;
         ValueAnimator va = ValueAnimator.ofFloat(0f, 1f);
         va.setDuration(dur);
         va.setInterpolator(new DecelerateInterpolator());
-        va.addUpdateListener(a -> {
-            progress = (float) a.getAnimatedValue();
-            postInvalidateOnAnimation();
+        va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override public void onAnimationUpdate(ValueAnimator a) {
+                progress = (float) a.getAnimatedValue();
+                postInvalidateOnAnimation();
+            }
         });
         va.start();
     }
 
+    /** 兼容旧调用：start(long) */
+    public void start(long dur) { startOnce(dur); }
+
+    /** 无限循环 */
     public void startLoop() {
         stop();
         looping = true;
@@ -41,9 +49,11 @@ public class RippleView extends View {
         va.setDuration(1800);
         va.setRepeatCount(ValueAnimator.INFINITE);
         va.setInterpolator(new LinearInterpolator());
-        va.addUpdateListener(a -> {
-            progress = (float) a.getAnimatedValue();
-            postInvalidateOnAnimation();
+        va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override public void onAnimationUpdate(ValueAnimator a) {
+                progress = (float) a.getAnimatedValue();
+                postInvalidateOnAnimation();
+            }
         });
         va.start();
     }

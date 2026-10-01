@@ -34,10 +34,12 @@ import com.music.app.model.Song;
 import com.music.app.util.IslandConfig;
 import com.music.app.util.LyricsParser;
 import com.music.app.util.WallpaperHelper;
-import java.text.SimpleDateFormat;
+import com.music.app.widget.ChargePulseView;
+import com.music.app.widget.ParticleBreatheView;
+import com.music.app.widget.RippleView;
+import com.music.app.widget.ShineSweepView;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -59,10 +61,11 @@ public class IslandService extends Service {
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
     private TextView txtNotifTitle, txtNotifText, txtSplitTitle, txtSplitText;
     private SeekBar seek;
-    private com.music.app.widget.RippleView ripple;
-    private com.music.app.widget.ShineSweepView shine;
-    private com.music.app.widget.ChargePulseView chargePulse;
-    private com.music.app.widget.ParticleBreatheView breatheLayer;
+
+    private RippleView ripple;
+    private ShineSweepView shine;
+    private ChargePulseView chargePulse;
+    private ParticleBreatheView breatheLayer;
 
     private int screenW, screenH, statusBarH;
     private float density;
@@ -206,10 +209,11 @@ public class IslandService extends Service {
         txtSplitTitle = root.findViewById(R.id.txtSplitTitle);
         txtSplitText = root.findViewById(R.id.txtSplitText);
         seek = root.findViewById(R.id.seek);
-        try { ripple = root.findViewById(R.id.rippleLayer); } catch (Throwable ignored) {}
-        try { shine = root.findViewById(R.id.shineLayer); } catch (Throwable ignored) {}
-        try { chargePulse = root.findViewById(R.id.chargeLayer); } catch (Throwable ignored) {}
-        try { breatheLayer = root.findViewById(R.id.breatheLayer); } catch (Throwable ignored) {}
+
+        ripple = root.findViewById(R.id.rippleLayer);
+        shine = root.findViewById(R.id.shineLayer);
+        chargePulse = root.findViewById(R.id.chargeLayer);
+        breatheLayer = root.findViewById(R.id.breatheLayer);
     }
 
     private void bindClicks() {
@@ -221,7 +225,6 @@ public class IslandService extends Service {
         });
         if (lifeBox != null) lifeBox.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                // 未播放时点击显示提示
                 if (txtLifeTip != null) {
                     txtLifeTip.setText("播放音乐后切换");
                     h.postDelayed(new Runnable() {
@@ -307,7 +310,6 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
-    /** 显示生活区 */
     private void showLifeBox() {
         if (isPlayingMusic) return;
         try {
@@ -318,7 +320,6 @@ public class IslandService extends Service {
         updateClock();
     }
 
-    /** 显示音乐折叠态 */
     private void showMusicBox() {
         try {
             lifeBox.setVisibility(View.GONE);
@@ -337,7 +338,6 @@ public class IslandService extends Service {
                 c.get(Calendar.MONTH) + 1, c.get(Calendar.DAY_OF_MONTH),
                 days[c.get(Calendar.DAY_OF_WEEK) - 1]);
             if (txtDate != null) txtDate.setText(date);
-            // 生活小贴士
             if (txtLifeTip != null) {
                 String[] tips = {"今天也要开心", "喝口水吧", "慢慢来", "记得休息", "听听歌"};
                 int idx = c.get(Calendar.MINUTE) % tips.length;
@@ -347,16 +347,12 @@ public class IslandService extends Service {
         } catch (Throwable ignored) {}
     }
 
-    /** 展开 */
+    /** ★ 展开：波纹 + 宽度扩展 + 内容淡入 */
     private void expand() {
         if (expanded || animating) return;
         expanded = true;
         animating = true;
 
-        try {
-        } catch (Throwable ignored) {}
-
-        // 播放展开波纹（纯代码 Canvas 动画）
         try { if (ripple != null) ripple.startOnce(800); } catch (Throwable ignored) {}
 
         try {
@@ -369,6 +365,7 @@ public class IslandService extends Service {
             expandedBox.setScaleX(0.92f);
             expandedBox.setScaleY(0.92f);
             collapsedBox.setVisibility(View.GONE);
+            lifeBox.setVisibility(View.GONE);
 
             ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
             wa.setDuration(320);
@@ -407,16 +404,12 @@ public class IslandService extends Service {
         }
     }
 
-    /** 收起 */
+    /** ★ 收起：波纹 + 淡出 + 缩回 */
     private void collapse() {
         if (!expanded || animating) return;
         expanded = false;
         animating = true;
 
-        try {
-        } catch (Throwable ignored) {}
-
-        // 播放收起波纹
         try { if (ripple != null) ripple.startOnce(600); } catch (Throwable ignored) {}
 
         try {
@@ -460,14 +453,12 @@ public class IslandService extends Service {
         }
     }
 
-    /** ★ 通知分裂动画（右侧 1/3 冒出，5 秒后回收）*/
+    /** 通知分裂：扫光 + 从右侧滑入 */
     public void onNewNotification() {
         try {
             lastNotifTime = System.currentTimeMillis();
             updateNotifUI();
-            if (!notifShowing) {
-                showNotifSplit();
-            }
+            if (!notifShowing) showNotifSplit();
         } catch (Throwable ignored) {}
     }
 
@@ -475,11 +466,9 @@ public class IslandService extends Service {
         if (notifShowing) return;
         notifShowing = true;
 
-        // 扫光（纯代码）
         try { if (shine != null) shine.sweep(); } catch (Throwable ignored) {}
 
         try {
-            // 更新内容
             String app = NotifListener.lastApp;
             String title = NotifListener.lastTitle;
             String text = NotifListener.lastText;
@@ -492,19 +481,14 @@ public class IslandService extends Service {
             notifSplit.setTranslationX(screenW);
             notifSplit.setAlpha(0f);
 
-            // 滑入
             notifSplit.animate()
-                .translationX(0f)
-                .alpha(1f)
+                .translationX(0f).alpha(1f)
                 .setDuration(350)
                 .setInterpolator(new OvershootInterpolator(1.1f))
                 .start();
 
-            // 5 秒后回收
             h.postDelayed(new Runnable() {
-                @Override public void run() {
-                    hideNotifSplit();
-                }
+                @Override public void run() { hideNotifSplit(); }
             }, 5000);
         } catch (Throwable ignored) {}
     }
@@ -512,8 +496,7 @@ public class IslandService extends Service {
     private void hideNotifSplit() {
         try {
             notifSplit.animate()
-                .translationX(screenW)
-                .alpha(0f)
+                .translationX(screenW).alpha(0f)
                 .setDuration(280)
                 .setInterpolator(new DecelerateInterpolator())
                 .withEndAction(new Runnable() {
@@ -600,6 +583,8 @@ public class IslandService extends Service {
     }
 
     private void showChargeAnim() {
+        try { if (chargePulse != null) chargePulse.start(); } catch (Throwable ignored) {}
+
         try {
             if (root != null) {
                 root.animate().scaleX(1.05f).scaleY(1.05f).setDuration(200)
@@ -632,16 +617,7 @@ public class IslandService extends Service {
             breathe.setDuration(2200);
             breathe.setRepeatCount(ObjectAnimator.INFINITE);
             breathe.start();
-            // 播放呼吸粒子
-            if (framePlayer != null) {
-                framePlayer.play("pulse", 30, 30, new com.music.app.widget.FramePlayer.OnEnd() {
-                    @Override public void onEnd() {
-                        if (lastPlaying && framePlayer != null) {
-                            framePlayer.play("pulse", 30, 30, this);
-                        }
-                    }
-                });
-            }
+            if (breatheLayer != null) breatheLayer.start();
         } catch (Throwable ignored) {}
     }
 
@@ -670,7 +646,6 @@ public class IslandService extends Service {
             ExoPlayer p = MusicService.getPlayer();
             boolean nowPlaying = p != null && p.getCurrentMediaItem() != null;
 
-            // ★ 切换生活区/音乐态
             if (nowPlaying != isPlayingMusic) {
                 isPlayingMusic = nowPlaying;
                 if (nowPlaying) {
