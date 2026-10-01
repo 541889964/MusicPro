@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/islandRoot"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:clipToOutline="true">
+    android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <!-- 折叠态：纯黑胶囊 -->
     <LinearLayout android:id="@+id/islandCollapsed"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -29,13 +27,11 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:focusable="true" android:focusableInTouchMode="true"/>
 
-        <ImageView android:id="@+id/islandWave"
-            android:layout_width="24dp" android:layout_height="20dp"
-            android:src="@drawable/iphone_wave"
-            android:layout_marginRight="4dp"/>
+        <ImageView android:layout_width="20dp" android:layout_height="20dp"
+            android:src="@drawable/iphone_wave" android:layout_marginRight="4dp"
+            android:alpha="0.9"/>
     </LinearLayout>
 
-    <!-- 展开态：iPhone Dynamic Island 风格 -->
     <LinearLayout android:id="@+id/islandExpanded"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical"
@@ -45,7 +41,6 @@
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:gravity="center_vertical">
-
             <FrameLayout android:layout_width="52dp" android:layout_height="52dp">
                 <View android:layout_width="match_parent" android:layout_height="match_parent"
                     android:background="@drawable/iphone_cover_glow"/>
@@ -56,7 +51,6 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/iphone_cover_bg"/>
             </FrameLayout>
-
             <LinearLayout
                 android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
@@ -72,7 +66,6 @@
                     android:text="MUSIC·Pro" android:textColor="#8E8E93"
                     android:textSize="12sp" android:singleLine="true" android:ellipsize="end"/>
             </LinearLayout>
-
             <ImageButton android:id="@+id/islandClose"
                 android:layout_width="30dp" android:layout_height="30dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
@@ -81,9 +74,17 @@
                 android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
+        <!-- 歌词 -->
+        <TextView android:id="@+id/islandLyric"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:gravity="center"
+            android:text="" android:textColor="#B8A8E8"
+            android:textSize="12sp" android:singleLine="true"
+            android:ellipsize="end"/>
+
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="14dp"
+            android:orientation="horizontal" android:layout_marginTop="10dp"
             android:gravity="center_vertical">
             <TextView android:id="@+id/islandCurrent"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -106,7 +107,7 @@
 
         <LinearLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginTop="14dp"
+            android:orientation="horizontal" android:layout_marginTop="12dp"
             android:gravity="center">
             <ImageButton android:id="@+id/islandPrev"
                 android:layout_width="52dp" android:layout_height="52dp"

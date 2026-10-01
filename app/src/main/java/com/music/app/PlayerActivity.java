@@ -1,6 +1,7 @@
 package com.music.app;
-import android.content.Intent;
+
 import android.animation.ObjectAnimator;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,10 +18,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.bumptech.glide.Glide;
 import com.music.app.model.Song;
+import com.music.app.service.MusicService;
 import com.music.app.util.LyricsParser;
 import com.music.app.util.NeteaseApi;
 import com.music.app.util.NiceToast;
@@ -29,17 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerActivity extends AppCompatActivity {
-    private void startIsland() {
-        try {
-            Intent it = new Intent(this,
-                com.music.app.service.IslandService.class);
-            startService(it);
-        } catch (Throwable ignored) {}
-    }
-
     public static ExoPlayer player;
     public static List<Song> queue = new ArrayList<Song>();
     public static int currentIndex = 0;
+    private static boolean listenerBound = false;
 
     private SeekBar seek;
     private TextView tvTitle, tvArtist, tvCurrent, tvTotal;
@@ -56,6 +52,13 @@ public class PlayerActivity extends AppCompatActivity {
     private ObjectAnimator coverRotate, glowPulse;
     private final Handler h = new Handler(Looper.getMainLooper());
     private boolean dragging = false;
+
+    private void startIsland() {
+        try {
+            Intent it = new Intent(this, com.music.app.service.IslandService.class);
+            startService(it);
+        } catch (Throwable ignored) {}
+    }
 
     @Override protected void onCreate(Bundle s) {
         super.onCreate(s);
@@ -87,11 +90,9 @@ public class PlayerActivity extends AppCompatActivity {
         if (queue == null || queue.isEmpty()) { NiceToast.show(this, "播放列表为空"); finish(); return; }
         if (startIdx < 0 || startIdx >= queue.size()) startIdx = 0;
         currentIndex = startIdx;
+
         initPlayer();
-        try {
-            com.music.app.service.IslandService.queue =
-                new ArrayList<Song>(queue);
-        } catch (Throwable ignored) {}
+        com.music.app.service.IslandService.queue = queue;
         playAt(currentIndex);
         startIsland();
 
@@ -134,7 +135,8 @@ public class PlayerActivity extends AppCompatActivity {
         });
         View card = findViewById(R.id.playerCard);
         if (card != null) {
-            card.setAlpha(0f); card.setTranslationY(60f);
+            card.setAlpha(0f);
+            card.setTranslationY(60f);
             card.animate().alpha(1f).translationY(0f).setDuration(650)
                 .setInterpolator(new DecelerateInterpolator()).start();
         }
@@ -145,53 +147,27 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    private void startGlowPulse() {
-        if (glowBehindCover == null) return;
-        glowPulse = ObjectAnimator.ofFloat(glowBehindCover, "alpha", 0.35f, 0.85f);
-        glowPulse.setDuration(1800);
-        glowPulse.setRepeatCount(ObjectAnimator.INFINITE);
-        glowPulse.setRepeatMode(ObjectAnimator.REVERSE);
-        glowPulse.setInterpolator(new AccelerateDecelerateInterpolator());
-        glowPulse.start();
-    }
-
-    private void startCoverRotate() {
-        if (ivCover == null) return;
-        if (coverRotate != null) coverRotate.cancel();
-        coverRotate = ObjectAnimator.ofFloat(ivCover, "rotation", 0f, 360f);
-        coverRotate.setDuration(20000);
-        coverRotate.setRepeatCount(ObjectAnimator.INFINITE);
-        coverRotate.setInterpolator(new LinearInterpolator());
-        coverRotate.start();
-    }
-
-    private void stopCoverRotate() {
-        if (coverRotate != null) coverRotate.cancel();
-        if (ivCover != null) ivCover.setRotation(0f);
-    }
-
-    private void bounce(View v) {
-        v.animate().scaleX(0.86f).scaleY(0.86f).setDuration(80).start();
-        v.postDelayed(new Runnable() {
-            @Override public void run() {
-                v.animate().scaleX(1f).scaleY(1f).setDuration(220)
-                    .setInterpolator(new OvershootInterpolator(2f)).start();
-            }
-        }, 80);
-    }
-
-    private void heartbeat(View v) {
-        ObjectAnimator.ofFloat(v, "scaleX", 1f, 1.25f, 1f, 1.15f, 1f).setDuration(700).start();
-        ObjectAnimator.ofFloat(v, "scaleY", 1f, 1.25f, 1f, 1.15f, 1f).setDuration(700).start();
-    }
-
+    /** ★ 用共享 player */
     private void initPlayer() {
-        if (player == null) {
-            player = new ExoPlayer.Builder(this).build();
+        if (MusicService.sharedPlayer == null) {
+            MusicService.sharedPlayer = new ExoPlayer.Builder(this).build();
+            MusicService.sharedPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
+        }
+        player = MusicService.sharedPlayer;
+        if (!listenerBound) {
+            listenerBound = true;
             player.addListener(new Player.Listener() {
                 @Override public void onPlaybackStateChanged(int state) {
                     if (state == Player.STATE_ENDED) {
                         if (currentIndex < queue.size() - 1) playAt(currentIndex + 1);
+                    }
+                }
+                @Override public void onMediaItemTransition(MediaItem item, int reason) {
+                    if (item != null) {
+                        int idx = player.getCurrentMediaItemIndex();
+                        currentIndex = idx;
+                        updateTitleFromItem(item);
+                        startCoverRotate();
                     }
                 }
                 @Override public void onIsPlayingChanged(boolean isPlaying) {
@@ -200,6 +176,58 @@ public class PlayerActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void updateTitleFromItem(MediaItem item) {
+        if (item == null) return;
+        MediaMetadata md = item.mediaMetadata;
+        if (md == null) return;
+        CharSequence t = md.title;
+        CharSequence a = md.artist;
+        if (t != null && tvTitle != null) tvTitle.setText(t);
+        if (a != null && tvArtist != null) tvArtist.setText(a);
+        // 加载歌词
+        int idx = player.getCurrentMediaItemIndex();
+        if (idx >= 0 && idx < queue.size()) {
+            Song song = queue.get(idx);
+            // 封面
+            String name = WallpaperHelper.forSong(this, song.id);
+            Bitmap coverBm = WallpaperHelper.load(this, name);
+            if (coverBm != null && ivCover != null) ivCover.setImageBitmap(coverBm);
+            // 歌词：先看缓存，没有就从网络拉
+            if (song.lyric != null && !song.lyric.isEmpty()) {
+                buildLyricsView(song.lyric);
+            } else if (song.isOnline) {
+                loadLyrics(song.id, idx);
+            } else {
+                loadLocalLyrics(song);
+            }
+        }
+    }
+
+    private void setFullQueue(int startIdx) {
+        java.util.List<MediaItem> items = new java.util.ArrayList<MediaItem>();
+        for (int i = 0; i < queue.size(); i++) {
+            Song sg = queue.get(i);
+            String uri;
+            if (sg.isOnline) {
+                uri = sg.onlineUrl;
+                if (uri == null || uri.isEmpty())
+                    uri = "https://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
+            } else {
+                uri = "file://" + sg.path;
+            }
+            MediaItem item = new MediaItem.Builder()
+                .setUri(uri)
+                .setMediaMetadata(new MediaMetadata.Builder()
+                    .setTitle(sg.title)
+                    .setArtist(sg.artist)
+                    .setAlbumTitle(sg.album)
+                    .build())
+                .build();
+            items.add(item);
+        }
+        player.setMediaItems(items, startIdx, 0);
     }
 
     private void playAt(int idx) {
@@ -215,30 +243,35 @@ public class PlayerActivity extends AppCompatActivity {
             ivCover.animate().alpha(1f).setDuration(400).start();
             String sucaiName = WallpaperHelper.forSong(this, song.id);
             Bitmap coverBm = WallpaperHelper.load(this, sucaiName);
-            if (coverBm != null) {
-                ivCover.setImageBitmap(coverBm);
-            } else if (song.cover != null && !song.cover.isEmpty()) {
+            if (coverBm != null) ivCover.setImageBitmap(coverBm);
+            else if (song.cover != null && !song.cover.isEmpty())
                 Glide.with(this).load(song.cover).into(ivCover);
-            } else {
-                ivCover.setImageResource(R.mipmap.ic_launcher);
-            }
+            else ivCover.setImageResource(R.mipmap.ic_launcher);
         }
 
-        if (song.isOnline) {
+        // 歌词
+        if (song.lyric != null && !song.lyric.isEmpty()) {
+            buildLyricsView(song.lyric);
+        } else if (song.isOnline) {
+            loadLyrics(song.id, idx);
+        } else {
+            loadLocalLyrics(song);
+        }
+
+        if (song.isOnline && (song.onlineUrl == null || song.onlineUrl.isEmpty())) {
             NiceToast.show(this, "正在加载…");
             NeteaseApi.getPlayUrl(song.id, new NeteaseApi.OnUrl() {
                 @Override public void onResult(String url) {
                     if (url == null || url.isEmpty()) { NiceToast.show(PlayerActivity.this, "无法播放"); return; }
                     song.onlineUrl = url;
                     try {
-                        setFullQueue(idx);
+                        setFullQueue(currentIndex);
                         player.prepare();
                         player.play();
                         updatePlayIcon();
                     } catch (Throwable t) { NiceToast.show(PlayerActivity.this, "播放失败"); }
                 }
             });
-            loadLyrics(song.id);
         } else {
             try {
                 setFullQueue(idx);
@@ -246,28 +279,10 @@ public class PlayerActivity extends AppCompatActivity {
                 player.play();
                 updatePlayIcon();
             } catch (Throwable t) { NiceToast.show(this, "播放失败"); }
-            loadLocalLyrics(song);
         }
     }
 
-    private void setFullQueue(int startIdx) {
-        java.util.List<androidx.media3.common.MediaItem> items =
-            new java.util.ArrayList<androidx.media3.common.MediaItem>();
-        for (int i = 0; i < queue.size(); i++) {
-            Song sg = queue.get(i);
-            if (sg.isOnline) {
-                String u = sg.onlineUrl;
-                if (u == null || u.isEmpty())
-                    u = "https://music.163.com/song/media/outer/url?id=" + sg.id + ".mp3";
-                items.add(androidx.media3.common.MediaItem.fromUri(u));
-            } else {
-                items.add(androidx.media3.common.MediaItem.fromUri("file://" + sg.path));
-            }
-        }
-        player.setMediaItems(items, startIdx, 0);
-    }
-
-    private void loadLyrics(final long songId) {
+    private void loadLyrics(final long songId, final int idx) {
         if (lyricsContainer != null) lyricsContainer.removeAllViews();
         if (tvLyricsEmpty != null) { tvLyricsEmpty.setVisibility(View.VISIBLE); tvLyricsEmpty.setText("♪ 歌词加载中…"); }
         lyrics = new ArrayList<LyricsParser.Line>();
@@ -275,7 +290,11 @@ public class PlayerActivity extends AppCompatActivity {
         currentLine = -1;
         NeteaseApi.getLyrics(songId, new NeteaseApi.OnLyrics() {
             @Override public void onResult(String lrc) {
-                if (lrc == null || lrc.isEmpty()) { if (tvLyricsEmpty != null) tvLyricsEmpty.setText("♪ 暂无歌词"); return; }
+                if (lrc == null || lrc.isEmpty()) {
+                    if (tvLyricsEmpty != null) tvLyricsEmpty.setText("♪ 暂无歌词");
+                    return;
+                }
+                if (idx >= 0 && idx < queue.size()) queue.get(idx).lyric = lrc;
                 buildLyricsView(lrc);
             }
         });
@@ -298,7 +317,8 @@ public class PlayerActivity extends AppCompatActivity {
                 String line;
                 while ((line = r.readLine()) != null) sb.append(line).append("\n");
                 r.close();
-                buildLyricsView(sb.toString());
+                song.lyric = sb.toString();
+                buildLyricsView(song.lyric);
                 return;
             }
         } catch (Throwable ignored) {}
@@ -369,6 +389,46 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
+    private void startGlowPulse() {
+        if (glowBehindCover == null) return;
+        glowPulse = ObjectAnimator.ofFloat(glowBehindCover, "alpha", 0.35f, 0.85f);
+        glowPulse.setDuration(1800);
+        glowPulse.setRepeatCount(ObjectAnimator.INFINITE);
+        glowPulse.setRepeatMode(ObjectAnimator.REVERSE);
+        glowPulse.setInterpolator(new AccelerateDecelerateInterpolator());
+        glowPulse.start();
+    }
+
+    private void startCoverRotate() {
+        if (ivCover == null) return;
+        if (coverRotate != null) coverRotate.cancel();
+        coverRotate = ObjectAnimator.ofFloat(ivCover, "rotation", 0f, 360f);
+        coverRotate.setDuration(20000);
+        coverRotate.setRepeatCount(ObjectAnimator.INFINITE);
+        coverRotate.setInterpolator(new LinearInterpolator());
+        coverRotate.start();
+    }
+
+    private void stopCoverRotate() {
+        if (coverRotate != null) coverRotate.cancel();
+        if (ivCover != null) ivCover.setRotation(0f);
+    }
+
+    private void bounce(View v) {
+        v.animate().scaleX(0.86f).scaleY(0.86f).setDuration(80).start();
+        v.postDelayed(new Runnable() {
+            @Override public void run() {
+                v.animate().scaleX(1f).scaleY(1f).setDuration(220)
+                    .setInterpolator(new OvershootInterpolator(2f)).start();
+            }
+        }, 80);
+    }
+
+    private void heartbeat(View v) {
+        ObjectAnimator.ofFloat(v, "scaleX", 1f, 1.25f, 1f, 1.15f, 1f).setDuration(700).start();
+        ObjectAnimator.ofFloat(v, "scaleY", 1f, 1.25f, 1f, 1.15f, 1f).setDuration(700).start();
+    }
+
     private void togglePlay() {
         if (player == null) return;
         if (player.isPlaying()) player.pause(); else player.play();
@@ -407,16 +467,6 @@ public class PlayerActivity extends AppCompatActivity {
                                 NiceToast.show(PlayerActivity.this, ok ? "✓ 已下载" : "下载失败");
                             }
                         });
-                }
-            });
-            NeteaseApi.getLyrics(s.id, new NeteaseApi.OnLyrics() {
-                @Override public void onResult(String lrc) {
-                    if (lrc != null && !lrc.isEmpty()) {
-                        com.music.app.util.DownloadUtil.saveLyrics(lrc, safeName + ".lrc",
-                            new com.music.app.util.DownloadUtil.Callback() {
-                                @Override public void onDone(boolean ok, String path) {}
-                            });
-                    }
                 }
             });
         } else NiceToast.show(this, "本地音乐已在设备上");
