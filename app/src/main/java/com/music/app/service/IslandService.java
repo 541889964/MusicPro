@@ -46,6 +46,8 @@ public class IslandService extends Service {
     private IslandConfig cfg;
 
     private View collapsedBox, expandedBox;
+    private View collapsedGlow, expandedGlow;
+    private android.animation.ObjectAnimator glowPulse;
     private ImageView imgCover, imgCoverBig;
     private TextView txtTitle, txtTitleBig, txtArtistBig, txtMiniLyric;
     private TextView txtBattery, txtBatteryBig;
@@ -153,22 +155,63 @@ public class IslandService extends Service {
     /** 充电提示 */
     private void showChargeAnim() {
         try {
-            // 灵动岛闪一下绿色 + 展开一次
-            root.setBackgroundColor(0x3300FF88);
-            root.postDelayed(new Runnable() {
-                @Override public void run() {
-                    root.setBackgroundColor(0x00000000);
-                }
-            }, 800);
+            // 1. 灵动岛弹跳 + 缩放
+            if (root != null) {
+                root.animate()
+                    .scaleX(1.1f).scaleY(1.1f)
+                    .setDuration(200)
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            root.animate().scaleX(1f).scaleY(1f)
+                                .setDuration(300)
+                                .setInterpolator(new OvershootInterpolator(1.5f))
+                                .start();
+                        }
+                    }).start();
+            }
+
+            // 2. 光晕闪三下（彩虹）
+            if (collapsedGlow != null) {
+                collapsedGlow.setAlpha(0f);
+                collapsedGlow.animate().alpha(1f).setDuration(150)
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            collapsedGlow.animate().alpha(0f).setDuration(150)
+                                .withEndAction(new Runnable() {
+                                    @Override public void run() {
+                                        collapsedGlow.animate().alpha(1f).setDuration(150)
+                                            .withEndAction(new Runnable() {
+                                                @Override public void run() {
+                                                    collapsedGlow.animate().alpha(0f).setDuration(300).start();
+                                                }
+                                            }).start();
+                                    }
+                                }).start();
+                        }
+                    }).start();
+            }
+
+            // 3. 播放键旋转 360°
+            if (btnPlay != null) {
+                btnPlay.animate().rotation(360f).setDuration(600)
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            if (btnPlay != null) btnPlay.setRotation(0f);
+                        }
+                    }).start();
+            }
+
+            // 4. 自动展开 3 秒
             if (!expanded) {
                 expand();
-                // 3 秒后自动收起
                 h.postDelayed(new Runnable() {
                     @Override public void run() {
                         if (expanded) collapse();
                     }
                 }, 3000);
             }
+
+            // 5. Toast 提示
             try {
                 android.widget.Toast.makeText(IslandService.this,
                     "⚡ 充电中，音乐陪你", android.widget.Toast.LENGTH_SHORT).show();
@@ -226,6 +269,8 @@ public class IslandService extends Service {
         try { wm.addView(root, lp); }
         catch (Throwable t) { Log.e(TAG, "addView", t); stopSelf(); return; }
 
+        try { collapsedGlow = root.findViewById(R.id.collapsedGlow); } catch (Throwable ignored) {}
+        try { expandedGlow = root.findViewById(R.id.expandedGlow); } catch (Throwable ignored) {}
         collapsedBox = root.findViewById(R.id.collapsedBox);
         expandedBox = root.findViewById(R.id.expandedBox);
         imgCover = root.findViewById(R.id.imgCover);
@@ -332,6 +377,26 @@ public class IslandService extends Service {
             coverRotate.setRepeatCount(android.animation.ObjectAnimator.INFINITE);
             coverRotate.setInterpolator(new android.view.animation.LinearInterpolator());
             coverRotate.start();
+        } catch (Throwable ignored) {}
+    }
+
+    private void startGlowPulse() {
+        try {
+            if (collapsedGlow == null) return;
+            if (glowPulse != null) glowPulse.cancel();
+            glowPulse = android.animation.ObjectAnimator.ofFloat(collapsedGlow, "alpha", 0f, 0.5f);
+            glowPulse.setDuration(1500);
+            glowPulse.setRepeatCount(android.animation.ObjectAnimator.INFINITE);
+            glowPulse.setRepeatMode(android.animation.ObjectAnimator.REVERSE);
+            glowPulse.setInterpolator(new DecelerateInterpolator());
+            glowPulse.start();
+        } catch (Throwable ignored) {}
+    }
+
+    private void stopGlowPulse() {
+        try {
+            if (glowPulse != null) { glowPulse.cancel(); glowPulse = null; }
+            if (collapsedGlow != null) collapsedGlow.setAlpha(0f);
         } catch (Throwable ignored) {}
     }
 
@@ -509,6 +574,8 @@ public class IslandService extends Service {
                 String sym = playing ? "⏸" : "▶";
                 if (btnPlay != null) btnPlay.setText(sym);
                 if (btnPlayBig != null) btnPlayBig.setText(sym);
+                // ★ 播放时呼吸光晕
+                if (playing) startGlowPulse(); else stopGlowPulse();
             }
 
             if (expanded && !dragging && seek != null) {
@@ -533,6 +600,7 @@ public class IslandService extends Service {
     @Override public void onDestroy() {
         instance = null;
         try { if (coverRotate != null) coverRotate.cancel(); } catch (Throwable ignored) {}
+        try { if (glowPulse != null) glowPulse.cancel(); } catch (Throwable ignored) {}
         try { if (chargeReceiver != null) unregisterReceiver(chargeReceiver); } catch (Throwable ignored) {}
         h.removeCallbacksAndMessages(null);
         try { if (root != null && wm != null) wm.removeView(root); }

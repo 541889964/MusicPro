@@ -1,12 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 外层：紫粉渐变光晕 -->
     <item>
-        <shape><corners android:radius="1000dp"/>
-            <gradient android:type="linear" android:angle="90"
-                android:startColor="#EE0A0A0F" android:endColor="#EE000000"/></shape>
+        <shape>
+            <corners android:radius="1000dp"/>
+            <gradient android:angle="135"
+                android:startColor="#66FF6B9D"
+                android:centerColor="#339B6BFF"
+                android:endColor="#66FF6B9D"/>
+        </shape>
     </item>
-    <item>
-        <shape><corners android:radius="1000dp"/>
-            <stroke android:width="0.6dp" android:color="#22FFFFFF"/></shape>
+    <!-- 主体：深色渐变 -->
+    <item android:left="1.5dp" android:top="1.5dp" android:right="1.5dp" android:bottom="1.5dp">
+        <shape>
+            <corners android:radius="1000dp"/>
+            <gradient android:type="linear" android:angle="90"
+                android:startColor="#F01A0F2E"
+                android:centerColor="#F00D0B1F"
+                android:endColor="#F01A0F2E"/>
+        </shape>
+    </item>
+    <!-- 高光扫过 -->
+    <item android:left="1.5dp" android:top="1.5dp" android:right="1.5dp" android:bottom="1.5dp">
+        <shape>
+            <corners android:radius="1000dp"/>
+            <gradient android:type="linear" android:angle="90"
+                android:startColor="#44FFFFFF"
+                android:centerColor="#00FFFFFF"
+                android:endColor="#00FFFFFF"/>
+        </shape>
     </item>
 </layer-list>

@@ -5,6 +5,12 @@
     android:layout_height="match_parent">
 
     <!-- 折叠态 -->
+    <View android:id="@+id/collapsedGlow"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="@drawable/bg_charge_burst"
+        android:alpha="0"
+        android:clickable="false" android:focusable="false"/>
+
     <LinearLayout android:id="@+id/collapsedBox"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -56,6 +62,14 @@
     </LinearLayout>
 
     <!-- 展开态 -->
+    <View android:id="@+id/expandedGlow"
+        android:layout_width="120dp" android:layout_height="120dp"
+        android:layout_gravity="top|right"
+        android:layout_marginTop="-30dp" android:layout_marginRight="-30dp"
+        android:background="@drawable/bg_charge_burst"
+        android:alpha="0.4"
+        android:clickable="false" android:focusable="false"/>
+
     <LinearLayout android:id="@+id/expandedBox"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical"
