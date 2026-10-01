@@ -1,10 +1,8 @@
 package com.music.app.service;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
@@ -13,82 +11,62 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Vibrator;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.PathInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.MediaMetadata;
+import androidx.media3.exoplayer.ExoPlayer;
 import com.music.app.R;
 import com.music.app.model.Song;
-import com.music.app.util.FrameController;
-import com.music.app.util.LyricsParser;
 import com.music.app.util.Prefs;
 import com.music.app.util.WallpaperHelper;
-import java.util.ArrayList;
 import java.util.List;
 
 public class IslandService extends Service {
+
     private WindowManager wm;
     private View island;
     private WindowManager.LayoutParams lp;
-    private TextView tvTitle, tvExpTitle, tvExpArtist, tvCurrent, tvTotal;
-    private TextView tvLyric1, tvLyric2, tvLyric3, tvLyric4, tvLyric5;
+    private ExoPlayer player;
+    private TextView tvTitle, tvArtist, tvExpTitle, tvExpArtist, tvCurrent, tvTotal;
     private ImageView ivCover, ivExpCover;
-    private com.music.app.widget.WaveformView waveView;
-    private View btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
+    private ImageButton btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
     private SeekBar progress;
     private View collapsedRoot, expandedRoot;
-    private boolean expanded = false, dragging = false, animating = false;
-    private int screenW, screenH, statusBarH;
+
+    private boolean expanded = false;
+    private boolean dragging = false;
+    private int screenW, statusBarH;
     private float density;
     private final Handler h = new Handler(Looper.getMainLooper());
-    private Vibrator vib;
-    private boolean lowEnd = false;
+
+    // 缓存
     private long lastSongId = -1;
-    private String lastTitle = "", lastArtist = "", lastLyric = "";
+    private String lastTitle = "";
+    private String lastArtist = "";
+    private int lastProgress = -1;
     private boolean lastPlaying = false;
-    private List<LyricsParser.Line> lyricLines = new ArrayList<LyricsParser.Line>();
+
     public static IslandService instance;
-    private final PathInterpolator iosSpring = new PathInterpolator(0.25f, 0.1f, 0.25f, 1.0f);
-    private final PathInterpolator iosEaseOut = new PathInterpolator(0.0f, 0.0f, 0.2f, 1.0f);
-    private FrameController fc;
+    public static List<Song> queue;
 
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
 
     @Override public void onCreate() {
         super.onCreate();
-        // ★ 关键：检查悬浮窗权限
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (!android.provider.Settings.canDrawOverlays(this)) {
-                android.util.Log.e("Island", "无悬浮窗权限，停止服务");
-                stopSelf();
-                return;
-            }
-        }
         instance = this;
-        vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        lowEnd = Build.VERSION.SDK_INT < 26;
-        try {
-            measure();
-            initView();
-            fc = new FrameController(Prefs.islandFps(this), new FrameController.Tick() {
-                @Override public void onFrame(long dt) { update(); }
-            });
-            fc.start();
-        } catch (Throwable t) {
-            android.util.Log.e("Island", "initView fail", t);
-            stopSelf();
-        }
+        measure();
+        player = MusicService.sharedPlayer;
+        initView();
+        h.post(tick);
     }
 
     private void measure() {
@@ -96,9 +74,9 @@ public class IslandService extends Service {
         density = dm.density;
         if (Build.VERSION.SDK_INT >= 30) {
             Rect b = ((WindowManager) getSystemService(WINDOW_SERVICE)).getCurrentWindowMetrics().getBounds();
-            screenW = b.width(); screenH = b.height();
+            screenW = b.width();
         } else {
-            screenW = dm.widthPixels; screenH = dm.heightPixels;
+            screenW = dm.widthPixels;
         }
         int rid = getResources().getIdentifier("status_bar_height", "dimen", "android");
         statusBarH = rid > 0 ? getResources().getDimensionPixelSize(rid) : (int)(24 * density);
@@ -107,38 +85,35 @@ public class IslandService extends Service {
     private void initView() {
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         island = LayoutInflater.from(this).inflate(R.layout.view_island, null);
+
         int type = Build.VERSION.SDK_INT >= 26
             ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             : WindowManager.LayoutParams.TYPE_PHONE;
-        lp = new WindowManager.LayoutParams(getW(), getH(), type,
+
+        lp = new WindowManager.LayoutParams(
+            getW(), getH(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        lp.y = statusBarH + (int)(8 * density);
-        try {
-            wm.addView(island, lp);
-        } catch (Throwable t) {
-            android.util.Log.e("Island", "addView fail", t);
-            stopSelf();
-            return;
-        }
+        lp.y = statusBarH + (int)(6 * density);
+
+        wm.addView(island, lp);
+
+        // 强制硬件层，动画更顺
+        island.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         tvTitle = island.findViewById(R.id.islandTitle);
-        android.widget.TextView tvSub = island.findViewById(R.id.islandSub);
+        tvArtist = island.findViewById(R.id.islandArtist);
         tvExpTitle = island.findViewById(R.id.islandExpTitle);
         tvExpArtist = island.findViewById(R.id.islandExpArtist);
-        tvLyric1 = island.findViewById(R.id.islandLyric1);
-        tvLyric2 = island.findViewById(R.id.islandLyric2);
-        tvLyric3 = island.findViewById(R.id.islandLyric3);
-        tvLyric4 = island.findViewById(R.id.islandLyric4);
-        tvLyric5 = island.findViewById(R.id.islandLyric5);
         tvCurrent = island.findViewById(R.id.islandCurrent);
         tvTotal = island.findViewById(R.id.islandTotal);
         ivCover = island.findViewById(R.id.islandCover);
         ivExpCover = island.findViewById(R.id.islandExpCover);
-        try { waveView = island.findViewById(R.id.islandWave); } catch (Throwable ignored) {}
         btnPlay = island.findViewById(R.id.islandPlay);
         btnPlayExp = island.findViewById(R.id.islandPlayExpand);
         btnPrev = island.findViewById(R.id.islandPrev);
@@ -148,179 +123,137 @@ public class IslandService extends Service {
         collapsedRoot = island.findViewById(R.id.islandCollapsed);
         expandedRoot = island.findViewById(R.id.islandExpanded);
 
-        bindClick(btnPlay, new Runnable() { @Override public void run() { MusicService.toggle(getApplicationContext()); }});
-        bindClick(btnPlayExp, new Runnable() { @Override public void run() { MusicService.toggle(getApplicationContext()); }});
-        bindClick(btnPrev, new Runnable() { @Override public void run() { MusicService.prev(getApplicationContext()); }});
-        bindClick(btnNext, new Runnable() { @Override public void run() { MusicService.next(getApplicationContext()); }});
-        bindClick(btnClose, new Runnable() { @Override public void run() { stopSelf(); }});
-
-        if (collapsedRoot != null) {
-            collapsedRoot.setClickable(true);
-            collapsedRoot.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { if (!expanded) expand(); }
-            });
-        }
-        if (expandedRoot != null) {
-            expandedRoot.setClickable(true);
-            expandedRoot.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { if (expanded) collapse(); }
-            });
-        }
-        if (progress != null) {
-            progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override public void onProgressChanged(SeekBar sb, int p, boolean fu) {
-                    if (fu) {
-                        long dur = MusicService.getDur();
-                        if (dur > 0) MusicService.seekToPos(dur * p / 1000);
-                    }
+        View.OnClickListener playClick = new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (player == null) player = MusicService.sharedPlayer;
+                if (player != null) {
+                    if (player.isPlaying()) player.pause(); else player.play();
                 }
-                @Override public void onStartTrackingTouch(SeekBar sb) { dragging = true; }
-                @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
-            });
-        }
-        island.setAlpha(0f);
-        island.setScaleX(0.7f); island.setScaleY(0.7f);
-        island.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(lowEnd ? 250 : 450).setInterpolator(iosSpring).start();
-    }
-
-    private void bindClick(View v, final Runnable action) {
-        if (v == null) return;
-        v.setClickable(true);
-        v.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(final View view) {
-                if (vib != null) { try { vib.vibrate(12); } catch (Throwable ignored) {} }
-                view.animate().scaleX(0.88f).scaleY(0.88f).setDuration(60)
-                    .setInterpolator(iosEaseOut).start();
-                view.postDelayed(new Runnable() {
-                    @Override public void run() {
-                        view.animate().scaleX(1f).scaleY(1f).setDuration(150)
-                            .setInterpolator(iosSpring).start();
-                    }
-                }, 60);
-                action.run();
             }
+        };
+        View.OnClickListener prevClick = new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (player == null) player = MusicService.sharedPlayer;
+                if (player != null && player.hasPreviousMediaItem()) {
+                    player.seekToPreviousMediaItem();
+                    player.play();
+                }
+            }
+        };
+        View.OnClickListener nextClick = new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (player == null) player = MusicService.sharedPlayer;
+                if (player != null && player.hasNextMediaItem()) {
+                    player.seekToNextMediaItem();
+                    player.play();
+                }
+            }
+        };
+        btnPlay.setOnClickListener(playClick);
+        btnPlayExp.setOnClickListener(playClick);
+        btnPrev.setOnClickListener(prevClick);
+        btnNext.setOnClickListener(nextClick);
+        btnClose.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { stopSelf(); }
         });
+        collapsedRoot.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { toggle(); }
+        });
+        expandedRoot.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { toggle(); }
+        });
+
+        progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean fu) {
+                if (fu && player != null) {
+                    long dur = player.getDuration();
+                    player.seekTo(dur * p / 1000);
+                }
+            }
+            @Override public void onStartTrackingTouch(SeekBar sb) { dragging = true; }
+            @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
+        });
+
+        island.setAlpha(0f);
+        island.setScaleX(0.7f);
+        island.setScaleY(0.7f);
+        island.animate().alpha(1f).scaleX(1f).scaleY(1f)
+            .setDuration(400).setInterpolator(new OvershootInterpolator(1.2f)).start();
     }
 
     private int getW() {
         float w = Prefs.islandWidth(this);
-        if (w < 0.2f) w = 0.2f; if (w > 0.9f) w = 0.9f;
+        if (w < 0.2f) w = 0.2f;
+        if (w > 0.9f) w = 0.9f;
         return (int)(screenW * w);
     }
     private int getH() {
         float dp = Prefs.islandHeight(this);
-        if (dp < 40f) dp = 40f; if (dp > 120f) dp = 120f;
+        if (dp < 40f) dp = 40f;
+        if (dp > 120f) dp = 120f;
         return (int)(dp * density);
     }
 
     public void applySize() {
-        if (island == null || wm == null || expanded) return;
-        lp.width = getW(); lp.height = getH();
+        if (island == null || wm == null) return;
+        lp.width = expanded ? (int)(screenW * 0.88f) : getW();
+        lp.height = expanded ? (int)(170 * density) : getH();
         try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
     }
-    public void applyFps() { if (fc != null) fc.setFps(Prefs.islandFps(this)); }
 
-    private android.view.animation.Interpolator pickIn() {
-        return lowEnd ? new DecelerateInterpolator(1.2f) : iosSpring;
-    }
-    private android.view.animation.Interpolator pickOut() {
-        return lowEnd ? new DecelerateInterpolator(1.2f) : iosEaseOut;
-    }
-
-    private void expand() {
-        if (expanded || animating) return;
-        expanded = true; animating = true;
-        final int sW = lp.width, sH = lp.height;
-        final int tW = (int)(screenW * 0.88f), tH = (int)(210 * density);
-        expandedRoot.setVisibility(View.VISIBLE);
-        expandedRoot.setAlpha(0f);
-        int dur = lowEnd ? 260 : 500;
-        ValueAnimator wa = ValueAnimator.ofInt(sW, tW);
-        ValueAnimator ha = ValueAnimator.ofInt(sH, tH);
-        wa.setDuration(dur); ha.setDuration(dur);
-        wa.setInterpolator(pickIn()); ha.setInterpolator(pickIn());
-        wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.width = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.height = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addListener(new AnimatorListenerAdapter() {
-            @Override public void onAnimationStart(Animator a) { collapsedRoot.setVisibility(View.GONE); }
-            @Override public void onAnimationEnd(Animator a) {
-                animating = false;
-                expandedRoot.setAlpha(0f);
-                expandedRoot.animate().alpha(1f).setDuration(180).setInterpolator(pickOut()).start();
-            }
-        });
-        wa.start(); ha.start();
+    private void toggle() {
+        expanded = !expanded;
+        if (expanded) {
+            collapsedRoot.setVisibility(View.GONE);
+            expandedRoot.setVisibility(View.VISIBLE);
+            expandedRoot.setAlpha(0f);
+            expandedRoot.animate().alpha(1f).setDuration(200).start();
+            lp.width = (int)(screenW * 0.88f);
+            lp.height = (int)(170 * density);
+        } else {
+            expandedRoot.setVisibility(View.GONE);
+            collapsedRoot.setVisibility(View.VISIBLE);
+            lp.width = getW();
+            lp.height = getH();
+        }
+        try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
     }
 
-    private void collapse() {
-        if (!expanded || animating) return;
-        expanded = false; animating = true;
-        expandedRoot.animate().alpha(0f).setDuration(140).start();
-        final int sW = lp.width, sH = lp.height;
-        final int tW = getW(), tH = getH();
-        int dur = lowEnd ? 220 : 400;
-        ValueAnimator wa = ValueAnimator.ofInt(sW, tW);
-        ValueAnimator ha = ValueAnimator.ofInt(sH, tH);
-        wa.setDuration(dur); ha.setDuration(dur);
-        wa.setInterpolator(pickOut()); ha.setInterpolator(pickOut());
-        wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.width = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override public void onAnimationUpdate(ValueAnimator a) {
-                lp.height = (int) a.getAnimatedValue();
-                try { wm.updateViewLayout(island, lp); } catch (Throwable ignored) {}
-            }
-        });
-        ha.addListener(new AnimatorListenerAdapter() {
-            @Override public void onAnimationEnd(Animator a) {
-                expandedRoot.setVisibility(View.GONE);
-                collapsedRoot.setVisibility(View.VISIBLE);
-                collapsedRoot.setAlpha(0f);
-                collapsedRoot.animate().alpha(1f).setDuration(180).setInterpolator(pickOut()).start();
-                animating = false;
-            }
-        });
-        wa.start(); ha.start();
-    }
+    private final Runnable tick = new Runnable() {
+        @Override public void run() {
+            update();
+            h.postDelayed(this, 800);
+        }
+    };
 
     private void update() {
+        if (player == null) player = MusicService.sharedPlayer;
+        if (player == null) return;
         try {
-            MediaItem item = MusicService.getCurrentItem();
+            int idx = player.getCurrentMediaItemIndex();
             long songId = 0;
-            String title = "正在播放", artist = "MUSIC·Pro";
-            if (item != null && item.mediaMetadata != null) {
-                MediaMetadata md = item.mediaMetadata;
-                if (md.title != null) title = md.title.toString();
-                if (md.artist != null) artist = md.artist.toString();
+            String title = "♪ 正在播放";
+            String artist = "MUSIC·Pro";
+            if (queue != null && idx >= 0 && idx < queue.size()) {
+                Song s = queue.get(idx);
+                songId = s.id;
+                title = s.title;
+                artist = s.artist;
             }
-            int idx = MusicService.getIndex();
-            List<Song> q = MusicService.sharedQueue;
-            if (q != null && idx >= 0 && idx < q.size()) songId = q.get(idx).id;
 
+            // 只在变化时更新文字
             if (!title.equals(lastTitle)) {
                 if (tvTitle != null) tvTitle.setText(title);
                 if (tvExpTitle != null) tvExpTitle.setText(title);
                 lastTitle = title;
             }
             if (!artist.equals(lastArtist)) {
+                if (tvArtist != null) tvArtist.setText(artist);
                 if (tvExpArtist != null) tvExpArtist.setText(artist);
                 lastArtist = artist;
             }
+
+            // 只在换歌时更新封面
             if (songId != lastSongId) {
                 lastSongId = songId;
                 String name = WallpaperHelper.forSong(this, songId);
@@ -329,54 +262,35 @@ public class IslandService extends Service {
                     if (ivCover != null) ivCover.setImageBitmap(bm);
                     if (ivExpCover != null) ivExpCover.setImageBitmap(bm);
                 }
-                lyricLines = new ArrayList<LyricsParser.Line>();
-                lastLyric = "";
             }
-            if (q != null && idx >= 0 && idx < q.size()) {
-                String lrc = q.get(idx).lyric;
-                if (lrc != null && !lrc.equals(lastLyric)) {
-                    lastLyric = lrc;
-                    lyricLines = LyricsParser.parse(lrc);
-                }
-                if (!lyricLines.isEmpty()) {
-                    long pos = MusicService.getPos();
-                    int li = LyricsParser.findIndex(lyricLines, pos);
-                    String l1 = (li-2 >= 0 && li-2 < lyricLines.size()) ? lyricLines.get(li-2).text : "";
-                    String l2 = (li-1 >= 0 && li-1 < lyricLines.size()) ? lyricLines.get(li-1).text : "";
-                    String l3 = (li >= 0 && li < lyricLines.size()) ? lyricLines.get(li).text : "";
-                    String l4 = (li+1 >= 0 && li+1 < lyricLines.size()) ? lyricLines.get(li+1).text : "";
-                    String l5 = (li+2 >= 0 && li+2 < lyricLines.size()) ? lyricLines.get(li+2).text : "";
-                    if (tvLyric1 != null && !l1.equals(tvLyric1.getText().toString())) tvLyric1.setText(l1);
-                    if (tvLyric2 != null && !l2.equals(tvLyric2.getText().toString())) tvLyric2.setText(l2);
-                    if (tvLyric3 != null && !l3.equals(tvLyric3.getText().toString())) tvLyric3.setText(l3);
-                    if (tvLyric4 != null && !l4.equals(tvLyric4.getText().toString())) tvLyric4.setText(l4);
-                    if (tvLyric5 != null && !l5.equals(tvLyric5.getText().toString())) tvLyric5.setText(l5);
-                }
-            }
-            boolean playing = MusicService.isPlaying();
+
+            // 只在播放状态变化时更新图标
+            boolean playing = player.isPlaying();
             if (playing != lastPlaying) {
                 lastPlaying = playing;
-                String sym = playing ? "⏸" : "▶";
-                if (btnPlay instanceof android.widget.TextView)
-                    ((android.widget.TextView) btnPlay).setText(sym);
-                if (btnPlayExp instanceof android.widget.TextView)
-                    ((android.widget.TextView) btnPlayExp).setText(sym);
+                int icon = playing
+                    ? android.R.drawable.ic_media_pause
+                    : android.R.drawable.ic_media_play;
+                if (btnPlay != null) btnPlay.setImageResource(icon);
+                if (btnPlayExp != null) btnPlayExp.setImageResource(icon);
             }
-            if (expanded && !dragging && progress != null) {
-                long pos = MusicService.getPos(), dur = MusicService.getDur();
-                if (dur > 0) {
-                    progress.setMax(1000);
-                    progress.setProgress((int)(pos * 1000 / dur));
+
+            // 进度只在展开态 + 未拖动时更新
+            if (expanded && !dragging) {
+                long pos = player.getCurrentPosition();
+                long dur = player.getDuration();
+                if (dur > 0 && progress != null) {
+                    int p = (int)(pos * 1000 / dur);
+                    if (p != lastProgress) {
+                        progress.setMax(1000);
+                        progress.setProgress(p);
+                        lastProgress = p;
+                    }
                     if (tvCurrent != null) tvCurrent.setText(fmt((int) pos));
                     if (tvTotal != null) tvTotal.setText(fmt((int) dur));
                 }
             }
         } catch (Throwable ignored) {}
-    }
-
-    // 保险：每帧同步声波
-    private void syncWave(boolean playing) {
-        if (waveView != null) waveView.setPlaying(playing);
     }
 
     private String fmt(int ms) {
@@ -387,7 +301,7 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
-        if (fc != null) fc.stop();
+        
         h.removeCallbacksAndMessages(null);
         if (island != null && wm != null) {
             try { wm.removeView(island); } catch (Throwable ignored) {}
