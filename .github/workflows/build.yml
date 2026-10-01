@@ -19,13 +19,16 @@ jobs:
         with:
           packages: 'platforms;android-34 build-tools;34.0.0'
 
-      - name: Setup Gradle 8.2
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: 8.2
+      - name: Download Gradle 8.2
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
+          unzip -q gradle-8.2-bin.zip
+          ls -la gradle-8.2/bin/
 
       - name: Build with Gradle 8.2
-        run: gradle assembleRelease --stacktrace --no-daemon
+        run: |
+          gradle-8.2/bin/gradle --version
+          gradle-8.2/bin/gradle assembleRelease --stacktrace --no-daemon
 
       - name: Prepare
         run: |
