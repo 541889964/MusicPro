@@ -124,15 +124,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-        ImageButton btnGallery = findViewById(R.id.btnGallery);
-        if (btnGallery != null) {
-            btnGallery.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, GalleryActivity.class));
-                }
-            });
-        }
-        ImageButton btnTheme = findViewById(R.id.btnTheme);
+ImageButton btnTheme = findViewById(R.id.btnTheme);
         if (btnTheme != null) {
             btnTheme.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) {
@@ -152,6 +144,14 @@ public class MainActivity extends AppCompatActivity {
         if (tabOnline != null) tabOnline.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { switchTab(1); }
         });
+        android.widget.TextView btnSettings = findViewById(R.id.btnSettings);
+        if (btnSettings != null) {
+            btnSettings.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                }
+            });
+        }
         etSearch = findViewById(R.id.etSearch);
         if (etSearch != null) {
             etSearch.addTextChangedListener(new TextWatcher() {

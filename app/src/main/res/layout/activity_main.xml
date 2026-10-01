@@ -59,36 +59,12 @@
                         android:textSize="11sp" android:singleLine="true"/>
                 </LinearLayout>
 
-                <TextView android:id="@+id/btnLock"
-                    android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center" android:text="锁"
+                <TextView android:id="@+id/btnSettings"
+                    android:layout_width="40dp" android:layout_height="40dp"
+                    android:gravity="center" android:text="设置"
                     android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
                     android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="3dp"
-                    android:clickable="true" android:focusable="true"/>
-
-                <TextView android:id="@+id/btnIsland"
-                    android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center" android:text="岛"
-                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
-                    android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="3dp"
-                    android:clickable="true" android:focusable="true"/>
-
-                <TextView android:id="@+id/btnTheme"
-                    android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center" android:text="肤"
-                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
-                    android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="3dp"
-                    android:clickable="true" android:focusable="true"/>
-
-                <TextView android:id="@+id/btnGallery"
-                    android:layout_width="34dp" android:layout_height="34dp"
-                    android:gravity="center" android:text="图"
-                    android:textSize="13sp" android:textColor="#FFFFFF" android:textStyle="bold"
-                    android:background="@drawable/top_btn_bg"
-                    android:layout_marginLeft="3dp"
+                    android:layout_marginLeft="6dp"
                     android:clickable="true" android:focusable="true"/>
             </LinearLayout>
 

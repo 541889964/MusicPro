@@ -240,53 +240,9 @@ public class PlayerActivity extends AppCompatActivity {
         MusicService.playItems(items, idx);
         updatePlayIcon();
 
-        // 后台预缓存真实 URL（仅在线歌曲）
-        preCacheRealUrls(idx, 30);
+        // 不预缓存，切歌时再获取真实 URL
     }
 
-    /** 后台线程：顺序请求队列中在线歌曲的真实 320k URL，最多缓存 30 首 */
-    private void preCacheRealUrls(final int startIdx, final int maxCount) {
-        new Thread(new Runnable() {
-            @Override public void run() {
-                try { Thread.sleep(2000); } catch (Throwable ignored) {}
-                int count = 0;
-                for (int i = 0; i < queue.size() && count < maxCount; i++) {
-                    if (i == startIdx) continue;
-                    final Song sg = queue.get(i);
-                    if (!sg.isOnline) continue;
-                    // 已经是真实 URL（含 stream/ 路径）就跳过
-                    if (sg.onlineUrl != null && sg.onlineUrl.contains("/stream/")) {
-                        count++;
-                        continue;
-                    }
-                    final java.util.concurrent.CountDownLatch latch =
-                        new java.util.concurrent.CountDownLatch(1);
-                    NeteaseApi.getPlayUrl(sg.id, new NeteaseApi.OnUrl() {
-                        @Override public void onResult(String url) {
-                            if (url != null && !url.isEmpty()) {
-                                sg.onlineUrl = url;
-                                // 更新正在播放的 mediaItem（如果轮到它）
-                                try {
-                                    androidx.media3.exoplayer.ExoPlayer p = MusicService.getPlayer();
-                                    if (p != null) {
-                                        int cur = p.getCurrentMediaItemIndex();
-                                        if (cur == queue.indexOf(sg)) {
-                                            // 当前正在播这首歌就跳过，别打断
-                                        }
-                                    }
-                                } catch (Throwable ignored) {}
-                            }
-                            latch.countDown();
-                        }
-                    });
-                    try { latch.await(4, java.util.concurrent.TimeUnit.SECONDS); }
-                    catch (Throwable ignored) {}
-                    count++;
-                    try { Thread.sleep(150); } catch (Throwable ignored) {}
-                }
-            }
-        }).start();
-    }
 
     private void loadLyrics(final long songId, final int idx) {
         if (lyricsContainer != null) lyricsContainer.removeAllViews();
