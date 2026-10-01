@@ -2,6 +2,7 @@ package com.music.app.service;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Service;
 import android.content.Intent;
@@ -46,30 +47,27 @@ public class IslandService extends Service {
     private IslandConfig cfg;
 
     private View collapsedBox, expandedBox;
-    private View collapsedGlow, expandedGlow;
-    private android.animation.ObjectAnimator glowPulse;
     private ImageView imgCover, imgCoverBig;
-    private TextView txtTitle, txtTitleBig, txtArtistBig, txtMiniLyric;
-    private TextView txtBattery, txtBatteryBig;
-    private int batteryLevel = 100;
-    private boolean batteryCharging = false;
+    private TextView txtTitle, txtTitleBig, txtArtistBig, txtMiniLyric, txtBattery, txtBatteryBig;
     private TextView[] lyricViews = new TextView[5];
     private TextView txtTimeCur, txtTimeTot;
     private TextView btnPlay, btnPlayBig, btnPrev, btnNext, btnClose;
-    private com.music.app.widget.UtilPanel utilPanel;
     private SeekBar seek;
 
     private int screenW, screenH, statusBarH;
     private float density;
     private boolean expanded = false, animating = false, dragging = false;
-    private android.animation.ObjectAnimator coverRotate;
-    private android.content.BroadcastReceiver chargeReceiver;
-    private boolean charging = false;
 
     private long lastSongId = -1;
     private String lastLyric = "";
     private boolean lastPlaying = false;
     private List<LyricsParser.Line> lyricLines = new ArrayList<LyricsParser.Line>();
+
+    private ObjectAnimator coverRotate, breathe;
+    private android.content.BroadcastReceiver chargeReceiver;
+    private boolean charging = false;
+    private int lastBattery = -1;
+    private boolean lastCharging = false;
 
     private final Handler h = new Handler(Looper.getMainLooper());
     private final Runnable tick = new Runnable() {
@@ -84,7 +82,9 @@ public class IslandService extends Service {
     @Override public void onCreate() {
         super.onCreate();
         if (Build.VERSION.SDK_INT >= 23 && !android.provider.Settings.canDrawOverlays(this)) {
-            stopSelf(); return;
+            Log.e(TAG, "no overlay perm");
+            stopSelf();
+            return;
         }
         try {
             instance = this;
@@ -92,132 +92,11 @@ public class IslandService extends Service {
             measure();
             initView();
             initChargeReceiver();
-            updateBatteryUI();
             h.post(tick);
         } catch (Throwable t) {
-            Log.e(TAG, "init", t);
+            Log.e(TAG, "init fail", t);
             stopSelf();
         }
-    }
-
-    private void initChargeReceiver() {
-        try {
-            chargeReceiver = new android.content.BroadcastReceiver() {
-                @Override public void onReceive(android.content.Context c, Intent it) {
-                    try {
-                        if (it == null) return;
-                        int level = it.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, 0);
-                        int scale = it.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100);
-                        int status = it.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
-                        boolean nowCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING
-                            || status == android.os.BatteryManager.BATTERY_STATUS_FULL;
-                        if (scale > 0) batteryLevel = level * 100 / scale;
-                        batteryCharging = nowCharging;
-                        updateBatteryUI();
-                        if (nowCharging && !charging) {
-                            charging = true;
-                            showChargeAnim();
-                        } else if (!nowCharging) {
-                            charging = false;
-                        }
-                    } catch (Throwable ignored) {}
-                }
-            };
-            IntentFilter f = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-            registerReceiver(chargeReceiver, f);
-        } catch (Throwable ignored) {}
-    }
-
-    private void updateBatteryUI() {
-        try {
-            int color;
-            String icon;
-            if (batteryCharging) {
-                color = 0xFF00FF88;
-                icon = "⚡" + batteryLevel + "%";
-            } else {
-                if (batteryLevel >= 80) color = 0xFF4CD964;
-                else if (batteryLevel >= 50) color = 0xFF5AC8FA;
-                else if (batteryLevel >= 20) color = 0xFFFFCC00;
-                else color = 0xFFFF3B30;
-                icon = batteryLevel + "%";
-            }
-            if (txtBattery != null) {
-                txtBattery.setText(icon);
-                txtBattery.setTextColor(color);
-            }
-            if (txtBatteryBig != null) {
-                txtBatteryBig.setText(icon);
-                txtBatteryBig.setTextColor(color);
-            }
-        } catch (Throwable ignored) {}
-    }
-
-    /** 充电提示 */
-    private void showChargeAnim() {
-        try {
-            // 1. 灵动岛弹跳 + 缩放
-            if (root != null) {
-                root.animate()
-                    .scaleX(1.1f).scaleY(1.1f)
-                    .setDuration(200)
-                    .withEndAction(new Runnable() {
-                        @Override public void run() {
-                            root.animate().scaleX(1f).scaleY(1f)
-                                .setDuration(300)
-                                .setInterpolator(new OvershootInterpolator(1.5f))
-                                .start();
-                        }
-                    }).start();
-            }
-
-            // 2. 光晕闪三下（彩虹）
-            if (collapsedGlow != null) {
-                collapsedGlow.setAlpha(0f);
-                collapsedGlow.animate().alpha(1f).setDuration(150)
-                    .withEndAction(new Runnable() {
-                        @Override public void run() {
-                            collapsedGlow.animate().alpha(0f).setDuration(150)
-                                .withEndAction(new Runnable() {
-                                    @Override public void run() {
-                                        collapsedGlow.animate().alpha(1f).setDuration(150)
-                                            .withEndAction(new Runnable() {
-                                                @Override public void run() {
-                                                    collapsedGlow.animate().alpha(0f).setDuration(300).start();
-                                                }
-                                            }).start();
-                                    }
-                                }).start();
-                        }
-                    }).start();
-            }
-
-            // 3. 播放键旋转 360°
-            if (btnPlay != null) {
-                btnPlay.animate().rotation(360f).setDuration(600)
-                    .withEndAction(new Runnable() {
-                        @Override public void run() {
-                            if (btnPlay != null) btnPlay.setRotation(0f);
-                        }
-                    }).start();
-            }
-
-            // 4. 自动展开 3 秒
-            if (!expanded) {
-                expand();
-                h.postDelayed(new Runnable() {
-                    @Override public void run() {
-                        if (expanded) collapse();
-                    }
-                }, 3000);
-            }
-
-            // 5. Toast 提示
-            try {
-                android.widget.Toast.makeText(IslandService.this,
-                    "⚡ 充电中，音乐陪你", android.widget.Toast.LENGTH_SHORT).show();
-            } catch (Throwable ignored) {}
-        } catch (Throwable ignored) {}
     }
 
     private void measure() {
@@ -241,27 +120,8 @@ public class IslandService extends Service {
     }
     private int eW() {
         int w = cfg.expandedW;
-        if (w < 10) w = 10; if (w > 150) w = 150;
+        if (w < 30) w = 30; if (w > 110) w = 110;
         return (int)(screenW * w / 100f);
-    }
-    private int eH() {
-        // ★ 优先用内容测量高度
-        try {
-            root.measure(
-                android.view.View.MeasureSpec.makeMeasureSpec(
-                    (int)(screenW * cfg.expandedW / 100f),
-                    android.view.View.MeasureSpec.EXACTLY),
-                android.view.View.MeasureSpec.makeMeasureSpec(
-                    0, android.view.View.MeasureSpec.UNSPECIFIED));
-            int measuredH = expandedBox.getMeasuredHeight();
-            if (measuredH > 0) {
-                int maxH = (int)(screenH * 0.85f);
-                return Math.min(measuredH, maxH);
-            }
-        } catch (Throwable ignored) {}
-        int h = cfg.expandedH;
-        if (h < 200) h = 200; if (h > 900) h = 900;
-        return (int)(h * density);
     }
 
     private void initView() {
@@ -275,8 +135,7 @@ public class IslandService extends Service {
         lp = new WindowManager.LayoutParams(cW(), cH(), type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         lp.y = statusBarH + (int)(6 * density);
@@ -284,8 +143,17 @@ public class IslandService extends Service {
         try { wm.addView(root, lp); }
         catch (Throwable t) { Log.e(TAG, "addView", t); stopSelf(); return; }
 
-        try { collapsedGlow = root.findViewById(R.id.collapsedGlow); } catch (Throwable ignored) {}
-        try { expandedGlow = root.findViewById(R.id.expandedGlow); } catch (Throwable ignored) {}
+        bindViews();
+        bindClicks();
+
+        root.setAlpha(0f);
+        root.setScaleX(0.85f);
+        root.setScaleY(0.85f);
+        root.animate().alpha(1f).scaleX(1f).scaleY(1f)
+            .setDuration(400).setInterpolator(new OvershootInterpolator(1.4f)).start();
+    }
+
+    private void bindViews() {
         collapsedBox = root.findViewById(R.id.collapsedBox);
         expandedBox = root.findViewById(R.id.expandedBox);
         imgCover = root.findViewById(R.id.imgCover);
@@ -309,16 +177,19 @@ public class IslandService extends Service {
         btnNext = root.findViewById(R.id.btnNext);
         btnClose = root.findViewById(R.id.btnClose);
         seek = root.findViewById(R.id.seek);
+    }
 
-        collapsedBox.setOnClickListener(new View.OnClickListener() {
+    private void bindClicks() {
+        if (collapsedBox != null) collapsedBox.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { if (!expanded) expand(); }
         });
-        expandedBox.setOnClickListener(new View.OnClickListener() {
+        if (expandedBox != null) expandedBox.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { if (expanded) collapse(); }
         });
 
         View.OnClickListener playClick = new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override public void onClick(final View v) {
+                pressFeedback(v);
                 try {
                     ExoPlayer p = MusicService.getPlayer();
                     if (p == null) return;
@@ -330,7 +201,8 @@ public class IslandService extends Service {
         if (btnPlayBig != null) btnPlayBig.setOnClickListener(playClick);
 
         if (btnPrev != null) btnPrev.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override public void onClick(final View v) {
+                pressFeedback(v);
                 try {
                     ExoPlayer p = MusicService.getPlayer();
                     if (p == null) return;
@@ -341,7 +213,8 @@ public class IslandService extends Service {
             }
         });
         if (btnNext != null) btnNext.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override public void onClick(final View v) {
+                pressFeedback(v);
                 try {
                     ExoPlayer p = MusicService.getPlayer();
                     if (p == null) return;
@@ -374,146 +247,238 @@ public class IslandService extends Service {
                 @Override public void onStopTrackingTouch(SeekBar sb) { dragging = false; }
             });
         }
-
-        // 实用功能面板
-        try {
-            TextView cpu = root.findViewById(R.id.txtCpu);
-            TextView ram = root.findViewById(R.id.txtRam);
-            TextView net = root.findViewById(R.id.txtNet);
-            TextView clip = root.findViewById(R.id.txtClipboard);
-            utilPanel = new com.music.app.widget.UtilPanel(this, cpu, ram, net, clip);
-            utilPanel.start();
-
-            // 快捷开关
-            TextView wifi = root.findViewById(R.id.toggleWifi);
-            TextView bt = root.findViewById(R.id.toggleBt);
-            TextView torch = root.findViewById(R.id.toggleTorch);
-            TextView silent = root.findViewById(R.id.toggleSilent);
-            if (wifi != null) wifi.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { utilPanel.toggleWifi(); }
-            });
-            if (bt != null) bt.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { utilPanel.toggleBt(); }
-            });
-            if (torch != null) torch.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { utilPanel.toggleTorch(); }
-            });
-            if (silent != null) silent.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { utilPanel.toggleSilent(); }
-            });
-            if (clip != null) clip.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) { utilPanel.copyClipboard(); }
-            });
-        } catch (Throwable ignored) {}
-
-        root.setAlpha(0f);
-        root.setScaleX(0.85f);
-        root.setScaleY(0.85f);
-        root.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(300).setInterpolator(new OvershootInterpolator(1.4f)).start();
     }
 
-    /** ★ 流畅展开：只调 2 次 updateViewLayout + 内容 scale 动画 */
-    private void startRotate() {
+    /** 按钮按压反馈（缩放回弹） */
+    private void pressFeedback(View v) {
         try {
-            if (imgCover == null) return;
-            if (coverRotate != null) coverRotate.cancel();
-            coverRotate = android.animation.ObjectAnimator.ofFloat(imgCover, "rotation", 0f, 360f);
-            coverRotate.setDuration(16000);
-            coverRotate.setRepeatCount(android.animation.ObjectAnimator.INFINITE);
-            coverRotate.setInterpolator(new android.view.animation.LinearInterpolator());
-            coverRotate.start();
+            v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(70).start();
+            v.postDelayed(new Runnable() {
+                @Override public void run() {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(200)
+                        .setInterpolator(new OvershootInterpolator(2.5f)).start();
+                }
+            }, 70);
         } catch (Throwable ignored) {}
     }
 
-    private void startGlowPulse() {
-        try {
-            if (collapsedGlow == null) return;
-            if (glowPulse != null) glowPulse.cancel();
-            glowPulse = android.animation.ObjectAnimator.ofFloat(collapsedGlow, "alpha", 0f, 0.5f);
-            glowPulse.setDuration(1500);
-            glowPulse.setRepeatCount(android.animation.ObjectAnimator.INFINITE);
-            glowPulse.setRepeatMode(android.animation.ObjectAnimator.REVERSE);
-            glowPulse.setInterpolator(new DecelerateInterpolator());
-            glowPulse.start();
-        } catch (Throwable ignored) {}
-    }
-
-    private void stopGlowPulse() {
-        try {
-            if (glowPulse != null) { glowPulse.cancel(); glowPulse = null; }
-            if (collapsedGlow != null) collapsedGlow.setAlpha(0f);
-        } catch (Throwable ignored) {}
-    }
-
+    /** ★ 展开：先展开宽度，再淡入内容 */
     private void expand() {
         if (expanded || animating) return;
         expanded = true;
         animating = true;
 
-        // 1. 先显示展开内容
-        expandedBox.setVisibility(View.VISIBLE);
-        expandedBox.setAlpha(0f);
-        expandedBox.setScaleX(0.85f);
-        expandedBox.setScaleY(0.85f);
-        collapsedBox.setVisibility(View.GONE);
+        try {
+            final int startW = lp.width;
+            final int targetW = eW();
 
-        // 2. 等一帧让内容布局完成，再测量高度
-        root.post(new Runnable() {
-            @Override public void run() {
-                // 更新窗口尺寸（自动测量高度）
-                lp.width = eW();
-                lp.height = eH();
-                try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            expandedBox.setVisibility(View.VISIBLE);
+            expandedBox.setAlpha(0f);
+            expandedBox.setScaleX(0.92f);
+            expandedBox.setScaleY(0.92f);
+            collapsedBox.setVisibility(View.GONE);
 
-                // 3. 内容淡入
-                expandedBox.animate()
-                    .alpha(1f).scaleX(1f).scaleY(1f)
-                    .setDuration(300)
-                    .setInterpolator(new OvershootInterpolator(1.2f))
-                    .withEndAction(new Runnable() {
-                        @Override public void run() {
-                            animating = false;
-                            update();
-                        }
-                    }).start();
+            ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
+            wa.setDuration(320);
+            wa.setInterpolator(new OvershootInterpolator(1.15f));
+            wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override public void onAnimationUpdate(ValueAnimator a) {
+                    try {
+                        lp.width = (int) a.getAnimatedValue();
+                        wm.updateViewLayout(root, lp);
+                    } catch (Throwable ignored) {}
+                }
+            });
+            wa.addListener(new AnimatorListenerAdapter() {
+                @Override public void onAnimationEnd(Animator a) {
+                    // 内容淡入
+                    expandedBox.animate()
+                        .alpha(1f).scaleX(1f).scaleY(1f)
+                        .setDuration(280)
+                        .setInterpolator(new OvershootInterpolator(1.2f))
+                        .withEndAction(new Runnable() {
+                            @Override public void run() {
+                                animating = false;
+                            }
+                        }).start();
+                }
+            });
+            wa.start();
+
+            // 播放键脉冲
+            if (btnPlayBig != null) {
+                btnPlayBig.setScaleX(0.7f);
+                btnPlayBig.setScaleY(0.7f);
+                btnPlayBig.animate().scaleX(1f).scaleY(1f)
+                    .setStartDelay(200).setDuration(400)
+                    .setInterpolator(new OvershootInterpolator(1.8f)).start();
             }
-        });
+        } catch (Throwable t) {
+            Log.e(TAG, "expand", t);
+            animating = false;
+        }
     }
 
-        }
-
-    /** ★ 流畅收起 */
+    /** ★ 收起：先淡出内容，再缩宽度 */
     private void collapse() {
         if (!expanded || animating) return;
         expanded = false;
         animating = true;
 
-        // 内容先缩回
-        expandedBox.animate()
-            .alpha(0f).scaleX(0.85f).scaleY(0.85f)
-            .setDuration(200)
-            .setInterpolator(new DecelerateInterpolator())
-            .withEndAction(new Runnable() {
-                @Override public void run() {
-                    expandedBox.setVisibility(View.GONE);
-                    collapsedBox.setVisibility(View.VISIBLE);
-                    // 窗口缩回（只调一次）
-                    lp.width = cW();
-                    lp.height = cH();
-                    try { wm.updateViewLayout(root, lp); } catch (Throwable ignored) {}
-                    animating = false;
-                }
-            }).start();
+        try {
+            // 内容先淡出
+            expandedBox.animate()
+                .alpha(0f).scaleX(0.92f).scaleY(0.92f)
+                .setDuration(180)
+                .setInterpolator(new DecelerateInterpolator())
+                .withEndAction(new Runnable() {
+                    @Override public void run() {
+                        // 宽度缩回
+                        final int startW = lp.width;
+                        final int targetW = cW();
+                        ValueAnimator wa = ValueAnimator.ofInt(startW, targetW);
+                        wa.setDuration(280);
+                        wa.setInterpolator(new DecelerateInterpolator(1.5f));
+                        wa.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            @Override public void onAnimationUpdate(ValueAnimator a) {
+                                try {
+                                    lp.width = (int) a.getAnimatedValue();
+                                    wm.updateViewLayout(root, lp);
+                                } catch (Throwable ignored) {}
+                            }
+                        });
+                        wa.addListener(new AnimatorListenerAdapter() {
+                            @Override public void onAnimationEnd(Animator a) {
+                                try {
+                                    lp.height = cH();
+                                    wm.updateViewLayout(root, lp);
+                                } catch (Throwable ignored) {}
+                                expandedBox.setVisibility(View.GONE);
+                                collapsedBox.setVisibility(View.VISIBLE);
+                                collapsedBox.setAlpha(0f);
+                                collapsedBox.animate().alpha(1f).setDuration(180)
+                                    .withEndAction(new Runnable() {
+                                        @Override public void run() {
+                                            animating = false;
+                                        }
+                                    }).start();
+                            }
+                        });
+                        wa.start();
+                    }
+                }).start();
+        } catch (Throwable t) {
+            Log.e(TAG, "collapse", t);
+            animating = false;
+        }
     }
 
     public void reloadConfig() {
-        cfg = IslandConfig.load();
         try {
-            // ★ 展开/折叠都能实时调尺寸
-            lp.width = expanded ? eW() : cW();
-            lp.height = expanded ? eH() : cH();
-            wm.updateViewLayout(root, lp);
+            cfg = IslandConfig.load();
+            if (!expanded) {
+                lp.width = cW();
+                lp.height = cH();
+                wm.updateViewLayout(root, lp);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private void initChargeReceiver() {
+        try {
+            chargeReceiver = new android.content.BroadcastReceiver() {
+                @Override public void onReceive(android.content.Context c, Intent it) {
+                    try {
+                        if (it == null) return;
+                        int level = it.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, 0);
+                        int scale = it.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100);
+                        int status = it.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
+                        boolean nowCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING
+                            || status == android.os.BatteryManager.BATTERY_STATUS_FULL;
+                        int pct = scale > 0 ? level * 100 / scale : 0;
+                        updateBattery(pct, nowCharging);
+                        if (nowCharging && !charging) {
+                            charging = true;
+                            showChargeAnim();
+                        } else if (!nowCharging) {
+                            charging = false;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+            };
+            registerReceiver(chargeReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        } catch (Throwable ignored) {}
+    }
+
+    private void updateBattery(int pct, boolean chg) {
+        lastBattery = pct;
+        lastCharging = chg;
+        try {
+            int color;
+            String txt;
+            if (chg) { color = 0xFF00FF88; txt = "⚡" + pct + "%"; }
+            else {
+                if (pct >= 80) color = 0xFF4CD964;
+                else if (pct >= 50) color = 0xFF5AC8FA;
+                else if (pct >= 20) color = 0xFFFFCC00;
+                else color = 0xFFFF3B30;
+                txt = pct + "%";
+            }
+            if (txtBattery != null) { txtBattery.setText(txt); txtBattery.setTextColor(color); }
+            if (txtBatteryBig != null) { txtBatteryBig.setText(txt); txtBatteryBig.setTextColor(color); }
+        } catch (Throwable ignored) {}
+    }
+
+    private void showChargeAnim() {
+        try {
+            if (root != null) {
+                root.animate().scaleX(1.05f).scaleY(1.05f).setDuration(200)
+                    .withEndAction(new Runnable() {
+                        @Override public void run() {
+                            root.animate().scaleX(1f).scaleY(1f).setDuration(300)
+                                .setInterpolator(new OvershootInterpolator(1.5f)).start();
+                        }
+                    }).start();
+            }
+            if (!expanded) {
+                expand();
+                h.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        if (expanded) collapse();
+                    }
+                }, 2500);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private void startBreathe() {
+        try {
+            if (root == null) return;
+            if (breathe != null) breathe.cancel();
+            breathe = ObjectAnimator.ofFloat(root, "alpha", 1f, 0.88f, 1f);
+            breathe.setDuration(2200);
+            breathe.setRepeatCount(ObjectAnimator.INFINITE);
+            breathe.start();
+        } catch (Throwable ignored) {}
+    }
+
+    private void stopBreathe() {
+        try {
+            if (breathe != null) { breathe.cancel(); breathe = null; }
+            if (root != null) root.setAlpha(1f);
+        } catch (Throwable ignored) {}
+    }
+
+    private void startRotate() {
+        try {
+            if (imgCover == null) return;
+            if (coverRotate != null) coverRotate.cancel();
+            coverRotate = ObjectAnimator.ofFloat(imgCover, "rotation", 0f, 360f);
+            coverRotate.setDuration(18000);
+            coverRotate.setRepeatCount(ObjectAnimator.INFINITE);
+            coverRotate.setInterpolator(new android.view.animation.LinearInterpolator());
+            coverRotate.start();
         } catch (Throwable ignored) {}
     }
 
@@ -524,7 +489,7 @@ public class IslandService extends Service {
 
             MediaItem item = p.getCurrentMediaItem();
             long songId = 0;
-            String title = "", artist = "";
+            String title = "未播放", artist = "";
             if (item != null && item.mediaMetadata != null) {
                 MediaMetadata md = item.mediaMetadata;
                 if (md.title != null) title = md.title.toString();
@@ -548,8 +513,7 @@ public class IslandService extends Service {
 
             if (songId != lastSongId) {
                 lastSongId = songId;
-                // ★ 切歌时清空歌词缓存，避免上一首歌词残留
-                com.music.app.PlayerActivity.currentLyric = "";
+                PlayerActivity.currentLyric = "";
                 lyricLines = new ArrayList<LyricsParser.Line>();
                 lastLyric = "";
                 try {
@@ -581,21 +545,17 @@ public class IslandService extends Service {
                         startRotate();
                     }
                 } catch (Throwable ignored) {}
-                lyricLines = new ArrayList<LyricsParser.Line>();
-                lastLyric = "";
             }
 
-            // ★ 歌词：优先 PlayerActivity.currentLyric
             String lrc = PlayerActivity.currentLyric;
             if (lrc == null || lrc.isEmpty()) {
                 if (curSong != null) lrc = curSong.lyric;
             }
 
             if (lrc == null || lrc.isEmpty()) {
-                // 没歌词 → 清空显示
                 if (txtMiniLyric != null) txtMiniLyric.setText("");
                 for (TextView tv : lyricViews) if (tv != null) tv.setText("");
-            } else if (lrc != null && !lrc.isEmpty()) {
+            } else {
                 if (!lrc.equals(lastLyric)) {
                     lastLyric = lrc;
                     lyricLines = LyricsParser.parse(lrc);
@@ -628,8 +588,7 @@ public class IslandService extends Service {
                 String sym = playing ? "⏸" : "▶";
                 if (btnPlay != null) btnPlay.setText(sym);
                 if (btnPlayBig != null) btnPlayBig.setText(sym);
-                // ★ 播放时呼吸光晕
-                if (playing) startGlowPulse(); else stopGlowPulse();
+                if (playing) startBreathe(); else stopBreathe();
             }
 
             if (expanded && !dragging && seek != null) {
@@ -653,13 +612,11 @@ public class IslandService extends Service {
 
     @Override public void onDestroy() {
         instance = null;
-        try { if (utilPanel != null) utilPanel.stop(); } catch (Throwable ignored) {}
         try { if (coverRotate != null) coverRotate.cancel(); } catch (Throwable ignored) {}
-        try { if (glowPulse != null) glowPulse.cancel(); } catch (Throwable ignored) {}
+        try { if (breathe != null) breathe.cancel(); } catch (Throwable ignored) {}
         try { if (chargeReceiver != null) unregisterReceiver(chargeReceiver); } catch (Throwable ignored) {}
         h.removeCallbacksAndMessages(null);
-        try { if (root != null && wm != null) wm.removeView(root); }
-        catch (Throwable ignored) {}
+        try { if (root != null && wm != null) wm.removeView(root); } catch (Throwable ignored) {}
         super.onDestroy();
     }
 }
