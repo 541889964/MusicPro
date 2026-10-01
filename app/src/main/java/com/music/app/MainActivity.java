@@ -124,14 +124,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-ImageButton btnTheme = findViewById(R.id.btnTheme);
-        if (btnTheme != null) {
-            btnTheme.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, ThemeActivity.class));
-                }
-            });
-        }
         tabLocal = findViewById(R.id.tabLocal);
         tabOnline = findViewById(R.id.tabOnline);
         tabLocalText = findViewById(R.id.tabLocalText);

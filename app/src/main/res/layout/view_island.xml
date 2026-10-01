@@ -41,9 +41,10 @@
                 android:textSize="10sp" android:singleLine="true" android:ellipsize="end"/>
         </LinearLayout>
 
-        <ImageView android:id="@+id/islandWave"
-            android:layout_width="20dp" android:layout_height="20dp"
-            android:src="@drawable/di_wave"/>
+        <com.music.app.widget.WaveformView
+            android:id="@+id/islandWave"
+            android:layout_width="24dp" android:layout_height="20dp"
+            android:layout_marginRight="4dp"/>
     </LinearLayout>
 
     <!-- 展开态：大黑卡 -->

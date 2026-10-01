@@ -44,6 +44,7 @@ public class IslandService extends Service {
     private TextView tvTitle, tvExpTitle, tvExpArtist, tvCurrent, tvTotal;
     private TextView tvLyric1, tvLyric2, tvLyric3;
     private ImageView ivCover, ivExpCover;
+    private com.music.app.widget.WaveformView waveView;
     private View btnPlay, btnPlayExp, btnPrev, btnNext, btnClose;
     private SeekBar progress;
     private View collapsedRoot, expandedRoot;
@@ -116,6 +117,7 @@ public class IslandService extends Service {
         tvTotal = island.findViewById(R.id.islandTotal);
         ivCover = island.findViewById(R.id.islandCover);
         ivExpCover = island.findViewById(R.id.islandExpCover);
+        try { waveView = island.findViewById(R.id.islandWave); } catch (Throwable ignored) {}
         btnPlay = island.findViewById(R.id.islandPlay);
         btnPlayExp = island.findViewById(R.id.islandPlayExpand);
         btnPrev = island.findViewById(R.id.islandPrev);
